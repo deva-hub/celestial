@@ -2,7 +2,7 @@ defmodule CelestialGateway.Server do
   @moduledoc false
 
   @default_transport :ranch_tcp
-  @default_protocol CelestialGateWay.Server.SE
+  @default_protocol CelestialGateway.Server.SE
   @default_port 4123
 
   def child_spec(opts \\ []) do

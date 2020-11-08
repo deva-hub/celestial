@@ -1,4 +1,4 @@
-defmodule CelestialGateWay.Server.SE do
+defmodule CelestialGateway.Server.SE do
   @moduledoc false
   @behaviour :ranch_protocol
 
@@ -30,18 +30,81 @@ defmodule CelestialGateWay.Server.SE do
 
     receive do
       {^ok, ^socket, ciphertext} ->
-        Logger.warn(NosCrypto.Gateway.decrypt(ciphertext))
-        loop(state)
+        ciphertext
+        |> NosCrypto.Gateway.decrypt()
+        |> String.split()
+        |> before_handle_packet(state)
 
       {^error, ^socket, reason} ->
-        terminate({:socket_error, reason})
+        terminate(state, {:socket_error, reason})
 
       {^closed, ^socket} ->
-        terminate({:socket_error, :closed})
+        terminate(state, {:socket_error, :closed})
     end
   end
 
-  defp terminate(reason) do
+  defp before_handle_packet(packet, state) do
+    Logger.info(Enum.intersperse(packet, " "))
+    handle_packet(packet, state)
+  end
+
+  defp handle_packet(["NoS0575", _, username, ciphertext_access_token, _, client_version], state) do
+    client_semver = CelestialGateway.Helpers.nostale_version_to_semver(client_version)
+    access_token = NosCrypto.Gateway.decrypt_access_token(ciphertext_access_token)
+
+    with :ok <- validate_client_version(client_semver),
+         {:ok, uid} <- authenticate_access_token(username, access_token) do
+      send_packet(state, ["NsTeST", to_string(uid), "-1:-1:-1:10000.10000.1"])
+      terminate(state, :normal)
+    else
+      {:error, :outdated} ->
+        send_packet(state, ["fail", "1"])
+        loop(state)
+
+      {:error, _} ->
+        send_packet(state, ["fail", "9"])
+        loop(state)
+    end
+  end
+
+  defp handle_packet(package, state) do
+    terminate(state, {:socket_garbage, package})
+  end
+
+  defp send_packet(state, packet) do
+    ciphertext_packet =
+      packet
+      |> Enum.join(" ")
+      |> NosCrypto.Gateway.encrypt()
+
+    :ok = state.transport.send(state.socket, ciphertext_packet)
+  end
+
+  defp terminate(_state, reason) do
     exit({:shutdown, reason})
+  end
+
+  defp validate_client_version(version) do
+    case Application.get_env(:gateway, :client_requirement) do
+      nil ->
+        :ok
+
+      requirement ->
+        validate_client_verion_requirement(version, requirement)
+    end
+  end
+
+  defp validate_client_verion_requirement(version, requirement) do
+    if Version.match?(version, requirement) do
+      :ok
+    else
+      {:error, :outdated}
+    end
+  end
+
+  @uid_limit 2_147_483_647
+
+  defp authenticate_access_token(_username, _access_token) do
+    {:ok, :rand.uniform(@uid_limit)}
   end
 end
