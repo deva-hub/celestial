@@ -32,7 +32,7 @@ defmodule CelestialGateway.MixProject do
   defp deps do
     [
       {:ranch, "~> 1.7.1"},
-      {:noscrypto, github: "Shikanime/noscrypto"}
+      {:nos_crypto, github: "shikanime/nos_crypto"}
     ]
   end
 
