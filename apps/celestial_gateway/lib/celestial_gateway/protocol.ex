@@ -24,10 +24,10 @@ defmodule CelestialGateway.Protocol do
   end
 
   defp loop(state) do
+    %{socket: socket} = state
+
     :ok = state.transport.setopts(state.socket, active: :once)
     {ok, closed, error} = state.transport.messages()
-
-    %{socket: socket} = state
 
     receive do
       {^ok, ^socket, ciphertext} ->
@@ -45,7 +45,7 @@ defmodule CelestialGateway.Protocol do
   end
 
   defp before_handle_packet(packet, state) do
-    Logger.info(Enum.intersperse(packet, " "))
+    Logger.info(Enum.intersperse(["PACKET" | packet], " "))
     handle_packet(packet, state)
   end
 
@@ -56,21 +56,25 @@ defmodule CelestialGateway.Protocol do
 
     with :ok <- validate_client_version(client_version),
          {:ok, uid} <- generate_uid_by_email_and_password(ip, email, password) do
-      send_packet(state, ["NsTeST", to_string(uid), "-1:-1:-1:10000.10000.1"])
+      send_packet(state, Nostalex.Gateway.encode_nstest(%{uid: uid, channels: []}))
       terminate(state, :normal)
     else
-      {:error, :outdated} ->
-        send_packet(state, ["fail", "1"])
+      {:error, :outdated_client} ->
+        send_packet(state, Nostalex.Client.encode_failc(%{reason: :outdated_client}))
         loop(state)
 
-      {:error, _} ->
-        send_packet(state, ["fail", "9"])
+      {:error, :unvalid_credentials} ->
+        send_packet(state, Nostalex.Client.encode_failc(%{reason: :unvalid_credentials}))
         loop(state)
     end
+  rescue
+    e ->
+      send_packet(state, Nostalex.Client.encode_failc(%{reason: :bad_case}))
+      reraise e, __STACKTRACE__
   end
 
-  defp handle_packet(package, state) do
-    terminate(state, {:socket_garbage, package})
+  defp handle_packet(_, state) do
+    loop(state)
   end
 
   defp send_packet(state, packet) do
@@ -100,7 +104,7 @@ defmodule CelestialGateway.Protocol do
     if Version.match?(version, requirement) do
       :ok
     else
-      {:error, :outdated}
+      {:error, :outdated_client}
     end
   end
 
@@ -108,12 +112,12 @@ defmodule CelestialGateway.Protocol do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
       {:ok, Accounts.generate_identity_uid_token(ip, identity)}
     else
-      {:error, :bad_credentials}
+      {:error, :unvalid_credentials}
     end
   end
 
   defp get_ip_address(state) do
     {:ok, {ip, _}} = state.transport.peername(state.socket)
-    :inet.ntoa(ip)
+    ip |> :inet.ntoa() |> to_string()
   end
 end
