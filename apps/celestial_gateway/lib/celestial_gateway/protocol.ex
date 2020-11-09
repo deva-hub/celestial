@@ -52,9 +52,10 @@ defmodule CelestialGateway.Protocol do
   defp handle_packet(["NoS0575", _, email, cipher_password, _, client_version], state) do
     client_version = CelestialGateway.Helpers.normalize_version(client_version)
     password = NosCrypto.Gateway.decrypt_password(cipher_password)
+    ip = get_ip_address(state)
 
     with :ok <- validate_client_version(client_version),
-         {:ok, uid} <- generate_uid_by_email_and_password(email, password) do
+         {:ok, uid} <- generate_uid_by_email_and_password(ip, email, password) do
       send_packet(state, ["NsTeST", to_string(uid), "-1:-1:-1:10000.10000.1"])
       terminate(state, :normal)
     else
@@ -103,11 +104,16 @@ defmodule CelestialGateway.Protocol do
     end
   end
 
-  defp generate_uid_by_email_and_password(email, password) do
+  defp generate_uid_by_email_and_password(ip, email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      {:ok, Accounts.generate_identity_uid_token(identity)}
+      {:ok, Accounts.generate_identity_uid_token(ip, identity)}
     else
       {:error, :bad_credentials}
     end
+  end
+
+  defp get_ip_address(state) do
+    {:ok, {ip, _}} = state.transport.peername(state.socket)
+    :inet.ntoa(ip)
   end
 end

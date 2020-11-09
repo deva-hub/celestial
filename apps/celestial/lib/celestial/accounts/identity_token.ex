@@ -26,7 +26,7 @@ defmodule Celestial.Accounts.IdentityToken do
   Generate a token that will be stored in the database.
   While a uid is issued for identification.
   """
-  def build_uid_token(identity) do
+  def build_uid_token(ip, identity) do
     uid = :rand.uniform(@uid_size)
     hashed_uid = :crypto.hash(@hash_algorithm, to_string(uid))
 
@@ -34,6 +34,7 @@ defmodule Celestial.Accounts.IdentityToken do
      %Celestial.Accounts.IdentityToken{
        token: hashed_uid,
        context: "access",
+       sent_to: ip,
        identity_id: identity.id
      }}
   end

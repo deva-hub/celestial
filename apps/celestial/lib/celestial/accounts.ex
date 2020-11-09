@@ -232,10 +232,10 @@ defmodule Celestial.Accounts do
   ## Session
 
   @doc """
-  Generates a token.
+  Generates a uid from a given ip.
   """
-  def generate_identity_uid_token(identity) do
-    {uid, identity_token} = IdentityToken.build_uid_token(identity)
+  def generate_identity_uid_token(ip, identity) do
+    {uid, identity_token} = IdentityToken.build_uid_token(ip, identity)
     Repo.insert!(identity_token)
     uid
   end
