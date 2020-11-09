@@ -22,33 +22,37 @@ defmodule Nostalex.Gateway do
 
   @channel_terminator "-1:-1:-1:10000.10000.1"
 
-  @spec encode_nstest(nstest) :: iodata
-  def encode_nstest(param) do
-    channels = Helpers.encode_list(param.channels, @channel_terminator, &channel/1)
-    Helpers.encode_packet(["NsTeST", to_string(param.uid) | channels])
+  @spec pack_nstest(nstest) :: iodata
+  def pack_nstest(param) do
+    channels =
+      param.channels
+      |> Enum.map(&pack_channel/1)
+      |> Helpers.pack_list(@channel_terminator)
+
+    Helpers.pack_list(["NsTeST", param.uid | channels])
   end
 
-  defp channel(channel) do
+  def pack_channel(channel) do
     [
-      ip_address(channel.ip),
+      pack_ip_address(channel.ip),
       ":",
-      to_string(channel.port),
+      channel.port,
       ":",
       channel_color(channel.population, channel.capacity),
       ":",
-      to_string(channel.slot),
+      channel.slot,
       ".",
-      to_string(channel.world_sid),
+      channel.world_sid,
       ".",
-      to_string(channel.sid)
+      channel.sid
     ]
   end
 
   defp channel_color(population, capacity) do
-    to_string(round(population / capacity * 20) + 1)
+    round(population / capacity * 20) + 1
   end
 
-  defp ip_address({d1, d2, d3, d4}) do
-    [to_string(d1), ".", to_string(d2), ".", to_string(d3), ".", to_string(d4)]
+  def pack_ip_address({d1, d2, d3, d4}) do
+    Enum.intersperse([d1, d2, d3, d4], ".")
   end
 end

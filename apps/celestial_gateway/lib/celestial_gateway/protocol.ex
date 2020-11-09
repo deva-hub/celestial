@@ -31,10 +31,13 @@ defmodule CelestialGateway.Protocol do
 
     receive do
       {^ok, ^socket, ciphertext} ->
-        ciphertext
-        |> NostalexCrypto.Gateway.decrypt()
-        |> String.split()
-        |> before_handle_packet(state)
+        plaintext = NostalexCrypto.Gateway.decrypt(ciphertext)
+
+        Logger.info(Enum.intersperse(["PACKET", plaintext], " "))
+
+        plaintext
+        |> Nostalex.parse()
+        |> handle_packet(state)
 
       {^error, ^socket, reason} ->
         terminate(state, {:socket_error, reason})
@@ -44,32 +47,27 @@ defmodule CelestialGateway.Protocol do
     end
   end
 
-  defp before_handle_packet(packet, state) do
-    Logger.info(Enum.intersperse(["PACKET" | packet], " "))
-    handle_packet(packet, state)
-  end
-
-  defp handle_packet(["NoS0575", _, email, cipher_password, _, client_version], state) do
+  defp handle_packet({:nos0575, _, email, cipher_password, _, client_version}, state) do
     client_version = CelestialGateway.Helpers.normalize_version(client_version)
     password = NostalexCrypto.Gateway.decrypt_password(cipher_password)
     ip = get_ip_address(state)
 
     with :ok <- validate_client_version(client_version),
          {:ok, uid} <- generate_uid_by_email_and_password(ip, email, password) do
-      send_packet(state, Nostalex.Gateway.encode_nstest(%{uid: uid, channels: []}))
+      send_packet(state, Nostalex.Gateway.pack_nstest(%{uid: uid, channels: []}))
       terminate(state, :normal)
     else
       {:error, :outdated_client} ->
-        send_packet(state, Nostalex.Client.encode_failc(%{reason: :outdated_client}))
+        send_packet(state, Nostalex.Client.pack_failc(%{reason: :outdated_client}))
         loop(state)
 
       {:error, :unvalid_credentials} ->
-        send_packet(state, Nostalex.Client.encode_failc(%{reason: :unvalid_credentials}))
+        send_packet(state, Nostalex.Client.pack_failc(%{reason: :unvalid_credentials}))
         loop(state)
     end
   rescue
     e ->
-      send_packet(state, Nostalex.Client.encode_failc(%{reason: :bad_case}))
+      send_packet(state, Nostalex.Client.pack_failc(%{reason: :bad_case}))
       reraise e, __STACKTRACE__
   end
 

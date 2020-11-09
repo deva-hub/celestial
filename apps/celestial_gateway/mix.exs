@@ -32,6 +32,7 @@ defmodule CelestialGateway.MixProject do
   defp deps do
     [
       {:celestial, in_umbrella: true},
+      {:nostalex, in_umbrella: true},
       {:ranch, "~> 1.7"},
       {:nostalex_crypto, github: "shikanime/nostalex_crypto"}
     ]
