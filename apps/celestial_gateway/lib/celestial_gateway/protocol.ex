@@ -1,8 +1,9 @@
-defmodule CelestialGateway.Server.SE do
+defmodule CelestialGateway.Protocol do
   @moduledoc false
   @behaviour :ranch_protocol
 
   require Logger
+  alias Celestial.Accounts
 
   @impl true
   def start_link(ref, _, transport, opts) do
@@ -48,12 +49,12 @@ defmodule CelestialGateway.Server.SE do
     handle_packet(packet, state)
   end
 
-  defp handle_packet(["NoS0575", _, username, ciphertext_access_token, _, client_version], state) do
-    client_semver = CelestialGateway.Helpers.nostale_version_to_semver(client_version)
-    access_token = NosCrypto.Gateway.decrypt_access_token(ciphertext_access_token)
+  defp handle_packet(["NoS0575", _, email, cipher_password, _, client_version], state) do
+    client_version = CelestialGateway.Helpers.normalize_version(client_version)
+    password = NosCrypto.Gateway.decrypt_password(cipher_password)
 
-    with :ok <- validate_client_version(client_semver),
-         {:ok, uid} <- authenticate_access_token(username, access_token) do
+    with :ok <- validate_client_version(client_version),
+         {:ok, uid} <- generate_uid_by_email_and_password(email, password) do
       send_packet(state, ["NsTeST", to_string(uid), "-1:-1:-1:10000.10000.1"])
       terminate(state, :normal)
     else
@@ -102,9 +103,11 @@ defmodule CelestialGateway.Server.SE do
     end
   end
 
-  @uid_limit 2_147_483_647
-
-  defp authenticate_access_token(_username, _access_token) do
-    {:ok, :rand.uniform(@uid_limit)}
+  defp generate_uid_by_email_and_password(email, password) do
+    if identity = Accounts.get_identity_by_email_and_password(email, password) do
+      {:ok, Accounts.generate_identity_uid_token(identity)}
+    else
+      {:error, :bad_credentials}
+    end
   end
 end

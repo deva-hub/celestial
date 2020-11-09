@@ -1,5 +1,13 @@
 use Mix.Config
 
+# Configure mailing service
+config :celestial_web, CelestialWeb.Mailer, adapter: Swoosh.Adapters.Local
+
+config :celestial_web,
+  recovery_url: "http://example.com/recovery",
+  email_url: "http://example.com/email",
+  confirmation_url: "http://example.com/confirmation"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

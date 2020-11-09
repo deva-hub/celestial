@@ -31,6 +31,7 @@ defmodule CelestialGateway.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:celestial, in_umbrella: true},
       {:ranch, "~> 1.7.1"},
       {:nos_crypto, github: "shikanime/nos_crypto"}
     ]

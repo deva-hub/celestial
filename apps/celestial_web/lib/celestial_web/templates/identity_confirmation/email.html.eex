@@ -1,0 +1,12 @@
+<div>
+  <h1>Hi, <%= @identity.email %>!</h1>
+  <div>
+    You can confirm your account by visiting the url below:
+  </div>
+  <div>
+    <%= @url %>
+  </div>
+  <div>
+    If you didn't create an account with us, please ignore this.
+  </div>
+</div>
