@@ -32,7 +32,7 @@ defmodule CelestialGateway.Protocol do
     receive do
       {^ok, ^socket, ciphertext} ->
         ciphertext
-        |> NosCrypto.Gateway.decrypt()
+        |> NostalexCrypto.Gateway.decrypt()
         |> String.split()
         |> before_handle_packet(state)
 
@@ -51,7 +51,7 @@ defmodule CelestialGateway.Protocol do
 
   defp handle_packet(["NoS0575", _, email, cipher_password, _, client_version], state) do
     client_version = CelestialGateway.Helpers.normalize_version(client_version)
-    password = NosCrypto.Gateway.decrypt_password(cipher_password)
+    password = NostalexCrypto.Gateway.decrypt_password(cipher_password)
     ip = get_ip_address(state)
 
     with :ok <- validate_client_version(client_version),
@@ -81,7 +81,7 @@ defmodule CelestialGateway.Protocol do
     ciphertext_packet =
       packet
       |> Enum.join(" ")
-      |> NosCrypto.Gateway.encrypt()
+      |> NostalexCrypto.Gateway.encrypt()
 
     :ok = state.transport.send(state.socket, ciphertext_packet)
   end

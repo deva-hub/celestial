@@ -1,9 +1,9 @@
-defmodule CelestialGateway.MixProject do
+defmodule CelestialChannel.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :celestial_gateway,
+      app: :celestial_channel,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -21,8 +21,8 @@ defmodule CelestialGateway.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {CelestialGateway.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      mod: {CelestialChannel.Application, []},
+      extra_applications: [:logger, :mnesia, :runtime_tools]
     ]
   end
 
