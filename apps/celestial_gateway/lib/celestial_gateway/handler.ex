@@ -13,14 +13,8 @@ defmodule CelestialGateway.Handler do
   @impl true
   def handle_in({data, _}, state) do
     data = NostalexCrypto.Gateway.decrypt(data)
-
     Logger.info(["PACKET ", data])
-
-    case data |> Nostalex.parse() |> handle_packet(state) do
-      {:reply, status, {opcode, msg}, state} ->
-        msg = msg |> Enum.join() |> NostalexCrypto.Gateway.encrypt()
-        {:reply, status, {opcode, msg}, state}
-    end
+    data |> Nostalex.parse() |> handle_packet(state) |> handle_reply()
   end
 
   defp handle_packet({:nos0575, email, cipher_password, client_version}, state) do
@@ -30,14 +24,44 @@ defmodule CelestialGateway.Handler do
     with :ok <- validate_client_version(client_version),
          {:ok, uid} <- generate_uid_by_email_and_password(address, email, password) do
       send(self(), :authenticated)
-      {:reply, :ok, {:nstest, Nostalex.Gateway.pack_nstest(%{uid: uid, channels: []})}, state}
+      {:reply, :ok, {:nstest, %{uid: uid, channels: []}}, state}
     else
       {:error, :outdated_client} ->
-        {:reply, :error, {:failc, Nostalex.Client.pack_failc(%{reason: :outdated_client})}, state}
+        {:reply, :error, {:failc, %{reason: :outdated_client}}, state}
 
       {:error, :unvalid_credentials} ->
-        {:reply, :error, {:failc, Nostalex.Client.pack_failc(%{reason: :unvalid_credentials})}, state}
+        {:reply, :error, {:failc, %{reason: :unvalid_credentials}}, state}
     end
+  end
+
+  defp handle_packet(_, state) do
+    {:ok, state}
+  end
+
+  defp handle_reply({:ok, state}) do
+    {:ok, state}
+  end
+
+  defp handle_reply({:push, {opcode, data}, state}) do
+    data =
+      Nostalex.pack(opcode, data)
+      |> Enum.join()
+      |> NostalexCrypto.Gateway.encrypt()
+
+    {:push, data, state}
+  end
+
+  defp handle_reply({:reply, status, {opcode, data}, state}) do
+    data =
+      Nostalex.pack(opcode, data)
+      |> Enum.join()
+      |> NostalexCrypto.Gateway.encrypt()
+
+    {:reply, status, {opcode, data}, state}
+  end
+
+  defp handle_reply({:stop, reason, state}) do
+    {:stop, reason, state}
   end
 
   defp validate_client_version(version) do

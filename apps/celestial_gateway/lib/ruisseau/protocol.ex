@@ -39,7 +39,7 @@ defmodule Ruisseau.Protocol do
 
     receive do
       {^ok, ^socket, data} ->
-        handle_reply(handler, handler.handle_in({data, []}, state))
+        handler.handle_in({data, []}, state) |> handle_reply(handler)
 
       {^error, ^socket, reason} ->
         terminate(reason, {handler, state})
@@ -48,7 +48,7 @@ defmodule Ruisseau.Protocol do
         terminate(:close, {handler, state})
 
       message ->
-        handle_reply(handler, handler.handle_info(message, state))
+        handler.handle_info(message, state) |> handle_reply(handler)
         loop({handler, state})
     end
   rescue
@@ -57,21 +57,21 @@ defmodule Ruisseau.Protocol do
       reraise e, __STACKTRACE__
   end
 
-  defp handle_reply(handler, {:ok, state}) do
+  defp handle_reply({:ok, state}, handler) do
     loop({handler, state})
   end
 
-  defp handle_reply(handler, {:push, data, state}) do
+  defp handle_reply({:push, {_, data}, state}, handler) do
     state.transport.send(state.socket, data)
     loop({handler, state})
   end
 
-  defp handle_reply(handler, {:reply, _status, {_, data}, state}) do
+  defp handle_reply({:reply, _status, {_, data}, state}, handler) do
     state.transport.send(state.socket, data)
     loop({handler, state})
   end
 
-  defp handle_reply(handler, {:stop, reason, state}) do
+  defp handle_reply({:stop, reason, state}, handler) do
     terminate(reason, {handler, state})
   end
 
