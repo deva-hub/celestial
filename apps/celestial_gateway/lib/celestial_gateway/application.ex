@@ -8,7 +8,7 @@ defmodule CelestialGateway.Application do
   def start(_type, _args) do
     children = [
       # Start the TCP Server
-      {CelestialGateway.Server, []}
+      {Ruisseau, scheme: :tcp, port: 4123, handler: CelestialGateway.Handler, protocol_opts: [connect_info: [:peer_data]]}
       # Start a worker by calling: CelestialGateway.Worker.start_link(arg)
       # {CelestialGateway.Worker, arg}
     ]
