@@ -1,58 +1,93 @@
 defmodule Nostalex.Gateway do
-  @moduledoc """
-  Authentification response serializer.
+  @moduledoc false
+
+  require Logger
+
+  alias Nostalex.Protocol
+  alias Nostalex.Gateway.Crypto
+
+  @type state :: term()
+
+  @doc """
+  Handles incoming decoded socket packet.
+
+  It must return one of:
+
+    * `{:ok, state}` - continues the socket with no reply
+    * `{:reply, status, reply, state}` - continues the socket with reply
+    * `{:stop, reason, state}` - stops the socket
+
+  The `reply` is a tuple contain an `opcode` atom and a message that can
+  be any term. The built-in websocket transport supports both `:text` and
+  `:binary` opcode and the message must be always iodata. Long polling only
+  supports text opcode.
   """
+  @callback handle_packet(message :: term, state) ::
+              {:ok, state}
+              | {:reply, :ok | :error, {opcode :: atom, message :: term}, state}
+              | {:stop, reason :: term, state}
 
-  alias Nostalex.Helpers
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour Nostalex.Gateway
+      @behaviour Nostalex.Transport
 
-  @type channel :: %{
-          sid: pos_integer,
-          world_sid: pos_integer,
-          slot: pos_integer,
-          ip: :inet.ip4_address(),
-          port: :inet.port_number(),
-          population: non_neg_integer,
-          capacity: non_neg_integer
-        }
+      @impl true
+      def handle_in({data, options}, state) do
+        Nostalex.Gateway.__handle_in__(__MODULE__, {data, options}, state)
+      end
 
-  @type nstest :: %{
-          uid: pos_integer,
-          channels: [channel]
-        }
+      @impl true
+      def handle_info(data, state) do
+        Nostalex.Gateway.__handle_info__(data, state)
+      end
 
-  @channel_terminator "-1:-1:-1:10000.10000.1"
+      @impl true
+      def terminate(reason, state) do
+        Nostalex.Gateway.__terminate__(reason, state)
+      end
 
-  @spec pack_nstest(nstest) :: iodata
-  def pack_nstest(param) do
-    channels =
-      param.channels
-      |> Enum.map(&pack_channel/1)
-      |> Helpers.pack_list(@channel_terminator)
-
-    Helpers.pack_list(["NsTeST", param.uid | channels])
+      defoverridable handle_info: 2, terminate: 2
+    end
   end
 
-  def pack_channel(channel) do
-    [
-      pack_ip_address(channel.ip),
-      ":",
-      channel.port,
-      ":",
-      channel_color(channel.population, channel.capacity),
-      ":",
-      channel.slot,
-      ".",
-      channel.world_sid,
-      ".",
-      channel.sid
-    ]
+  def __handle_in__(mod, {data, _}, state) do
+    data = Crypto.decrypt(data)
+    Logger.info(["PACKET ", data])
+    data |> Protocol.parse() |> mod.handle_packet(state) |> handle_reply()
   end
 
-  defp channel_color(population, capacity) do
-    round(population / capacity * 20) + 1
+  defp handle_reply({:ok, state}) do
+    {:ok, state}
   end
 
-  def pack_ip_address({d1, d2, d3, d4}) do
-    Enum.intersperse([d1, d2, d3, d4], ".")
+  defp handle_reply({:push, {opcode, data}, state}) do
+    data =
+      Protocol.pack(opcode, data)
+      |> Enum.join()
+      |> Crypto.encrypt()
+
+    {:push, {opcode, data}, state}
+  end
+
+  defp handle_reply({:reply, status, {opcode, data}, state}) do
+    data =
+      Protocol.pack(opcode, data)
+      |> Enum.join()
+      |> Crypto.encrypt()
+
+    {:reply, status, {opcode, data}, state}
+  end
+
+  defp handle_reply({:stop, reason, state}) do
+    {:stop, reason, state}
+  end
+
+  def __handle_info__(_, state) do
+    {:ok, state}
+  end
+
+  def __terminate__(_, _) do
+    :ok
   end
 end

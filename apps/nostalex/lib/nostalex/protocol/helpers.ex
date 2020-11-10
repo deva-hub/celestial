@@ -1,4 +1,4 @@
-defmodule Nostalex.Helpers do
+defmodule Nostalex.Protocol.Helpers do
   def pack_list(list, terminator) when is_list(list) do
     [terminator]
     |> Enum.concat(Enum.reverse(list))

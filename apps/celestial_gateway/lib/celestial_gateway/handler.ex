@@ -1,8 +1,7 @@
 defmodule CelestialGateway.Handler do
   @moduledoc false
-  @behaviour Ruisseau.Handler
+  use Nostalex.Gateway
 
-  require Logger
   alias Celestial.Accounts
 
   @impl true
@@ -11,14 +10,7 @@ defmodule CelestialGateway.Handler do
   end
 
   @impl true
-  def handle_in({data, _}, state) do
-    data = NostalexCrypto.Gateway.decrypt(data)
-    Logger.info(["PACKET ", data])
-    data |> Nostalex.parse() |> handle_packet(state) |> handle_reply()
-  end
-
-  defp handle_packet({:nos0575, email, cipher_password, client_version}, state) do
-    password = NostalexCrypto.Gateway.decrypt_password(cipher_password)
+  def handle_packet({:nos0575, email, password, client_version}, state) do
     address = state.peer_data.address |> :inet.ntoa() |> to_string()
 
     with :ok <- validate_client_version(client_version),
@@ -34,34 +26,13 @@ defmodule CelestialGateway.Handler do
     end
   end
 
-  defp handle_packet(_, state) do
+  def handle_packet(_, state) do
     {:ok, state}
   end
 
-  defp handle_reply({:ok, state}) do
-    {:ok, state}
-  end
-
-  defp handle_reply({:push, {opcode, data}, state}) do
-    data =
-      Nostalex.pack(opcode, data)
-      |> Enum.join()
-      |> NostalexCrypto.Gateway.encrypt()
-
-    {:push, data, state}
-  end
-
-  defp handle_reply({:reply, status, {opcode, data}, state}) do
-    data =
-      Nostalex.pack(opcode, data)
-      |> Enum.join()
-      |> NostalexCrypto.Gateway.encrypt()
-
-    {:reply, status, {opcode, data}, state}
-  end
-
-  defp handle_reply({:stop, reason, state}) do
-    {:stop, reason, state}
+  @impl true
+  def handle_info(:authenticated, state) do
+    {:stop, :normal, state}
   end
 
   defp validate_client_version(version) do
@@ -88,15 +59,5 @@ defmodule CelestialGateway.Handler do
     else
       {:error, :unvalid_credentials}
     end
-  end
-
-  @impl true
-  def handle_info(:authenticated, state) do
-    {:stop, :normal, state}
-  end
-
-  @impl true
-  def terminate(_, _) do
-    :ok
   end
 end

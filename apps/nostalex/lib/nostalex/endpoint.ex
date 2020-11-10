@@ -1,5 +1,7 @@
-defmodule Ruisseau do
+defmodule Nostalex.Endpoint do
   @moduledoc false
+
+  alias Nostalex.Endpoint.Protocol
 
   def child_spec(opts \\ []) do
     scheme = Keyword.fetch!(opts, :scheme)
@@ -15,7 +17,7 @@ defmodule Ruisseau do
         :ssl -> :ranch_ssl
       end
 
-    :ranch.child_spec(ref, ranch_module, trans_opts, Ruisseau.Protocol, proto_opts)
+    :ranch.child_spec(ref, ranch_module, trans_opts, Protocol, proto_opts)
   end
 
   defp transport_config(port, opts) do

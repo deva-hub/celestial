@@ -1,4 +1,4 @@
-defmodule Ruisseau.Protocol do
+defmodule Nostalex.Endpoint.Protocol do
   @moduledoc false
   @behaviour :ranch_protocol
 

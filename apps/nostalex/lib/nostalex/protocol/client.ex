@@ -1,9 +1,9 @@
-defmodule Nostalex.Client do
+defmodule Nostalex.Protocol.Client do
   @moduledoc """
   Client specific response.
   """
 
-  alias Nostalex.Helpers
+  alias Nostalex.Protocol.Helpers
 
   @type reason ::
           :outdated_client
