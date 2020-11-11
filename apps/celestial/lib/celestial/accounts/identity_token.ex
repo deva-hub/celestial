@@ -12,7 +12,7 @@ defmodule Celestial.Accounts.IdentityToken do
   @confirm_validity_in_days 7
   @change_email_validity_in_days 7
   @access_validity_in_days 60
-  @one_time_key_validity_in_secondes 60
+  @one_time_key_validity_in_minute 5
 
   schema "identities_tokens" do
     field :token, :binary
@@ -63,10 +63,12 @@ defmodule Celestial.Accounts.IdentityToken do
   The query returns the identity found by the user id.
   """
   def verify_one_time_key_query(address, token) do
+    hashed_token = :crypto.hash(@hash_algorithm, token |> to_string())
+
     query =
-      from token in token_and_context_query(token |> to_string(), "otk"),
+      from token in token_and_context_query(hashed_token, "otk"),
         join: identity in assoc(token, :identity),
-        where: token.inserted_at > ago(@one_time_key_validity_in_secondes, "second") and token.sent_to == ^address,
+        where: token.inserted_at > ago(@one_time_key_validity_in_minute, "minute") and token.sent_to == ^address,
         select: identity
 
     {:ok, query}

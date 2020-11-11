@@ -7,7 +7,7 @@ defmodule CelestialWorld.Channel do
 
   @impl true
   def init(socket) do
-    {:ok, socket}
+    {:ok, assign(socket, %{current_identity: nil, packet_id: nil})}
   end
 
   @impl true
@@ -19,15 +19,15 @@ defmodule CelestialWorld.Channel do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
       address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-      case Accounts.confirm_one_time_key(address, socket.key) do
-        %{id: id} when id == identity.id ->
+      case Accounts.consume_one_time_key(address, socket.key) do
+        {:ok, %{id: id}} when id == identity.id ->
           {:ok, assign(socket, %{current_identity: identity, packet_id: packet_id})}
 
         _ ->
-          {:reply, :error, {:failc, :cant_authenticate}}
+          {:stop, :normal, socket}
       end
     else
-      {:reply, :error, {:failc, :unvalid_credentials}}
+      {:stop, :normal, socket}
     end
   end
 
