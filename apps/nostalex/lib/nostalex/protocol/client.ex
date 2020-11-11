@@ -31,13 +31,13 @@ defmodule Nostalex.Protocol.Client do
   end
 
   @spec pack_reason(reason) :: iodata
-  defp pack_reason(:outdated_client), do: "1"
-  defp pack_reason(:unexpected_error), do: "2"
-  defp pack_reason(:maintenance), do: "3"
-  defp pack_reason(:session_already_used), do: "4"
-  defp pack_reason(:unvalid_credentials), do: "5"
-  defp pack_reason(:cant_authenticate), do: "6"
-  defp pack_reason(:citizen_blacklisted), do: "7"
-  defp pack_reason(:country_blacklisted), do: "8"
-  defp pack_reason(:bad_case), do: "9"
+  defp pack_reason(:outdated_client), do: Helpers.pack_number(1)
+  defp pack_reason(:unexpected_error), do: Helpers.pack_number(2)
+  defp pack_reason(:maintenance), do: Helpers.pack_number(3)
+  defp pack_reason(:session_already_used), do: Helpers.pack_number(4)
+  defp pack_reason(:unvalid_credentials), do: Helpers.pack_number(5)
+  defp pack_reason(:cant_authenticate), do: Helpers.pack_number(6)
+  defp pack_reason(:citizen_blacklisted), do: Helpers.pack_number(7)
+  defp pack_reason(:country_blacklisted), do: Helpers.pack_number(8)
+  defp pack_reason(:bad_case), do: Helpers.pack_number(9)
 end

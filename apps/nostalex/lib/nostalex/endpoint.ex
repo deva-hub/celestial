@@ -1,10 +1,11 @@
 defmodule Nostalex.Endpoint do
   @moduledoc false
 
+  require Logger
   alias Nostalex.Endpoint.Protocol
 
   def child_spec(opts \\ []) do
-    scheme = Keyword.fetch!(opts, :scheme)
+    scheme = Keyword.get(opts, :scheme, :tcp)
     port = Keyword.fetch!(opts, :port)
     handler = Keyword.fetch!(opts, :handler)
     trans_opts = transport_config(port, opts)

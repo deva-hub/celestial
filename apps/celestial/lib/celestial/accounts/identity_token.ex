@@ -12,6 +12,7 @@ defmodule Celestial.Accounts.IdentityToken do
   @confirm_validity_in_days 7
   @change_email_validity_in_days 7
   @access_validity_in_days 60
+  @handoff_validity_in_secondes 60
 
   schema "identities_tokens" do
     field :token, :binary
@@ -24,16 +25,16 @@ defmodule Celestial.Accounts.IdentityToken do
 
   @doc """
   Generate a token that will be stored in the database.
-  While a uid is issued for identification.
+  While a handoff is issued for identification.
   """
-  def build_uid_token(ip, identity) do
-    uid = :rand.uniform(@uid_size)
-    hashed_uid = :crypto.hash(@hash_algorithm, to_string(uid))
+  def build_handoff_key(ip, identity) do
+    handoff_key = :rand.uniform(@uid_size)
+    hashed_handoff_key = :crypto.hash(@hash_algorithm, handoff_key |> to_string())
 
-    {uid,
+    {handoff_key,
      %Celestial.Accounts.IdentityToken{
-       token: hashed_uid,
-       context: "access",
+       token: hashed_handoff_key,
+       context: "handoff",
        sent_to: ip,
        identity_id: identity.id
      }}
@@ -53,6 +54,22 @@ defmodule Celestial.Accounts.IdentityToken do
        context: "access",
        identity_id: identity.id
      }}
+  end
+
+  @doc """
+  Checks if the token is from the same id and returns its underlying
+  lookup query.
+
+  The query returns the identity found by the user id.
+  """
+  def verify_handoff_key_query(ip, token) do
+    query =
+      from token in token_and_context_query(token |> to_string(), "handoff"),
+        join: identity in assoc(token, :identity),
+        where: token.inserted_at > ago(@handoff_validity_in_secondes, "second") and token.sent_to == ^ip,
+        select: identity
+
+    {:ok, query}
   end
 
   @doc """

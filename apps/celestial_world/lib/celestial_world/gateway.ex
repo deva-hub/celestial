@@ -1,8 +1,9 @@
-defmodule CelestialGateway.Handler do
+defmodule CelestialWorld.Gateway do
   @moduledoc false
   use Nostalex.Gateway
 
   alias Celestial.Accounts
+  alias CelestialWorld.Oracle
 
   @impl true
   def init(state) do
@@ -11,12 +12,11 @@ defmodule CelestialGateway.Handler do
 
   @impl true
   def handle_packet({:nos0575, email, password, client_version}, state) do
-    address = state.peer_data.address |> :inet.ntoa() |> to_string()
+    address = state.info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with :ok <- validate_client_version(client_version),
-         {:ok, uid} <- generate_uid_by_email_and_password(address, email, password) do
-      send(self(), :authenticated)
-      {:reply, :ok, {:nstest, %{uid: uid, channels: []}}, state}
+         {:ok, handoff_key} <- generate_handoff_by_email_and_password(address, email, password) do
+      {:reply, :ok, {:nstest, %{handoff_key: handoff_key, channels: Oracle.list_channels()}}, state}
     else
       {:error, :outdated_client} ->
         {:reply, :error, {:failc, %{reason: :outdated_client}}, state}
@@ -28,11 +28,6 @@ defmodule CelestialGateway.Handler do
 
   def handle_packet(_, state) do
     {:ok, state}
-  end
-
-  @impl true
-  def handle_info(:authenticated, state) do
-    {:stop, :normal, state}
   end
 
   defp validate_client_version(version) do
@@ -53,9 +48,9 @@ defmodule CelestialGateway.Handler do
     end
   end
 
-  defp generate_uid_by_email_and_password(ip, email, password) do
+  defp generate_handoff_by_email_and_password(ip, email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      {:ok, Accounts.generate_identity_uid_token(ip, identity)}
+      {:ok, Accounts.generate_identity_handoff_key(ip, identity)}
     else
       {:error, :unvalid_credentials}
     end

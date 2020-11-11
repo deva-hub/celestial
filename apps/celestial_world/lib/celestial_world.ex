@@ -1,6 +1,6 @@
-defmodule CelestialGateway do
+defmodule CelestialWorld do
   @moduledoc """
-  CelestialGateway keeps the contexts that define your domain
+  CelestialWorld keeps the contexts that define your domain
   and business logic.
 
   Contexts are also responsible for managing your data, regardless

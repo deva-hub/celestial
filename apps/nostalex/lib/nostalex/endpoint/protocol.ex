@@ -19,13 +19,13 @@ defmodule Nostalex.Endpoint.Protocol do
   defp init(parent, socket, transport, opts) do
     handler = Keyword.fetch!(opts, :handler)
     connect_info = Keyword.get(opts, :connect_info, [])
-    peer_data = get_connect_info(connect_info, socket, transport)
+    info = get_connect_info(connect_info, socket, transport)
 
     state = %{
       socket: socket,
       transport: transport,
       transport_pid: parent,
-      peer_data: peer_data
+      info: info
     }
 
     {:ok, state} = handler.init(state)
@@ -53,7 +53,7 @@ defmodule Nostalex.Endpoint.Protocol do
     end
   rescue
     e ->
-      terminate({e, __STACKTRACE__}, {handler, state})
+      handler.terminate({e, __STACKTRACE__}, state)
       reraise e, __STACKTRACE__
   end
 
@@ -89,10 +89,16 @@ defmodule Nostalex.Endpoint.Protocol do
     Enum.reduce(connect_info, %{}, fn
       :peer_data, acc ->
         {:ok, {address, port}} = transport.peername(socket)
+        Map.put(acc, :peer_data, %{address: address, port: port})
 
-        acc
-        |> Map.put(:address, address)
-        |> Map.put(:port, port)
+      :handoff_key, acc ->
+        Map.put(acc, :handoff_key, nil)
+
+      :current_identity, acc ->
+        Map.put(acc, :current_identity, nil)
+
+      :packet_id, acc ->
+        Map.put(acc, :packet_id, 0)
 
       _, acc ->
         acc

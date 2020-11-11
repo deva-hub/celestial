@@ -1,15 +1,17 @@
 defmodule Nostalex.Protocol.Helpers do
-  def pack_list(list, terminator) when is_list(list) do
+  def pack_list(list, terminator) do
     [terminator]
     |> Enum.concat(Enum.reverse(list))
     |> Enum.reverse()
     |> pack_list()
   end
 
-  def pack_list(list) when is_list(list) do
-    list
-    |> Enum.map(&to_string/1)
-    |> Enum.intersperse(" ")
+  def pack_list(list) do
+    Enum.intersperse(list, " ")
+  end
+
+  def pack_number(number) do
+    number |> to_string
   end
 
   @nostale_semver_regex ~r/(\d*)\.(\d*)\.(\d*)\.(\d*)/

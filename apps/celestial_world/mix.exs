@@ -1,9 +1,9 @@
-defmodule CelestialChannel.MixProject do
+defmodule CelestialWorld.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :celestial_channel,
+      app: :celestial_world,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -21,8 +21,8 @@ defmodule CelestialChannel.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {CelestialChannel.Application, []},
-      extra_applications: [:logger, :mnesia, :runtime_tools]
+      mod: {CelestialWorld.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -32,9 +32,7 @@ defmodule CelestialChannel.MixProject do
   defp deps do
     [
       {:celestial, in_umbrella: true},
-      {:nostalex, in_umbrella: true},
-      {:ranch, "~> 1.7"},
-      {:nostalex_crypto, github: "shikanime/nostalex_crypto"}
+      {:nostalex, in_umbrella: true}
     ]
   end
 

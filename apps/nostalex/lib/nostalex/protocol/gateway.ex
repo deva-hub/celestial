@@ -6,8 +6,8 @@ defmodule Nostalex.Protocol.Gateway do
   alias Nostalex.Protocol.Helpers
 
   @type channel :: %{
-          sid: pos_integer,
-          world_sid: pos_integer,
+          id: pos_integer,
+          world_id: pos_integer,
           slot: pos_integer,
           ip: :inet.ip4_address(),
           port: :inet.port_number(),
@@ -16,7 +16,7 @@ defmodule Nostalex.Protocol.Gateway do
         }
 
   @type nstest :: %{
-          uid: pos_integer,
+          handoff_key: pos_integer,
           channels: [channel]
         }
 
@@ -29,22 +29,22 @@ defmodule Nostalex.Protocol.Gateway do
       |> Enum.map(&pack_channel/1)
       |> Helpers.pack_list(@channel_terminator)
 
-    Helpers.pack_list(["NsTeST", param.uid | channels])
+    Helpers.pack_list(["NsTeST", param.handoff_key |> to_string(), channels])
   end
 
   def pack_channel(channel) do
     [
       pack_ip_address(channel.ip),
       ":",
-      channel.port,
+      Helpers.pack_number(channel.port),
       ":",
-      channel_color(channel.population, channel.capacity),
+      Helpers.pack_number(channel_color(channel.population, channel.capacity)),
       ":",
-      channel.slot,
+      Helpers.pack_number(channel.slot),
       ".",
-      channel.world_sid,
+      Helpers.pack_number(channel.world_id),
       ".",
-      channel.sid
+      Helpers.pack_number(channel.id)
     ]
   end
 
@@ -53,7 +53,15 @@ defmodule Nostalex.Protocol.Gateway do
   end
 
   def pack_ip_address({d1, d2, d3, d4}) do
-    Enum.intersperse([d1, d2, d3, d4], ".")
+    [
+      Helpers.pack_number(d1),
+      ".",
+      Helpers.pack_number(d2),
+      ".",
+      Helpers.pack_number(d3),
+      ".",
+      Helpers.pack_number(d4)
+    ]
   end
 
   @spec parse_nos0575([binary]) :: {:nos0575, String.t(), String.t(), String.t()}

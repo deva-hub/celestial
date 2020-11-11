@@ -31,11 +31,24 @@ defmodule Nostalex.Channel.Crypto do
   @doc """
   Decrypts the given binary
   """
-  @spec decrypt(binary, integer) :: String.t()
-  def decrypt(ciphertext, uid) do
-    uid_key = uid &&& 0xFF
+  @spec decrypt(binary) :: String.t()
+  def decrypt(ciphertext) do
+    case ciphertext do
+      <<_::size(8), payload::binary>> ->
+        payload
+        |> decrypt_key_bytes()
+        |> Enum.reverse()
+        |> Enum.join()
+
+      _ ->
+        ""
+    end
+  end
+
+  def decrypt(ciphertext, key) do
+    uid_key = key &&& 0xFF
     offset = uid_key + 0x40 &&& 0xFF
-    switch = uid >>> 6 &&& 0x03
+    switch = key >>> 6 &&& 0x03
 
     ciphertext
     |> decrypt_user_data(switch, offset)
@@ -117,24 +130,7 @@ defmodule Nostalex.Channel.Crypto do
     end
   end
 
-  @doc """
-  Decrypt the initial uid binary
-  """
-  @spec decrypt_uid(binary) :: String.t()
-  def decrypt_uid(ciphertext) do
-    case ciphertext do
-      <<_::size(8), payload::binary>> ->
-        payload
-        |> decrypt_uid_bytes()
-        |> Enum.reverse()
-        |> Enum.join()
-
-      _ ->
-        ""
-    end
-  end
-
-  defp decrypt_uid_bytes(data, result \\ []) do
+  defp decrypt_key_bytes(data, result \\ []) do
     case data do
       <<>> ->
         result
@@ -143,28 +139,28 @@ defmodule Nostalex.Channel.Crypto do
         result
 
       <<b::size(8), rest::binary>> ->
-        {fst, snd} = decrypt_uid_byte_pair(b)
-        decrypt_uid_bytes(rest, [snd, fst | result])
+        {fst, snd} = decrypt_key_byte_pair(b)
+        decrypt_key_bytes(rest, [snd, fst | result])
     end
   end
 
-  defp decrypt_uid_byte_pair(byte) do
+  defp decrypt_key_byte_pair(byte) do
     fst_b = byte - 0xF
     snd_b = fst_b &&& 0xF0
-    fst = decrypt_uid_second_key(snd_b >>> 0x4)
-    snd = decrypt_uid_first_key(fst_b - snd_b)
+    fst = decrypt_key_second_key(snd_b >>> 0x4)
+    snd = decrypt_key_first_key(fst_b - snd_b)
     {fst, snd}
   end
 
-  defp decrypt_uid_second_key(0), do: " "
-  defp decrypt_uid_second_key(1), do: " "
-  defp decrypt_uid_second_key(2), do: "-"
-  defp decrypt_uid_second_key(3), do: "."
-  defp decrypt_uid_second_key(key), do: <<0x2C + key::utf8>>
+  defp decrypt_key_second_key(0), do: " "
+  defp decrypt_key_second_key(1), do: " "
+  defp decrypt_key_second_key(2), do: "-"
+  defp decrypt_key_second_key(3), do: "."
+  defp decrypt_key_second_key(key), do: <<0x2C + key::utf8>>
 
-  defp decrypt_uid_first_key(0), do: " "
-  defp decrypt_uid_first_key(1), do: " "
-  defp decrypt_uid_first_key(2), do: "-"
-  defp decrypt_uid_first_key(3), do: "."
-  defp decrypt_uid_first_key(key), do: <<0x2C + key::utf8>>
+  defp decrypt_key_first_key(0), do: " "
+  defp decrypt_key_first_key(1), do: " "
+  defp decrypt_key_first_key(2), do: "-"
+  defp decrypt_key_first_key(3), do: "."
+  defp decrypt_key_first_key(key), do: <<0x2C + key::utf8>>
 end
