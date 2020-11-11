@@ -5,23 +5,22 @@ defmodule CelestialWorld.Application do
 
   use Application
 
-  def start(_type, _args) do
-    gateway_endpoint_opts = [
-      port: Application.fetch_env!(:celestial_world, :gateway_port),
-      handler: CelestialWorld.Gateway,
-      protocol_opts: [connect_info: [:peer_data]]
-    ]
+  alias CelestialWorld.{Gateway, Channel}
 
-    channel_enpdoint_opts = [
-      port: Application.fetch_env!(:celestial_world, :channel_port),
-      handler: CelestialWorld.Channel,
-      protocol_opts: [connect_info: [:peer_data]]
-    ]
+  def start(_type, _args) do
+    gateway_port =
+      Application.get_env(:celestial_world, :gateway_port) ||
+        raise ":gateway_port not set in :celestial_world application"
+
+    channel_port =
+      Application.get_env(:celestial_world, :channel_port) ||
+        raise ":channel_port not set in :celestial_world application"
 
     children = [
-      # Start the TCP Server
-      {Nostalex.Endpoint, gateway_endpoint_opts},
-      {Nostalex.Endpoint, channel_enpdoint_opts}
+      # Start the Gateway TCP Server
+      {Nostalex.Endpoint, [port: gateway_port, handler: Gateway, protocol_opts: [connect_info: [:peer_data]]]},
+      # Start the Channel TCP Server
+      {Nostalex.Endpoint, [port: channel_port, handler: Channel, protocol_opts: [connect_info: [:peer_data]]]}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}
     ]
