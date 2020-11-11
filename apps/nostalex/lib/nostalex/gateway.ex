@@ -1,8 +1,6 @@
 defmodule Nostalex.Gateway do
   @moduledoc false
 
-  require Logger
-
   alias Nostalex.Protocol
   alias Nostalex.Gateway.Crypto
 
@@ -54,9 +52,11 @@ defmodule Nostalex.Gateway do
   end
 
   def __handle_in__(mod, {data, _}, state) do
-    data = Crypto.decrypt(data)
-    Logger.info(["PACKET ", data])
-    data |> Protocol.parse() |> mod.handle_packet(state) |> handle_reply()
+    data
+    |> Crypto.decrypt()
+    |> Protocol.parse()
+    |> mod.handle_packet(state)
+    |> handle_reply()
   end
 
   defp handle_reply({:ok, state}) do

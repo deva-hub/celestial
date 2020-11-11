@@ -37,7 +37,7 @@ defmodule CelestialWorld.Channel do
   end
 
   def handle_packet(data, socket) do
-    IO.inspect(data)
+    Logger.debug(["GARBAGE ", inspect(data)])
     {:ok, socket}
   end
 end

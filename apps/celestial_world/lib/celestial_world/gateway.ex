@@ -2,6 +2,7 @@ defmodule CelestialWorld.Gateway do
   @moduledoc false
   use Nostalex.Gateway
 
+  require Logger
   alias Celestial.Accounts
   alias CelestialWorld.Oracle
 
@@ -26,7 +27,8 @@ defmodule CelestialWorld.Gateway do
     end
   end
 
-  def handle_packet(_, socket) do
+  def handle_packet(data, socket) do
+    Logger.debug(["GARBAGE ", inspect(data)])
     {:ok, socket}
   end
 

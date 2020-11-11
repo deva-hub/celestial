@@ -1,8 +1,6 @@
 defmodule Nostalex.Channel do
   @moduledoc false
 
-  require Logger
-
   alias Nostalex.Socket
   alias Nostalex.Protocol
   alias Nostalex.Channel.Crypto
@@ -67,9 +65,11 @@ defmodule Nostalex.Channel do
   end
 
   def __handle_in__(mod, {data, _}, socket) do
-    data = Crypto.decrypt(data, socket.key)
-    Logger.info(["PACKET ", data])
-    data |> Protocol.parse() |> mod.handle_packet(socket) |> handle_reply()
+    data
+    |> Crypto.decrypt(socket.key)
+    |> Protocol.parse()
+    |> mod.handle_packet(socket)
+    |> handle_reply()
   end
 
   defp handle_reply({:ok, socket}) do
