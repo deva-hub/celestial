@@ -8,8 +8,8 @@ config :celestial, Celestial.Repo,
 
 # Configure Celestial channel node port
 config :celestial_world,
-  gateway_port: String.to_integer(System.get_env("CELESTIAL_CHANNEL_PORT", "4123")),
-  channel_port: String.to_integer(System.get_env("CELESTIAL_CHANNEL_PORT", "4124"))
+  gateway_port: System.get_env("CELESTIAL_CHANNEL_PORT", "4123") |> String.to_integer(),
+  channel_port: System.get_env("CELESTIAL_CHANNEL_PORT", "4124") |> String.to_integer()
 
 # Configure email redirection
 app_url = System.get_env("CELESTIAL_APP_URL", "http://localhost:3000")
@@ -25,7 +25,7 @@ config :celestial_web,
 config :celestial_web, CelestialWeb.Endpoint,
   url: [
     host: System.get_env("HOST", "0.0.0.0"),
-    port: String.to_integer(System.get_env("PORT") || "4000")
+    port: System.get_env("PORT", "4000") |> String.to_integer()
   ]
 
 case config_env() do
@@ -69,10 +69,10 @@ case config_env() do
     # Configures the database
     config :celestial, Celestial.Repo,
       database: System.get_env("POSTGRES_DB", "celestial"),
-      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+      pool_size: System.get_env("POOL_SIZE", "10") |> String.to_integer()
 
     # Configure the distribution protocol port
-    dist_port = String.to_integer(System.get_env("CELESTIAL_DIST_PORT", "49300"))
+    dist_port = System.get_env("CELESTIAL_DIST_PORT", "49300") |> String.to_integer()
 
     config :kernel,
       inet_dist_listen_min: dist_port,
