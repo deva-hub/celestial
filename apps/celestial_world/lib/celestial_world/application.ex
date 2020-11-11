@@ -15,7 +15,7 @@ defmodule CelestialWorld.Application do
     channel_enpdoint_opts = [
       port: 4124,
       handler: CelestialWorld.Channel,
-      protocol_opts: [connect_info: [:peer_data, :handoff_key, :packet_id, :current_identity]]
+      protocol_opts: [connect_info: [:peer_data]]
     ]
 
     children = [

@@ -16,7 +16,7 @@ defmodule Nostalex.Protocol.Gateway do
         }
 
   @type nstest :: %{
-          handoff_key: pos_integer,
+          key: pos_integer,
           channels: [channel]
         }
 
@@ -29,7 +29,7 @@ defmodule Nostalex.Protocol.Gateway do
       |> Enum.map(&pack_channel/1)
       |> Helpers.pack_list(@channel_terminator)
 
-    Helpers.pack_list(["NsTeST", param.handoff_key |> to_string(), channels])
+    Helpers.pack_list(["NsTeST", param.key |> to_string(), channels])
   end
 
   def pack_channel(channel) do

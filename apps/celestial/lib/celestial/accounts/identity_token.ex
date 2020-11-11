@@ -12,7 +12,7 @@ defmodule Celestial.Accounts.IdentityToken do
   @confirm_validity_in_days 7
   @change_email_validity_in_days 7
   @access_validity_in_days 60
-  @handoff_validity_in_secondes 60
+  @one_time_key_validity_in_secondes 60
 
   schema "identities_tokens" do
     field :token, :binary
@@ -25,17 +25,17 @@ defmodule Celestial.Accounts.IdentityToken do
 
   @doc """
   Generate a token that will be stored in the database.
-  While a handoff is issued for identification.
+  While a one time key is issued for identification.
   """
-  def build_handoff_key(ip, identity) do
-    handoff_key = :rand.uniform(@uid_size)
-    hashed_handoff_key = :crypto.hash(@hash_algorithm, handoff_key |> to_string())
+  def build_one_time_key(address, identity) do
+    key = :rand.uniform(@uid_size)
+    hashed_one_time_key = :crypto.hash(@hash_algorithm, key |> to_string())
 
-    {handoff_key,
+    {key,
      %Celestial.Accounts.IdentityToken{
-       token: hashed_handoff_key,
-       context: "handoff",
-       sent_to: ip,
+       token: hashed_one_time_key,
+       context: "otk",
+       sent_to: address,
        identity_id: identity.id
      }}
   end
@@ -62,11 +62,11 @@ defmodule Celestial.Accounts.IdentityToken do
 
   The query returns the identity found by the user id.
   """
-  def verify_handoff_key_query(ip, token) do
+  def verify_one_time_key_query(address, token) do
     query =
-      from token in token_and_context_query(token |> to_string(), "handoff"),
+      from token in token_and_context_query(token |> to_string(), "otk"),
         join: identity in assoc(token, :identity),
-        where: token.inserted_at > ago(@handoff_validity_in_secondes, "second") and token.sent_to == ^ip,
+        where: token.inserted_at > ago(@one_time_key_validity_in_secondes, "second") and token.sent_to == ^address,
         select: identity
 
     {:ok, query}

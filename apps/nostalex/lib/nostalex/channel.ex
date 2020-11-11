@@ -3,119 +3,110 @@ defmodule Nostalex.Channel do
 
   require Logger
 
+  alias Nostalex.Socket
   alias Nostalex.Protocol
   alias Nostalex.Channel.Crypto
-
-  @type state :: term()
 
   @doc """
   Handles incoming decoded socket packet.
 
   It must return one of:
 
-    * `{:ok, state}` - continues the socket with no reply
-    * `{:reply, status, reply, state}` - continues the socket with reply
-    * `{:stop, reason, state}` - stops the socket
+    * `{:ok, socket}` - continues the socket with no reply
+    * `{:reply, status, reply, socket}` - continues the socket with reply
+    * `{:stop, reason, socket}` - stops the socket
 
   The `reply` is a tuple contain an `opcode` atom and a message that can
   be any term. The built-in websocket transport supports both `:text` and
   `:binary` opcode and the message must be always iodata. Long polling only
   supports text opcode.
   """
-  @callback handle_packet(message :: term, state) ::
-              {:ok, state}
-              | {:reply, :ok | :error, {opcode :: atom, message :: term}, state}
-              | {:stop, reason :: term, state}
+  @callback handle_packet(message :: term, Socket.t()) ::
+              {:ok, Socket.t()}
+              | {:reply, :ok | :error, {opcode :: atom, message :: term}, Socket.t()}
+              | {:stop, reason :: term, Socket.t()}
 
   defmacro __using__(_opts) do
     quote do
       @behaviour Nostalex.Channel
       @behaviour Nostalex.Transport
 
+      import Nostalex.Socket
+
       @impl true
-      def handle_in({data, options}, state) do
-        Nostalex.Channel.__handle_in__(__MODULE__, {data, options}, state)
+      def handle_in({data, options}, socket) do
+        Nostalex.Channel.__handle_in__(__MODULE__, {data, options}, socket)
       end
 
       @impl true
-      def handle_info(data, state) do
-        Nostalex.Channel.__handle_info__(data, state)
+      def handle_info(data, socket) do
+        Nostalex.Channel.__handle_info__(data, socket)
       end
 
       @impl true
-      def terminate(reason, state) do
-        Nostalex.Channel.__terminate__(reason, state)
+      def terminate(reason, socket) do
+        Nostalex.Channel.__terminate__(reason, socket)
       end
 
       defoverridable handle_info: 2, terminate: 2
     end
   end
 
-  def __handle_in__(mod, {data, _}, %{info: %{handoff_key: nil}} = state) do
+  def __handle_in__(mod, {data, _}, %{key: nil} = socket) do
     data = Crypto.decrypt(data)
 
     case Protocol.parse(data) do
-      {:dynamic, [packet_id, handoff_key]} ->
-        {:handoff, String.to_integer(packet_id), String.to_integer(handoff_key)}
-        |> mod.handle_packet(state)
-        |> handle_reply()
+      {:dynamic, [packet_id, key]} ->
+        packet = {:upgrade, String.to_integer(packet_id)}
+        socket = put_key(socket, String.to_integer(key))
+        mod.handle_packet(packet, socket) |> handle_reply()
 
       _ ->
-        {:stop, :garbage, state}
+        {:stop, :garbage, socket}
     end
   end
 
-  def __handle_in__(mod, {data, _}, %{info: %{credentials: nil}} = state) do
-    data = Crypto.decrypt(data, state.info.handoff_key)
-
-    case Protocol.parse(data) do
-      {:dynamic, [_, email, packet_id, password]} ->
-        {:credentials, packet_id, email, password}
-        |> mod.handle_packet(state)
-        |> handle_reply()
-
-      _ ->
-        {:stop, :garbage, state}
-    end
-  end
-
-  def __handle_in__(mod, {data, _}, state) do
-    data = Crypto.decrypt(data, state.info.handoff_key)
+  def __handle_in__(mod, {data, _}, socket) do
+    data = Crypto.decrypt(data, socket.key)
     Logger.info(["PACKET ", data])
-    data |> Protocol.parse() |> mod.handle_packet(state) |> handle_reply()
+    data |> Protocol.parse() |> mod.handle_packet(socket) |> handle_reply()
   end
 
-  defp handle_reply({:ok, state}) do
-    {:ok, state}
+  defp handle_reply({:ok, socket}) do
+    {:ok, socket}
   end
 
-  defp handle_reply({:push, {opcode, data}, state}) do
+  defp handle_reply({:push, {opcode, data}, socket}) do
     data =
       Protocol.pack(opcode, data)
       |> Enum.join()
       |> Crypto.encrypt()
 
-    {:push, {opcode, data}, state}
+    {:push, {opcode, data}, socket}
   end
 
-  defp handle_reply({:reply, status, {opcode, data}, state}) do
+  defp handle_reply({:reply, status, {opcode, data}, socket}) do
     data =
       Protocol.pack(opcode, data)
       |> Enum.join()
       |> Crypto.encrypt()
 
-    {:reply, status, {opcode, data}, state}
+    {:reply, status, {opcode, data}, socket}
   end
 
-  defp handle_reply({:stop, reason, state}) do
-    {:stop, reason, state}
+  defp handle_reply({:stop, reason, socket}) do
+    {:stop, reason, socket}
   end
 
-  def __handle_info__(_, state) do
-    {:ok, state}
+  def __handle_info__(_, socket) do
+    {:ok, socket}
   end
 
   def __terminate__(_, _) do
     :ok
+  end
+
+  defp put_key(socket, key) do
+    %{socket | key: key}
   end
 end

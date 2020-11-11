@@ -6,28 +6,28 @@ defmodule CelestialWorld.Gateway do
   alias CelestialWorld.Oracle
 
   @impl true
-  def init(state) do
-    {:ok, state}
+  def init(socket) do
+    {:ok, socket}
   end
 
   @impl true
-  def handle_packet({:nos0575, email, password, client_version}, state) do
-    address = state.info.peer_data.address |> :inet.ntoa() |> to_string()
+  def handle_packet({:nos0575, email, password, client_version}, socket) do
+    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with :ok <- validate_client_version(client_version),
-         {:ok, handoff_key} <- generate_handoff_by_email_and_password(address, email, password) do
-      {:reply, :ok, {:nstest, %{handoff_key: handoff_key, channels: Oracle.list_channels()}}, state}
+         {:ok, key} <- generate_one_time_key_by_email_and_password(address, email, password) do
+      {:reply, :ok, {:nstest, %{key: key, channels: Oracle.list_channels()}}, socket}
     else
       {:error, :outdated_client} ->
-        {:reply, :error, {:failc, %{reason: :outdated_client}}, state}
+        {:reply, :error, {:failc, %{reason: :outdated_client}}, socket}
 
       {:error, :unvalid_credentials} ->
-        {:reply, :error, {:failc, %{reason: :unvalid_credentials}}, state}
+        {:reply, :error, {:failc, %{reason: :unvalid_credentials}}, socket}
     end
   end
 
-  def handle_packet(_, state) do
-    {:ok, state}
+  def handle_packet(_, socket) do
+    {:ok, socket}
   end
 
   defp validate_client_version(version) do
@@ -48,9 +48,9 @@ defmodule CelestialWorld.Gateway do
     end
   end
 
-  defp generate_handoff_by_email_and_password(ip, email, password) do
+  defp generate_one_time_key_by_email_and_password(ip, email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      {:ok, Accounts.generate_identity_handoff_key(ip, identity)}
+      {:ok, Accounts.generate_identity_one_time_key(ip, identity)}
     else
       {:error, :unvalid_credentials}
     end

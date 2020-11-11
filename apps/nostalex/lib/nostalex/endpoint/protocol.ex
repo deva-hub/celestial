@@ -2,6 +2,8 @@ defmodule Nostalex.Endpoint.Protocol do
   @moduledoc false
   @behaviour :ranch_protocol
 
+  alias Nostalex.Socket
+
   @impl true
   def start_link(ref, _, transport, opts) do
     start_link(ref, transport, opts)
@@ -18,38 +20,36 @@ defmodule Nostalex.Endpoint.Protocol do
 
   defp init(parent, socket, transport, opts) do
     handler = Keyword.fetch!(opts, :handler)
-    connect_info = Keyword.get(opts, :connect_info, [])
-    info = get_connect_info(connect_info, socket, transport)
+    connect_info = get_connect_info(opts, socket, transport)
 
-    state = %{
-      socket: socket,
+    state = %Socket{
       transport: transport,
       transport_pid: parent,
-      info: info
+      connect_info: connect_info
     }
 
     {:ok, state} = handler.init(state)
 
-    loop({handler, state})
+    loop({handler, state, socket})
   end
 
-  defp loop({handler, %{socket: socket} = state}) do
-    :ok = state.transport.setopts(state.socket, active: :once)
+  defp loop({handler, state, socket}) do
+    :ok = state.transport.setopts(socket, active: :once)
     {ok, closed, error} = state.transport.messages()
 
     receive do
       {^ok, ^socket, data} ->
-        handler.handle_in({data, []}, state) |> handle_reply(handler)
+        handler.handle_in({data, []}, state) |> handle_reply({handler, socket})
 
       {^error, ^socket, reason} ->
-        terminate(reason, {handler, state})
+        terminate(reason, {handler, state, socket})
 
       {^closed, ^socket} ->
-        terminate(:close, {handler, state})
+        terminate(:close, {handler, state, socket})
 
       message ->
-        handler.handle_info(message, state) |> handle_reply(handler)
-        loop({handler, state})
+        handler.handle_info(message, state) |> handle_reply({handler, socket})
+        loop({handler, state, socket})
     end
   rescue
     e ->
@@ -57,51 +57,66 @@ defmodule Nostalex.Endpoint.Protocol do
       reraise e, __STACKTRACE__
   end
 
-  defp handle_reply({:ok, state}, handler) do
-    loop({handler, state})
+  defp handle_reply({:ok, state}, {handler, socket}) do
+    loop({handler, state, socket})
   end
 
-  defp handle_reply({:push, {_, data}, state}, handler) do
-    state.transport.send(state.socket, data)
-    loop({handler, state})
+  defp handle_reply({:push, {_, data}, state}, {handler, socket}) do
+    state.transport.send(socket, data)
+    loop({handler, state, socket})
   end
 
-  defp handle_reply({:reply, _status, {_, data}, state}, handler) do
-    state.transport.send(state.socket, data)
-    loop({handler, state})
+  defp handle_reply({:reply, _status, {_, data}, state}, {handler, socket}) do
+    state.transport.send(socket, data)
+    loop({handler, state, socket})
   end
 
-  defp handle_reply({:stop, reason, state}, handler) do
-    terminate(reason, {handler, state})
+  defp handle_reply({:stop, reason, state}, {handler, socket}) do
+    terminate(reason, {handler, state, socket})
   end
 
-  defp terminate(:closed, {handler, state}) do
+  defp terminate(:closed, {handler, state, _}) do
     handler.terminate(:closed, state)
     exit({:shutdown, :normal})
   end
 
-  defp terminate(reason, {handler, state}) do
+  defp terminate(reason, {handler, state, _}) do
     handler.terminate(reason, state)
     exit({:shutdown, reason})
   end
 
-  defp get_connect_info(connect_info, socket, transport) do
-    Enum.reduce(connect_info, %{}, fn
+  defp get_connect_info(opts, socket, transport) do
+    opts
+    |> Keyword.get(:connect_info, [])
+    |> Enum.reduce(%{}, fn
       :peer_data, acc ->
-        {:ok, {address, port}} = transport.peername(socket)
-        Map.put(acc, :peer_data, %{address: address, port: port})
+        Map.put(acc, :peer_data, get_peer_data(socket, transport))
 
-      :handoff_key, acc ->
-        Map.put(acc, :handoff_key, nil)
-
-      :current_identity, acc ->
-        Map.put(acc, :current_identity, nil)
-
-      :packet_id, acc ->
-        Map.put(acc, :packet_id, 0)
+      :socket_data, acc ->
+        Map.put(acc, :socket_data, get_socket_data(socket, transport))
 
       _, acc ->
         acc
     end)
+  end
+
+  defp get_peer_data(socket, transport) do
+    case transport.peername(socket) do
+      {:ok, {address, port}} ->
+        %{address: address, port: port}
+
+      _ ->
+        nil
+    end
+  end
+
+  defp get_socket_data(socket, transport) do
+    case transport.sockname(socket) do
+      {:ok, {address, port}} ->
+        %{address: address, port: port}
+
+      _ ->
+        nil
+    end
   end
 end

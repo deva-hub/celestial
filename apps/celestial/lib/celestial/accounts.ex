@@ -232,12 +232,12 @@ defmodule Celestial.Accounts do
   ## Session
 
   @doc """
-  Generates a handoff from a given ip.
+  Generates a one time key from a given address.
   """
-  def generate_identity_handoff_key(ip, identity) do
-    {handoff, identity_token} = IdentityToken.build_handoff_key(ip, identity)
+  def generate_identity_one_time_key(address, identity) do
+    {key, identity_token} = IdentityToken.build_one_time_key(address, identity)
     Repo.insert!(identity_token)
-    handoff
+    key
   end
 
   @doc """
@@ -252,10 +252,10 @@ defmodule Celestial.Accounts do
   @doc """
   Gets the identity with the given signed key.
   """
-  def confirm_handoff(ip, key) do
-    with {:ok, query} = IdentityToken.verify_handoff_key_query(ip, key),
+  def confirm_one_time_key(address, key) do
+    with {:ok, query} = IdentityToken.verify_one_time_key_query(address, key),
          identity when not is_nil(identity) <- Repo.one(query) do
-      case Repo.delete_all(:tokens, IdentityToken.identity_and_contexts_query(identity, ["handoff"])) do
+      case Repo.delete_all(:tokens, IdentityToken.identity_and_contexts_query(identity, ["otk"])) do
         {:ok, %{identity: identity}} -> {:ok, identity}
         {:error, :identity, changeset, _} -> {:error, changeset}
       end

@@ -32,6 +32,8 @@ defmodule Nostalex.Gateway do
       @behaviour Nostalex.Gateway
       @behaviour Nostalex.Transport
 
+      import Nostalex.Socket
+
       @impl true
       def handle_in({data, options}, state) do
         Nostalex.Gateway.__handle_in__(__MODULE__, {data, options}, state)
