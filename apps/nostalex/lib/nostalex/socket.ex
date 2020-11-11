@@ -21,8 +21,7 @@ defmodule Nostalex.Socket do
     assign(socket, [{key, value}])
   end
 
-  def assign(socket, attrs)
-      when is_map(attrs) or is_list(attrs) do
+  def assign(socket, attrs) when is_map(attrs) or is_list(attrs) do
     %{socket | assigns: Map.merge(socket.assigns, Map.new(attrs))}
   end
 end
