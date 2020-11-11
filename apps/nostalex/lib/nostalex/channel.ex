@@ -46,7 +46,7 @@ defmodule Nostalex.Channel do
         Nostalex.Channel.__terminate__(reason, socket)
       end
 
-      defoverridable handle_info: 2, terminate: 2
+      defoverridable terminate: 2
     end
   end
 
@@ -88,8 +88,8 @@ defmodule Nostalex.Channel do
     {:stop, reason, socket}
   end
 
-  def __handle_info__(_, socket) do
-    {:ok, socket}
+  def __handle_info__({:socket_push, msg}, socket) do
+    handle_reply({:push, msg, socket})
   end
 
   def __terminate__(_, _) do

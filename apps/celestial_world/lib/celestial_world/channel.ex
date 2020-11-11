@@ -21,16 +21,117 @@ defmodule CelestialWorld.Channel do
     with {:ok, identity} <- get_identity_by_email_and_password(email, password),
          :ok <- consume_identity_one_time_key(identity, address, socket.key) do
       heroes = World.list_identity_heroes(identity)
-      socket = assign(socket, %{current_identity: identity, packet_id: packet_id})
-      {:reply, :ok, {:clist, heroes}, socket}
+
+      # TODO: remove placeholder data
+      heroes =
+        Enum.map(heroes, fn hero ->
+          %{
+            slot: hero.slot,
+            name: hero.name,
+            gender: hero.gender,
+            hair_style: hero.hair_style,
+            hair_color: hero.hair_color,
+            class: hero.class,
+            level: hero.level,
+            hero_level: hero.hero_level,
+            job_level: hero.job_level,
+            pets: [],
+            equipment: %{}
+          }
+        end)
+
+      {:reply, :ok, {:clist, heroes}, assign(socket, %{current_identity: identity, packet_id: packet_id})}
     else
       :error ->
         {:stop, :normal, socket}
     end
   end
 
-  def handle_packet({:ping, packet_id}, socket) do
-    Logger.debug(["PING ", packet_id])
+  def handle_packet({:select, packet_id, slot}, socket) do
+    hero = World.get_hero!(slot)
+
+    # TODO: remove placeholder data
+    send(
+      self(),
+      {:socket_push,
+       {:c_info,
+        %{
+          name: hero.name,
+          group_id: 0,
+          family_id: 0,
+          family_name: "beta",
+          id: hero.id,
+          name_color: :white,
+          gender: hero.gender,
+          hair_style: hero.hair_style,
+          hair_color: hero.hair_color,
+          class: hero.class,
+          reputation: :beginner,
+          compliment: 0,
+          morph: 0,
+          invisible?: false,
+          family_level: 1,
+          morph_upgrade?: false,
+          arena_winner?: false
+        }}}
+    )
+
+    send(
+      self(),
+      {:socket_push,
+       {:tit,
+        %{
+          class: hero.class,
+          name: hero.name
+        }}}
+    )
+
+    send(
+      self(),
+      {:socket_push,
+       {:fd,
+        %{
+          reputation: :beginner,
+          dignity: :basic
+        }}}
+    )
+
+    send(
+      self(),
+      {:socket_push,
+       {:lev,
+        %{
+          level: hero.level,
+          job_level: hero.job_level,
+          job_xp: hero.job_xp,
+          xp_max: 10000,
+          job_xp_max: 10000,
+          reputation: :beginner,
+          cp: 1,
+          hero_xp: hero.xp,
+          hero_level: hero.hero_level,
+          hero_xp_max: 10000
+        }}}
+    )
+
+    send(
+      self(),
+      {:socket_push,
+       {:at,
+        %{
+          id: hero.id,
+          map_id: 1,
+          music_id: 0,
+          position_x: :rand.uniform(3) + 77,
+          position_y: :rand.uniform(4) + 11
+        }}}
+    )
+
+    {:ok, assign(socket, :packet_id, packet_id)}
+  end
+
+  def handle_packet({:heartbeat, packet_id}, socket) do
+    Logger.debug(["HEARTBEAT ", packet_id])
     {:ok, assign(socket, :packet_id, packet_id)}
   end
 

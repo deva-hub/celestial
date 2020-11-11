@@ -47,7 +47,7 @@ defmodule Nostalex.Gateway do
         Nostalex.Gateway.__terminate__(reason, state)
       end
 
-      defoverridable handle_info: 2, terminate: 2
+      defoverridable terminate: 2
     end
   end
 

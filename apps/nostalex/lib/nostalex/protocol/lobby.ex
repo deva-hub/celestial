@@ -1,4 +1,4 @@
-defmodule Nostalex.Protocol.HeroSelection do
+defmodule Nostalex.Protocol.Lobby do
   @moduledoc """
   Responses from the world server to select a hero.
   """
@@ -47,20 +47,20 @@ defmodule Nostalex.Protocol.HeroSelection do
           level: pos_integer
         }
 
-  def parse_char_new([name, slot, gender, hair_style, hair_color]) do
+  def parse_char_new([packet_id, name, slot, gender, hair_style, hair_color]) do
     slot = String.to_integer(slot)
     gender = Hero.parse_gender(gender)
     hair_style = Hero.parse_hair_style(hair_style)
     hair_color = Hero.parse_hair_color(hair_color)
-    {:char_del, slot, name, gender, hair_style, hair_color}
+    {:char_del, packet_id, slot, name, gender, hair_style, hair_color}
   end
 
-  def parse_select([slot]) do
-    {:select, String.to_integer(slot)}
+  def parse_select([packet_id, slot]) do
+    {:select, packet_id, String.to_integer(slot)}
   end
 
-  def parse_char_del([slot, name]) do
-    {:char_del, String.to_integer(slot), name}
+  def parse_char_del([packet_id, slot, name]) do
+    {:char_del, packet_id, String.to_integer(slot), name}
   end
 
   @pets_terminator "-1"
@@ -90,14 +90,11 @@ defmodule Nostalex.Protocol.HeroSelection do
       Helpers.pack_int(clist.level),
       Helpers.pack_int(clist.hero_level),
       pack_equipment(%{}),
-      # TODO: add database equipement table
-      # pack_equipment(clist.equipment),
+      pack_equipment(clist.equipment),
       Helpers.pack_int(clist.job_level),
       "1",
       "1",
-      # TODO: add database pets table
-      # clist.pets
-      []
+      clist.pets
       |> Enum.map(&pack_pet/1)
       |> Helpers.pack_list(@pets_terminator),
       "0"

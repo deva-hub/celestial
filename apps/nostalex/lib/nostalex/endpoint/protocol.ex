@@ -49,7 +49,6 @@ defmodule Nostalex.Endpoint.Protocol do
 
       message ->
         handler.handle_info(message, state) |> handle_reply({handler, socket})
-        loop({handler, state, socket})
     end
   rescue
     e ->
