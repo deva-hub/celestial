@@ -33,25 +33,31 @@ defmodule CelestialWeb.Router do
   scope "/", CelestialWeb do
     pipe_through [:api]
 
-    post "/accesses", IdentityAccessController, :create
-    post "/identities", IdentityController, :create
-    post "/confirmations", IdentityConfirmationController, :create
+    resources "/accesses", IdentityAccessController, only: [:create]
+    resources "/identities", IdentityController, only: [:create]
+    resources "/confirmations", IdentityConfirmationController, only: [:create]
     get "/confirmations/:token", IdentityConfirmationController, :edit
     put "/confirmations/:token", IdentityConfirmationController, :update
-    post "/recoveries", IdentityRecoveryController, :create
+    patch "/confirmations/:token", IdentityConfirmationController, :update
+    resources "/recoveries", IdentityRecoveryController, only: [:create]
     get "/recoveries/:token", IdentityRecoveryController, :edit
     put "/recoveries/:token", IdentityRecoveryController, :update
+    patch "/recoveries/:token", IdentityRecoveryController, :update
   end
 
   scope "/", CelestialWeb do
     pipe_through [:api, :require_authenticated_identity]
 
     delete "/accesses/:token", IdentityAccessController, :delete
-    get "/identities", IdentityController, :index
-    get "/identities/:id", IdentityController, :show
-    put "/identities/:id/password", IdentityPasswordController, :update
-    post "/identities/:id/email", IdentityEmailController, :create
-    get "/identities/:id/email/:token", IdentityEmailController, :edit
-    put "/identities/:id/email/:token", IdentityEmailController, :update
+
+    resources "/identities", IdentityController, only: [:index, :show] do
+      put "/password", IdentityPasswordController, :update
+      patch "/password", IdentityPasswordController, :update
+      put "/email", IdentityEmailController, :update
+      patch "/email", IdentityEmailController, :update
+      get "/email/:token", IdentityEmailController, :edit
+      put "/email/:token", IdentityEmailController, :confirm
+      patch "/email/:token", IdentityEmailController, :confirm
+    end
   end
 end
