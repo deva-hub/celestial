@@ -1,6 +1,5 @@
 defmodule Nostalex.Endpoint do
   @moduledoc false
-
   require Logger
   alias Nostalex.Endpoint.Protocol
 

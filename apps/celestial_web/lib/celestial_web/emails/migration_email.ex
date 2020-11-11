@@ -1,4 +1,5 @@
 defmodule CelestialWeb.MigrationEmail do
+  @moduledoc false
   use Phoenix.Swoosh,
     view: CelestialWeb.MigrationView,
     layout: {CelestialWeb.LayoutView, :email}

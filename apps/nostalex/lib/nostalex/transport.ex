@@ -1,4 +1,6 @@
 defmodule Nostalex.Transport do
+  @moduledoc false
+
   @type state :: term()
 
   @doc """

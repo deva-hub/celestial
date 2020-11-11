@@ -1,6 +1,5 @@
 defmodule Nostalex.Protocol.Helpers do
   @moduledoc false
-
   def pack_list(list, terminator) do
     [terminator]
     |> Enum.concat(Enum.reverse(list))

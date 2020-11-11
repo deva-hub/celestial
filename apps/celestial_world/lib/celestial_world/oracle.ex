@@ -1,4 +1,6 @@
 defmodule CelestialWorld.Oracle do
+  @moduledoc false
+
   def list_channels do
     [
       %{

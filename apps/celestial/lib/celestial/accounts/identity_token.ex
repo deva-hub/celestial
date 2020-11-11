@@ -1,4 +1,5 @@
 defmodule Celestial.Accounts.IdentityToken do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Query
 

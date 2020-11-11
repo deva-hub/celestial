@@ -1,6 +1,5 @@
 defmodule Nostalex.Channel do
   @moduledoc false
-
   alias Nostalex.Socket
   alias Nostalex.Protocol
   alias Nostalex.Channel.Crypto

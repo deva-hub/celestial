@@ -1,4 +1,5 @@
 defmodule Nostalex.Protocol.Society do
+  @moduledoc false
   alias Nostalex.Protocol.Helpers
 
   @reputations BiMap.new(%{

@@ -1,4 +1,6 @@
 defmodule Nostalex.Socket do
+  @moduledoc false
+
   defstruct assigns: %{},
             connect_info: %{},
             key: nil,

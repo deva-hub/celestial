@@ -114,20 +114,23 @@ defmodule Nostalex.Channel.Crypto do
     end
   end
 
-  defp permutate_hl_pair(h, l) do
-    cond do
-      h != 0 and h != 0xF and (l == 0 or l == 0xF) ->
-        Enum.at(@permutation_matrix, h - 1)
+  defp permutate_hl_pair(h, l)
+       when h != 0 and h != 0xF and (l == 0 or l == 0xF) do
+    Enum.at(@permutation_matrix, h - 1)
+  end
 
-      l != 0 and l != 0xF and (h == 0 or h == 0xF) ->
-        Enum.at(@permutation_matrix, l - 1)
+  defp permutate_hl_pair(h, l)
+       when l != 0 and l != 0xF and (h == 0 or h == 0xF) do
+    Enum.at(@permutation_matrix, l - 1)
+  end
 
-      h != 0 and h != 0xF and l != 0 and l != 0xF ->
-        Enum.at(@permutation_matrix, h - 1) <> Enum.at(@permutation_matrix, l - 1)
+  defp permutate_hl_pair(h, l)
+       when h != 0 and h != 0xF and l != 0 and l != 0xF do
+    Enum.at(@permutation_matrix, h - 1) <> Enum.at(@permutation_matrix, l - 1)
+  end
 
-      true ->
-        ""
-    end
+  defp permutate_hl_pair(_, _) do
+    ""
   end
 
   defp decrypt_key_bytes(data, result \\ []) do

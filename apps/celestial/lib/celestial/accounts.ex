@@ -181,9 +181,8 @@ defmodule Celestial.Accounts do
   def prepare_update_email_token(%Identity{} = identity, current_email) do
     {encoded_token, identity_token} = IdentityToken.build_email_token(identity, "change:#{current_email}")
 
-    with {:ok, _} <- Repo.insert(identity_token) do
-      {:ok, encoded_token}
-    else
+    case Repo.insert(identity_token) do
+      {:ok, _} -> {:ok, encoded_token}
       _ -> :error
     end
   end
@@ -253,14 +252,16 @@ defmodule Celestial.Accounts do
   Gets the identity with the given signed key.
   """
   def consume_identity_one_time_key(address, key) do
-    with {:ok, query} = IdentityToken.verify_one_time_key_query(address, key),
-         identity when is_struct(identity) <- Repo.one(query) do
-      case Repo.transaction(consume_identity_one_time_key_multi(identity)) do
-        {:ok, %{identity: identity}} -> {:ok, identity}
-        {:error, :identity, changeset, _} -> {:error, changeset}
-      end
+    with {:ok, query} <- IdentityToken.verify_one_time_key_query(address, key),
+         identity when is_struct(identity) <- Repo.one(query),
+         {:ok, %{identity: identity}} <- Repo.transaction(consume_identity_one_time_key_multi(identity)) do
+      {:ok, identity}
     else
-      _ -> :error
+      {:error, :identity, changeset, _} ->
+        {:error, changeset}
+
+      _ ->
+        :error
     end
   end
 
@@ -307,9 +308,8 @@ defmodule Celestial.Accounts do
     else
       {encoded_token, identity_token} = IdentityToken.build_email_token(identity, "confirm")
 
-      with {:ok, _} <- Repo.insert(identity_token) do
-        {:ok, encoded_token}
-      else
+      case Repo.insert(identity_token) do
+        {:ok, _} -> {:ok, encoded_token}
         _ -> :error
       end
     end
@@ -323,13 +323,15 @@ defmodule Celestial.Accounts do
   """
   def confirm_identity(token) do
     with {:ok, query} <- IdentityToken.verify_email_token_query(token, "confirm"),
-         identity when is_struct(identity) <- Repo.one(query) do
-      case Repo.transaction(confirm_identity_multi(identity)) do
-        {:ok, %{identity: identity}} -> {:ok, identity}
-        {:error, :identity, changeset, _} -> {:error, changeset}
-      end
+         identity when is_struct(identity) <- Repo.one(query),
+         {:ok, %{identity: identity}} <- Repo.transaction(confirm_identity_multi(identity)) do
+      {:ok, identity}
     else
-      _ -> :error
+      {:error, :identity, changeset, _} ->
+        {:error, changeset}
+
+      _ ->
+        :error
     end
   end
 
@@ -356,9 +358,8 @@ defmodule Celestial.Accounts do
   def prepare_identity_recovery_token(%Identity{} = identity) do
     {encoded_token, identity_token} = IdentityToken.build_email_token(identity, "recovery")
 
-    with {:ok, _} <- Repo.insert(identity_token) do
-      {:ok, encoded_token}
-    else
+    case Repo.insert(identity_token) do
+      {:ok, _} -> {:ok, encoded_token}
       _ -> :error
     end
   end
@@ -376,9 +377,8 @@ defmodule Celestial.Accounts do
 
   """
   def get_identity_by_recovery_token(token) do
-    with {:ok, query} <- IdentityToken.verify_email_token_query(token, "recovery") do
-      Repo.one(query)
-    else
+    case IdentityToken.verify_email_token_query(token, "recovery") do
+      {:ok, query} -> Repo.one(query)
       _ -> nil
     end
   end

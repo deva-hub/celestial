@@ -1,6 +1,6 @@
 defmodule CelestialWeb.IdentityAuth do
+  @moduledoc false
   import Plug.Conn
-
   alias Celestial.Accounts
 
   @doc """

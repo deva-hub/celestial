@@ -1,6 +1,5 @@
 defmodule Nostalex.Gateway do
   @moduledoc false
-
   alias Nostalex.Protocol
   alias Nostalex.Gateway.Crypto
 

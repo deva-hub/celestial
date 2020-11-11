@@ -104,13 +104,13 @@ defmodule CelestialWorld.Channel do
           level: hero.level,
           job_level: hero.job_level,
           job_xp: hero.job_xp,
-          xp_max: 10000,
-          job_xp_max: 10000,
+          xp_max: 10_000,
+          job_xp_max: 10_000,
           reputation: :beginner,
           cp: 1,
           hero_xp: hero.xp,
           hero_level: hero.hero_level,
-          hero_xp_max: 10000
+          hero_xp_max: 10_000
         }}}
     )
 

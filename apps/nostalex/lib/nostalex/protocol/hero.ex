@@ -1,6 +1,5 @@
 defmodule Nostalex.Protocol.Hero do
   @moduledoc false
-
   alias Nostalex.Protocol.{Helpers, UI, Society}
 
   @genders BiMap.new(%{

@@ -29,9 +29,10 @@ defmodule CelestialWeb.MigrationController do
   end
 
   def update(conn, %{"token" => token}) do
-    with {:ok, _} <- Accounts.update_identity_email(conn.assigns.current_identity, token) do
-      send_resp(conn, :accepted, "")
-    else
+    case Accounts.update_identity_email(conn.assigns.current_identity, token) do
+      {:ok, _} ->
+        send_resp(conn, :accepted, "")
+
       :error ->
         send_resp(conn, :unauthorized, "")
     end

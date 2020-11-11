@@ -1,4 +1,5 @@
 defmodule CelestialWeb.RecoveryEmail do
+  @moduledoc false
   use Phoenix.Swoosh,
     view: CelestialWeb.RecoveryView,
     layout: {CelestialWeb.LayoutView, :email}

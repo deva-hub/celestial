@@ -22,11 +22,10 @@ defmodule Celestial.Umbrella.MixProject do
           celestial: :permanent,
           celestial_world: :permanent,
           celestial_web: :permanent
-        ],
+        ]
       ]
     ]
   end
-
 
   # Dependencies can be Hex packages:
   #
@@ -41,7 +40,10 @@ defmodule Celestial.Umbrella.MixProject do
   # Dependencies listed here are available only for this project
   # and cannot be accessed from applications inside the apps/ folder.
   defp deps do
-    []
+    [
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false}
+    ]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

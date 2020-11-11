@@ -1,4 +1,5 @@
 defmodule CelestialWeb.ConfirmationEmail do
+  @moduledoc false
   use Phoenix.Swoosh,
     view: CelestialWeb.ConfirmationView,
     layout: {CelestialWeb.LayoutView, :email}
