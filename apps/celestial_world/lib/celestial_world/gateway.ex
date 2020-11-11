@@ -20,10 +20,10 @@ defmodule CelestialWorld.Gateway do
       {:reply, :ok, {:nstest, %{key: key, channels: Oracle.list_channels()}}, socket}
     else
       {:error, :outdated_client} ->
-        {:reply, :error, {:failc, %{reason: :outdated_client}}, socket}
+        {:reply, :error, {:failc, %{error: :outdated_client}}, socket}
 
       {:error, :unvalid_credentials} ->
-        {:reply, :error, {:failc, %{reason: :unvalid_credentials}}, socket}
+        {:reply, :error, {:failc, %{error: :unvalid_credentials}}, socket}
     end
   end
 

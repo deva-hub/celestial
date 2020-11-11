@@ -5,24 +5,13 @@ defmodule Nostalex.Protocol.Client do
 
   alias Nostalex.Protocol.Helpers
 
-  @type reason ::
-          :outdated_client
-          | :unexpected_error
-          | :maintenance
-          | :session_already_used
-          | :unvalid_credentials
-          | :cant_authenticate
-          | :citizen_blacklisted
-          | :country_blacklisted
-          | :bad_case
-
-  @type error :: %{reason: reason()}
+  @type error :: %{error: atom}
 
   @type info :: %{message: binary}
 
   @spec pack_failc(error) :: iodata
   def pack_failc(failc) do
-    Helpers.pack_list(["failc", pack_reason(failc.reason)])
+    Helpers.pack_list(["failc", pack_error(failc.error)])
   end
 
   @spec pack_info(info) :: iodata
@@ -30,14 +19,32 @@ defmodule Nostalex.Protocol.Client do
     Helpers.pack_list(["info", info.message])
   end
 
-  @spec pack_reason(reason) :: iodata
-  defp pack_reason(:outdated_client), do: Helpers.pack_int(1)
-  defp pack_reason(:unexpected_error), do: Helpers.pack_int(2)
-  defp pack_reason(:maintenance), do: Helpers.pack_int(3)
-  defp pack_reason(:session_already_used), do: Helpers.pack_int(4)
-  defp pack_reason(:unvalid_credentials), do: Helpers.pack_int(5)
-  defp pack_reason(:cant_authenticate), do: Helpers.pack_int(6)
-  defp pack_reason(:citizen_blacklisted), do: Helpers.pack_int(7)
-  defp pack_reason(:country_blacklisted), do: Helpers.pack_int(8)
-  defp pack_reason(:bad_case), do: Helpers.pack_int(9)
+  @errors BiMap.new(%{
+            outdated_client: Helpers.pack_int(1),
+            unexpected_error: Helpers.pack_int(2),
+            maintenance: Helpers.pack_int(3),
+            session_already_used: Helpers.pack_int(4),
+            unvalid_credentials: Helpers.pack_int(5),
+            cant_authenticate: Helpers.pack_int(6),
+            citizen_blacklisted: Helpers.pack_int(7),
+            country_blacklisted: Helpers.pack_int(8),
+            bad_case: Helpers.pack_int(9)
+          })
+
+  @spec parse_error(binary) :: atom
+  def parse_error(error), do: BiMap.get_key(@errors, error)
+
+  @spec pack_error(atom) :: iodata
+  def pack_error(error), do: BiMap.get(@errors, error)
+
+  @languages BiMap.new(%{
+               kr: Helpers.pack_int(0),
+               en: Helpers.pack_int(1)
+             })
+
+  @spec parse_language(binary) :: atom
+  def parse_language(language), do: BiMap.get_key(@languages, language)
+
+  @spec pack_language(atom) :: iodata
+  def pack_language(language), do: BiMap.get(@languages, language)
 end
