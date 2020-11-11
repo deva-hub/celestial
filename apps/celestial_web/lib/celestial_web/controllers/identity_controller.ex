@@ -2,7 +2,7 @@ defmodule CelestialWeb.IdentityController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts
-  alias CelestialWeb.{Mailer, IdentityConfirmationEmail}
+  alias CelestialWeb.{Mailer, ConfirmationEmail}
 
   action_fallback CelestialWeb.FallbackController
 
@@ -19,10 +19,10 @@ defmodule CelestialWeb.IdentityController do
   def create(conn, %{"identity" => identity_params}) do
     with {:ok, identity} <- Accounts.register_identity(identity_params) do
       with {:ok, encoded_token} <- Accounts.prepare_identity_confirmation_token(identity) do
-        url = Routes.identity_confirmation_url(conn, :update, encoded_token)
+        url = Routes.confirmation_url(conn, :update, encoded_token)
 
         identity
-        |> IdentityConfirmationEmail.new(url)
+        |> ConfirmationEmail.new(url)
         |> Mailer.deliver()
       end
 

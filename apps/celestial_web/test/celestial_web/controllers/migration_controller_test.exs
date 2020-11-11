@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityEmailControllerTest do
+defmodule CelestialWeb.MigrationControllerTest do
   use CelestialWeb.ConnCase, async: true
 
   alias Celestial.Accounts
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityEmailControllerTest do
   describe "update email" do
     test "updates the identity email", %{conn: conn, identity: identity} do
       conn =
-        put(conn, Routes.identity_identity_email_path(conn, :update, "@me"), %{
+        post(conn, Routes.identity_migration_path(conn, :create, "@me"), %{
           "current_password" => valid_identity_password(),
           "identity" => %{"email" => unique_identity_email()}
         })
@@ -20,7 +20,7 @@ defmodule CelestialWeb.IdentityEmailControllerTest do
 
     test "does not update email on invalid data", %{conn: conn} do
       conn =
-        put(conn, Routes.identity_identity_email_path(conn, :update, "@me"), %{
+        post(conn, Routes.identity_migration_path(conn, :create, "@me"), %{
           "current_password" => "invalid",
           "identity" => %{"email" => "with spaces"}
         })
@@ -37,7 +37,7 @@ defmodule CelestialWeb.IdentityEmailControllerTest do
     end
 
     test "redirect to confirmation url", %{conn: conn, token: token} do
-      conn = get(conn, Routes.identity_identity_email_path(conn, :edit, "@me", token))
+      conn = get(conn, Routes.identity_migration_path(conn, :edit, "@me", token))
       base_url = Application.get_env(:celestial_web, :email_url)
       url = URI.merge(base_url, %URI{query: URI.encode_query(%{identity_id: "@me", token: token})})
       assert redirected_to(conn) == url |> to_string()
@@ -49,12 +49,12 @@ defmodule CelestialWeb.IdentityEmailControllerTest do
       token: token,
       email: email
     } do
-      conn = put(conn, Routes.identity_identity_email_path(conn, :confirm, "@me", token))
+      conn = put(conn, Routes.identity_migration_path(conn, :update, "@me", token))
       assert response(conn, 202)
       refute Accounts.get_identity_by_email(identity.email)
       assert Accounts.get_identity_by_email(email)
 
-      conn = put(conn, Routes.identity_identity_email_path(conn, :confirm, "@me", token))
+      conn = put(conn, Routes.identity_migration_path(conn, :update, "@me", token))
       assert response(conn, 401)
     end
   end

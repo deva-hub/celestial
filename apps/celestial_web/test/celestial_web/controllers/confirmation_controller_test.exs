@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityConfirmationControllerTest do
+defmodule CelestialWeb.ConfirmationControllerTest do
   use CelestialWeb.ConnCase, async: true
 
   alias Celestial.Accounts
@@ -12,7 +12,7 @@ defmodule CelestialWeb.IdentityConfirmationControllerTest do
   describe "create confirmation" do
     test "sends a new confirmation token", %{conn: conn, identity: identity} do
       conn =
-        post(conn, Routes.identity_confirmation_path(conn, :create), %{
+        post(conn, Routes.confirmation_path(conn, :create), %{
           "identity" => %{"email" => identity.email}
         })
 
@@ -53,7 +53,7 @@ defmodule CelestialWeb.IdentityConfirmationControllerTest do
     end
 
     test "redirect to the confirmation page", %{conn: conn, token: token} do
-      conn = get(conn, Routes.identity_confirmation_path(conn, :edit, token))
+      conn = get(conn, Routes.confirmation_path(conn, :edit, token))
       base_url = Application.get_env(:celestial_web, :confirmation_url)
       url = URI.merge(base_url, %URI{query: URI.encode_query(%{token: token})})
       assert redirected_to(conn) == url |> to_string()
@@ -63,17 +63,17 @@ defmodule CelestialWeb.IdentityConfirmationControllerTest do
   describe "update confirmatio token" do
     test "confirms the given token once", %{conn: conn, identity: identity} do
       {:ok, token} = Accounts.prepare_identity_confirmation_token(identity)
-      conn = put(conn, Routes.identity_confirmation_path(conn, :update, token))
+      conn = put(conn, Routes.confirmation_path(conn, :update, token))
       assert response(conn, 202)
       assert Accounts.get_identity!(identity.id).confirmed_at
       assert Repo.all(Accounts.IdentityToken) == []
 
-      conn = put(conn, Routes.identity_confirmation_path(conn, :update, token))
+      conn = put(conn, Routes.confirmation_path(conn, :update, token))
       assert response(conn, 401)
     end
 
     test "does not confirm email with invalid token", %{conn: conn, identity: identity} do
-      conn = put(conn, Routes.identity_confirmation_path(conn, :update, "oops"))
+      conn = put(conn, Routes.confirmation_path(conn, :update, "oops"))
       assert response(conn, 401)
       refute Accounts.get_identity!(identity.id).confirmed_at
     end

@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityAccessController do
+defmodule CelestialWeb.AccessController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityAccessController do
 
       conn
       |> put_status(:created)
-      |> render("show.json", identity_access: %{token: token})
+      |> render("show.json", access: %{token: token})
     else
       send_resp(conn, :unauthorized, "")
     end

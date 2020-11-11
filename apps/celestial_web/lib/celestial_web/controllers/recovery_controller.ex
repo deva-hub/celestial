@@ -1,8 +1,8 @@
-defmodule CelestialWeb.IdentityRecoveryController do
+defmodule CelestialWeb.RecoveryController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts
-  alias CelestialWeb.{Mailer, IdentityRecoveryEmail}
+  alias CelestialWeb.{Mailer, RecoveryEmail}
 
   action_fallback CelestialWeb.FallbackController
 
@@ -15,10 +15,10 @@ defmodule CelestialWeb.IdentityRecoveryController do
   def create(conn, %{"identity" => %{"email" => email}}) do
     if identity = Accounts.get_identity_by_email(email) do
       with {:ok, encoded_token} <- Accounts.prepare_identity_recovery_token(identity) do
-        url = Routes.identity_recovery_url(conn, :edit, encoded_token)
+        url = Routes.recovery_url(conn, :edit, encoded_token)
 
         identity
-        |> IdentityRecoveryEmail.new(url)
+        |> RecoveryEmail.new(url)
         |> Mailer.deliver()
       end
     end

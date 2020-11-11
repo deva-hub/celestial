@@ -11,7 +11,7 @@ defmodule CelestialWeb.IdentityTokenControllerTest do
   describe "create token" do
     test "renders token when credentials are valid", %{conn: conn, identity: identity} do
       conn =
-        post(conn, Routes.identity_access_path(conn, :create), %{
+        post(conn, Routes.access_path(conn, :create), %{
           "identity" => %{"email" => identity.email, "password" => valid_identity_password()}
         })
 
@@ -20,7 +20,7 @@ defmodule CelestialWeb.IdentityTokenControllerTest do
 
     test "renders errors when credentials are invalid", %{conn: conn, identity: identity} do
       conn =
-        post(conn, Routes.identity_access_path(conn, :create), %{
+        post(conn, Routes.access_path(conn, :create), %{
           "identity" => %{"email" => identity.email, "password" => "invalid_password"}
         })
 
@@ -32,7 +32,7 @@ defmodule CelestialWeb.IdentityTokenControllerTest do
     test "deletes chosen token", %{conn: conn, identity: identity} do
       identity_token = Accounts.generate_identity_access_token(identity)
       conn = put_req_header(conn, "authorization", "Bearer #{identity_token}")
-      conn = delete(conn, Routes.identity_access_path(conn, :delete, identity_token))
+      conn = delete(conn, Routes.access_path(conn, :delete, identity_token))
       assert response(conn, 204)
 
       conn = get(conn, Routes.identity_path(conn, :show, identity.id))

@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityPasswordControllerTest do
+defmodule CelestialWeb.PasswordControllerTest do
   use CelestialWeb.ConnCase, async: true
 
   alias Celestial.Accounts
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityPasswordControllerTest do
   describe "PUT /identities/settings/update_password" do
     test "updates the identity password and resets tokens", %{conn: conn, identity: identity} do
       conn =
-        put(conn, Routes.identity_identity_password_path(conn, :update, identity.id), %{
+        put(conn, Routes.identity_password_path(conn, :update, identity.id), %{
           "current_password" => valid_identity_password(),
           "identity" => %{
             "password" => "new valid password",
@@ -23,7 +23,7 @@ defmodule CelestialWeb.IdentityPasswordControllerTest do
 
     test "does not update password on invalid data", %{conn: conn, identity: identity} do
       conn =
-        put(conn, Routes.identity_identity_password_path(conn, :update, identity.id), %{
+        put(conn, Routes.identity_password_path(conn, :update, identity.id), %{
           "current_password" => "invalid",
           "identity" => %{
             "password" => "too short",

@@ -1,6 +1,6 @@
-defmodule CelestialWeb.IdentityConfirmationEmail do
+defmodule CelestialWeb.MigrationEmail do
   use Phoenix.Swoosh,
-    view: CelestialWeb.IdentityConfirmationView,
+    view: CelestialWeb.MigrationView,
     layout: {CelestialWeb.LayoutView, :email}
 
   alias CelestialWeb.Endpoint
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityConfirmationEmail do
     new()
     |> to(identity.email)
     |> from({"Celestial", Enum.join(["noreply@", Endpoint.url()])})
-    |> subject("Welcome to Nowver!")
+    |> subject("Email change request")
     |> render_body("email.html", %{identity: identity, url: url})
   end
 end

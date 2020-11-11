@@ -1,8 +1,8 @@
-defmodule CelestialWeb.IdentityEmailController do
+defmodule CelestialWeb.MigrationController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts
-  alias CelestialWeb.{Mailer, IdentityEmailEmail}
+  alias CelestialWeb.{Mailer, MigrationEmail}
 
   action_fallback CelestialWeb.FallbackController
 
@@ -12,15 +12,15 @@ defmodule CelestialWeb.IdentityEmailController do
     redirect(conn, external: URI.merge(url, qs) |> to_string())
   end
 
-  def update(conn, %{"current_password" => password, "identity" => identity_params}) do
+  def create(conn, %{"current_password" => password, "identity" => identity_params}) do
     identity = conn.assigns.current_identity
 
     with {:ok, applied_identity} <- Accounts.apply_identity_email(identity, password, identity_params) do
       with {:ok, encoded_token} <- Accounts.prepare_update_email_token(applied_identity, identity.email) do
-        url = Routes.identity_identity_email_path(conn, :edit, identity.id, encoded_token)
+        url = Routes.identity_migration_path(conn, :edit, identity.id, encoded_token)
 
         identity
-        |> IdentityEmailEmail.new(url)
+        |> MigrationEmail.new(url)
         |> Mailer.deliver()
       end
 
@@ -28,7 +28,7 @@ defmodule CelestialWeb.IdentityEmailController do
     end
   end
 
-  def confirm(conn, %{"token" => token}) do
+  def update(conn, %{"token" => token}) do
     with {:ok, _} <- Accounts.update_identity_email(conn.assigns.current_identity, token) do
       send_resp(conn, :accepted, "")
     else

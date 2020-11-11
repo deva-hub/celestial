@@ -1,6 +1,6 @@
-defmodule CelestialWeb.IdentityEmailEmail do
+defmodule CelestialWeb.RecoveryEmail do
   use Phoenix.Swoosh,
-    view: CelestialWeb.IdentityEmailView,
+    view: CelestialWeb.RecoveryView,
     layout: {CelestialWeb.LayoutView, :email}
 
   alias CelestialWeb.Endpoint
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityEmailEmail do
     new()
     |> to(identity.email)
     |> from({"Celestial", Enum.join(["noreply@", Endpoint.url()])})
-    |> subject("Email change request")
+    |> subject("Password reset request")
     |> render_body("email.html", %{identity: identity, url: url})
   end
 end

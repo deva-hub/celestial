@@ -33,31 +33,30 @@ defmodule CelestialWeb.Router do
   scope "/", CelestialWeb do
     pipe_through [:api]
 
-    resources "/accesses", IdentityAccessController, only: [:create]
+    resources "/accesses", AccessController, only: [:create]
     resources "/identities", IdentityController, only: [:create]
-    resources "/confirmations", IdentityConfirmationController, only: [:create]
-    get "/confirmations/:token", IdentityConfirmationController, :edit
-    put "/confirmations/:token", IdentityConfirmationController, :update
-    patch "/confirmations/:token", IdentityConfirmationController, :update
-    resources "/recoveries", IdentityRecoveryController, only: [:create]
-    get "/recoveries/:token", IdentityRecoveryController, :edit
-    put "/recoveries/:token", IdentityRecoveryController, :update
-    patch "/recoveries/:token", IdentityRecoveryController, :update
+    resources "/confirmations", ConfirmationController, only: [:create]
+    get "/confirmations/:token", ConfirmationController, :edit
+    put "/confirmations/:token", ConfirmationController, :update
+    patch "/confirmations/:token", ConfirmationController, :update
+    resources "/recoveries", RecoveryController, only: [:create]
+    get "/recoveries/:token", RecoveryController, :edit
+    put "/recoveries/:token", RecoveryController, :update
+    patch "/recoveries/:token", RecoveryController, :update
   end
 
   scope "/", CelestialWeb do
     pipe_through [:api, :require_authenticated_identity]
 
-    delete "/accesses/:token", IdentityAccessController, :delete
+    delete "/accesses/:token", AccessController, :delete
 
     resources "/identities", IdentityController, only: [:index, :show] do
-      put "/password", IdentityPasswordController, :update
-      patch "/password", IdentityPasswordController, :update
-      put "/email", IdentityEmailController, :update
-      patch "/email", IdentityEmailController, :update
-      get "/email/:token", IdentityEmailController, :edit
-      put "/email/:token", IdentityEmailController, :confirm
-      patch "/email/:token", IdentityEmailController, :confirm
+      put "/password", PasswordController, :update
+      patch "/password", PasswordController, :update
+      post "/migration", MigrationController, :create
+      get "/migration/:token", MigrationController, :edit
+      put "/migration/:token", MigrationController, :update
+      patch "/migration/:token", MigrationController, :update
     end
   end
 end

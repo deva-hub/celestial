@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityRecoveryControllerTest do
+defmodule CelestialWeb.RecoveryControllerTest do
   use CelestialWeb.ConnCase, async: true
 
   alias Celestial.Accounts
@@ -12,7 +12,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
   describe "create recovery" do
     test "sends a new recovery password token", %{conn: conn, identity: identity} do
       conn =
-        post(conn, Routes.identity_recovery_path(conn, :create), %{
+        post(conn, Routes.recovery_path(conn, :create), %{
           "identity" => %{"email" => identity.email}
         })
 
@@ -22,7 +22,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
 
     test "does not send recovery password token if email is invalid", %{conn: conn} do
       conn =
-        post(conn, Routes.identity_recovery_path(conn, :create), %{
+        post(conn, Routes.recovery_path(conn, :create), %{
           "identity" => %{"email" => "unknown@example.com"}
         })
 
@@ -38,7 +38,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
     end
 
     test "redirect to the recovery page", %{conn: conn, token: token} do
-      conn = get(conn, Routes.identity_recovery_path(conn, :edit, token))
+      conn = get(conn, Routes.recovery_path(conn, :edit, token))
       base_url = Application.get_env(:celestial_web, :recovery_url)
       url = URI.merge(base_url, %URI{query: URI.encode_query(%{token: token})})
       assert redirected_to(conn) == url |> to_string()
@@ -53,7 +53,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
 
     test "recover password once", %{conn: conn, identity: identity, token: token} do
       conn =
-        put(conn, Routes.identity_recovery_path(conn, :update, token), %{
+        put(conn, Routes.recovery_path(conn, :update, token), %{
           "identity" => %{
             "password" => "new valid password",
             "password_confirmation" => "new valid password"
@@ -66,7 +66,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
 
     test "does not recovery password on invalid data", %{conn: conn, token: token} do
       conn =
-        put(conn, Routes.identity_recovery_path(conn, :update, token), %{
+        put(conn, Routes.recovery_path(conn, :update, token), %{
           "identity" => %{
             "password" => "too short",
             "password_confirmation" => "does not match"
@@ -78,7 +78,7 @@ defmodule CelestialWeb.IdentityRecoveryControllerTest do
 
     test "does not recovery password with invalid token", %{conn: conn} do
       conn =
-        put(conn, Routes.identity_recovery_path(conn, :update, "oops"), %{
+        put(conn, Routes.recovery_path(conn, :update, "oops"), %{
           "identity" => %{}
         })
 

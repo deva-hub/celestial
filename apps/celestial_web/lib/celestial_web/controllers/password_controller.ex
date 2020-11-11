@@ -1,4 +1,4 @@
-defmodule CelestialWeb.IdentityPasswordController do
+defmodule CelestialWeb.PasswordController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts

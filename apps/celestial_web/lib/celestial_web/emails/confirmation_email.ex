@@ -1,6 +1,6 @@
-defmodule CelestialWeb.IdentityRecoveryEmail do
+defmodule CelestialWeb.ConfirmationEmail do
   use Phoenix.Swoosh,
-    view: CelestialWeb.IdentityRecoveryView,
+    view: CelestialWeb.ConfirmationView,
     layout: {CelestialWeb.LayoutView, :email}
 
   alias CelestialWeb.Endpoint
@@ -9,7 +9,7 @@ defmodule CelestialWeb.IdentityRecoveryEmail do
     new()
     |> to(identity.email)
     |> from({"Celestial", Enum.join(["noreply@", Endpoint.url()])})
-    |> subject("Password reset request")
+    |> subject("Welcome to Nowver!")
     |> render_body("email.html", %{identity: identity, url: url})
   end
 end

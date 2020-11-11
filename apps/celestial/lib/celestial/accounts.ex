@@ -289,8 +289,6 @@ defmodule Celestial.Accounts do
     :ok
   end
 
-  ## IdentityConfirmation
-
   @doc """
   Delivers the confirmation email instructions to the given identity.
 
