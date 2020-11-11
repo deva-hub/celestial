@@ -10,7 +10,15 @@ defmodule Nostalex.Protocol.Helpers do
     Enum.intersperse(list, " ")
   end
 
-  def pack_number(number) do
+  def pack_tuple(tuple) do
+    Enum.intersperse(tuple, ":")
+  end
+
+  def pack_struct(struct) do
+    Enum.intersperse(struct, ".")
+  end
+
+  def pack_int(number) do
     number |> to_string
   end
 

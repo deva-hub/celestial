@@ -23,29 +23,27 @@ defmodule Nostalex.Protocol.Gateway do
   @channel_terminator "-1:-1:-1:10000.10000.1"
 
   @spec pack_nstest(nstest) :: iodata
-  def pack_nstest(param) do
-    channels =
-      param.channels
+  def pack_nstest(nstest) do
+    Helpers.pack_list([
+      "NsTeST",
+      Helpers.pack_int(nstest.key),
+      nstest.channels
       |> Enum.map(&pack_channel/1)
       |> Helpers.pack_list(@channel_terminator)
-
-    Helpers.pack_list(["NsTeST", param.key |> to_string(), channels])
+    ])
   end
 
   def pack_channel(channel) do
-    [
+    Helpers.pack_tuple([
       pack_ip_address(channel.ip),
-      ":",
-      Helpers.pack_number(channel.port),
-      ":",
-      Helpers.pack_number(channel_color(channel.population, channel.capacity)),
-      ":",
-      Helpers.pack_number(channel.slot),
-      ".",
-      Helpers.pack_number(channel.world_id),
-      ".",
-      Helpers.pack_number(channel.id)
-    ]
+      Helpers.pack_int(channel.port),
+      Helpers.pack_int(channel_color(channel.population, channel.capacity)),
+      Helpers.pack_struct([
+        Helpers.pack_int(channel.slot),
+        Helpers.pack_int(channel.world_id),
+        Helpers.pack_int(channel.id)
+      ])
+    ])
   end
 
   defp channel_color(population, capacity) do
@@ -53,15 +51,12 @@ defmodule Nostalex.Protocol.Gateway do
   end
 
   def pack_ip_address({d1, d2, d3, d4}) do
-    [
-      Helpers.pack_number(d1),
-      ".",
-      Helpers.pack_number(d2),
-      ".",
-      Helpers.pack_number(d3),
-      ".",
-      Helpers.pack_number(d4)
-    ]
+    Helpers.pack_struct([
+      Helpers.pack_int(d1),
+      Helpers.pack_int(d2),
+      Helpers.pack_int(d3),
+      Helpers.pack_int(d4)
+    ])
   end
 
   @spec parse_nos0575([binary]) :: {:nos0575, String.t(), String.t(), String.t()}
@@ -71,7 +66,7 @@ defmodule Nostalex.Protocol.Gateway do
     {:nos0575, email, password, version}
   end
 
-  def decrypt_password(password) do
+  defp decrypt_password(password) do
     password
     |> slice_password_padding()
     |> String.codepoints()
