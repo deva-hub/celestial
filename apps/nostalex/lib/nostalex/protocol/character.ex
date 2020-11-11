@@ -3,15 +3,15 @@ defmodule Nostalex.Protocol.Character do
 
   alias Nostalex.Protocol.Helpers
 
-  @spec parse_gender(binary) :: iodata
+  @spec parse_gender(binary) :: atom
   def parse_gender("0"), do: :male
   def parse_gender("1"), do: :female
 
-  @spec parse_hair_style(binary) :: iodata
+  @spec parse_hair_style(binary) :: atom
   def parse_hair_style("0"), do: :a
   def parse_hair_style("1"), do: :b
 
-  @spec parse_hair_color(binary) :: iodata
+  @spec parse_hair_color(binary) :: atom
   def parse_hair_color("0"), do: :mauve_taupe
   def parse_hair_color("1"), do: :cerise
   def parse_hair_color("2"), do: :san_marino
@@ -30,11 +30,11 @@ defmodule Nostalex.Protocol.Character do
   def pack_class(:swordsman), do: Helpers.pack_int(3)
   def pack_class(:martial_artist), do: Helpers.pack_int(4)
 
-  @spec pack_hair_style(binary) :: iodata
+  @spec pack_hair_style(atom) :: iodata
   def pack_hair_style(:a), do: Helpers.pack_int(0)
   def pack_hair_style(:b), do: Helpers.pack_int(1)
 
-  @spec pack_hair_color(binary) :: iodata
+  @spec pack_hair_color(atom) :: iodata
   def pack_hair_color(:mauve_taupe), do: Helpers.pack_int(0)
   def pack_hair_color(:cerise), do: Helpers.pack_int(1)
   def pack_hair_color(:san_marino), do: Helpers.pack_int(2)

@@ -18,11 +18,11 @@ defmodule CelestialWorld.Channel do
   def handle_packet({:dynamic, [_, email, packet_id, password]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-    with identity when is_struct(identity) <- Accounts.get_identity_by_email_and_password(email, password),
-         {:ok, %{id: id}} when id == identity.id <- Accounts.consume_one_time_key(address, socket.key) do
+    with {:ok, identity} <- get_identity_by_email_and_password(email, password),
+         :ok <- consume_one_time_key(identity, address, socket.key) do
       {:ok, assign(socket, %{current_identity: identity, packet_id: packet_id})}
     else
-      _ ->
+      :error ->
         {:stop, :normal, socket}
     end
   end
@@ -35,5 +35,23 @@ defmodule CelestialWorld.Channel do
   def handle_packet(data, socket) do
     Logger.debug(["GARBAGE ", inspect(data)])
     {:ok, socket}
+  end
+
+  defp get_identity_by_email_and_password(email, password) do
+    if identity = Accounts.get_identity_by_email_and_password(email, password) do
+      {:ok, identity}
+    else
+      :error
+    end
+  end
+
+  defp consume_one_time_key(identity, address, key) do
+    case Accounts.consume_one_time_key(address, key) do
+      {:ok, %{id: id}} when id == identity.id ->
+        :ok
+
+      {:error, _} ->
+        :error
+    end
   end
 end
