@@ -33,7 +33,7 @@ defmodule CelestialWorld.Gateway do
   end
 
   defp validate_client_version(version) do
-    case Application.get_env(:gateway, :client_requirement) do
+    case Application.get_env(:celestial_world, :client_version) do
       nil ->
         :ok
 

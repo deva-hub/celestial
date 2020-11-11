@@ -7,7 +7,7 @@
 # all use the same configuration file. If you want different
 # configurations or dependencies per app, it is best to
 # move said applications out of the umbrella.
-use Mix.Config
+import Config
 
 # Configure Mix tasks and generators
 config :celestial,
@@ -19,7 +19,6 @@ config :celestial_web,
 
 # Configures the endpoint
 config :celestial_web, CelestialWeb.Endpoint,
-  url: [host: "localhost"],
   secret_key_base: "SnbttDD+34FXLe8ZVbbsl2Nhj4s3volMmtLV+oblFi3vLG/Bld/OlymgifoMa44Q",
   render_errors: [view: CelestialWeb.ErrorView, accepts: ~w(json), layout: false],
   pubsub_server: Celestial.PubSub,
@@ -30,9 +29,50 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# Configure local mailing service
+config :celestial_web, CelestialWeb.Mailer, adapter: Swoosh.Adapters.Local
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-import_config "#{Mix.env()}.exs"
+case config_env() do
+  :dev ->
+    # Configure the database
+    config :celestial, Celestial.Repo,
+      show_sensitive_data_on_connection_error: true,
+      pool_size: 10
+
+    # For development, we disable any cache and enable
+    # debugging and code reloading.
+    #
+    # The watchers configuration can be used to run external
+    # watchers to your application. For example, we use it
+    # with webpack to recompile .js and .css sources.
+    config :celestial_web, CelestialWeb.Endpoint,
+      debug_errors: true,
+      code_reloader: true,
+      check_origin: false,
+      server: true
+
+    # Do not include metadata nor timestamps in development logs
+    config :logger, :console, format: "[$level] $message\n"
+
+    # Initialize plugs at runtime for faster development compilation
+    config :phoenix, :plug_init_mode, :runtime
+
+    # Set a higher stacktrace during development. Avoid configuring such
+    # in production as building large stacktraces may be expensive.
+    config :phoenix, :stacktrace_depth, 20
+
+  :test ->
+    # We don't run a server during test. If one is required,
+    # you can enable the server option below.
+    config :celestial_web, CelestialWeb.Endpoint, server: false
+
+    # Print only warnings and errors during test
+    config :logger, level: :warn
+
+  :prod ->
+    # Do not print debug messages in production
+    config :logger, level: :info
+end

@@ -1,0 +1,3 @@
+# Allow time warps so that the Erlang system time can more closely match the
+# OS system time.
++C multi_time_warp

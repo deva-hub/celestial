@@ -6,10 +6,27 @@ defmodule Celestial.Umbrella.MixProject do
       apps_path: "apps",
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
+      releases: releases(),
       deps: deps(),
       aliases: aliases()
     ]
   end
+
+  # Run "mix help release" to learn about releases.
+  defp releases do
+    [
+      celestial: [
+        include_executables_for: [:unix],
+        applications: [
+          runtime_tools: :permanent,
+          celestial: :permanent,
+          celestial_world: :permanent,
+          celestial_web: :permanent
+        ],
+      ]
+    ]
+  end
+
 
   # Dependencies can be Hex packages:
   #

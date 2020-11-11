@@ -7,13 +7,13 @@ defmodule CelestialWorld.Application do
 
   def start(_type, _args) do
     gateway_endpoint_opts = [
-      port: 4123,
+      port: Application.fetch_env!(:celestial_world, :gateway_port),
       handler: CelestialWorld.Gateway,
       protocol_opts: [connect_info: [:peer_data]]
     ]
 
     channel_enpdoint_opts = [
-      port: 4124,
+      port: Application.fetch_env!(:celestial_world, :channel_port),
       handler: CelestialWorld.Channel,
       protocol_opts: [connect_info: [:peer_data]]
     ]
