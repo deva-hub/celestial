@@ -1,8 +1,8 @@
-defmodule Nostalex.Protocol.CharacterSelection do
+defmodule Nostalex.Protocol.HeroSelection do
   @moduledoc """
-  Responses from the world server to select a character.
+  Responses from the world server to select a hero.
   """
-  alias Nostalex.Protocol.{Character, Helpers}
+  alias Nostalex.Protocol.{Hero, Helpers}
 
   @type equipment :: %{
           hat_id: pos_integer | nil,
@@ -24,9 +24,10 @@ defmodule Nostalex.Protocol.CharacterSelection do
   @type clist :: %{
           slot: pos_integer,
           name: bitstring,
-          gender: Character.gender(),
-          hair: Character.hair(),
-          class: Character.class(),
+          gender: Hero.gender(),
+          hair_style: Hero.hair_style(),
+          hair_color: Hero.hair_color(),
+          class: Hero.class(),
           level: integer,
           hero_level: integer,
           job_level: integer,
@@ -48,9 +49,9 @@ defmodule Nostalex.Protocol.CharacterSelection do
 
   def parse_char_new([name, slot, gender, hair_style, hair_color]) do
     slot = String.to_integer(slot)
-    gender = Character.parse_gender(gender)
-    hair_style = Character.parse_hair_style(hair_style)
-    hair_color = Character.parse_hair_color(hair_color)
+    gender = Hero.parse_gender(gender)
+    hair_style = Hero.parse_hair_style(hair_style)
+    hair_color = Hero.parse_hair_color(hair_color)
     {:char_del, slot, name, gender, hair_style, hair_color}
   end
 
@@ -81,17 +82,22 @@ defmodule Nostalex.Protocol.CharacterSelection do
       Helpers.pack_int(clist.slot),
       clist.name,
       "0",
-      Character.pack_gender(clist.gender),
-      pack_hair(clist.hair),
+      Hero.pack_gender(clist.gender),
+      Hero.pack_hair_style(clist.hair_style),
+      Hero.pack_hair_color(clist.hair_color),
       "0",
-      Character.pack_class(clist.class),
+      Hero.pack_class(clist.class),
       Helpers.pack_int(clist.level),
       Helpers.pack_int(clist.hero_level),
-      pack_equipment(clist.equipment),
+      pack_equipment(%{}),
+      # TODO: add database equipement table
+      # pack_equipment(clist.equipment),
       Helpers.pack_int(clist.job_level),
       "1",
       "1",
-      clist.pets
+      # TODO: add database pets table
+      # clist.pets
+      []
       |> Enum.map(&pack_pet/1)
       |> Helpers.pack_list(@pets_terminator),
       "0"
@@ -109,13 +115,6 @@ defmodule Nostalex.Protocol.CharacterSelection do
       Map.get(equipment, :fairy, "-1"),
       Map.get(equipment, :costume_suit, "-1"),
       Map.get(equipment, :costume_hat, "-1")
-    ])
-  end
-
-  defp pack_hair(hair) do
-    Helpers.pack_list([
-      Character.pack_hair_style(hair.style),
-      Character.pack_hair_color(hair.color)
     ])
   end
 

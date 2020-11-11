@@ -3,7 +3,7 @@ defmodule CelestialWorld.Channel do
   use Nostalex.Channel
 
   require Logger
-  alias Celestial.Accounts
+  alias Celestial.{Accounts, World}
 
   @impl true
   def init(socket) do
@@ -19,8 +19,10 @@ defmodule CelestialWorld.Channel do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with {:ok, identity} <- get_identity_by_email_and_password(email, password),
-         :ok <- consume_one_time_key(identity, address, socket.key) do
-      {:ok, assign(socket, %{current_identity: identity, packet_id: packet_id})}
+         :ok <- consume_identity_one_time_key(identity, address, socket.key) do
+      heroes = World.list_identity_heroes(identity)
+      socket = assign(socket, %{current_identity: identity, packet_id: packet_id})
+      {:reply, :ok, {:clist, heroes}, socket}
     else
       :error ->
         {:stop, :normal, socket}
@@ -45,8 +47,8 @@ defmodule CelestialWorld.Channel do
     end
   end
 
-  defp consume_one_time_key(identity, address, key) do
-    case Accounts.consume_one_time_key(address, key) do
+  defp consume_identity_one_time_key(identity, address, key) do
+    case Accounts.consume_identity_one_time_key(address, key) do
       {:ok, %{id: id}} when id == identity.id ->
         :ok
 

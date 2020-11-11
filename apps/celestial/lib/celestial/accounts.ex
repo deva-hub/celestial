@@ -252,10 +252,10 @@ defmodule Celestial.Accounts do
   @doc """
   Gets the identity with the given signed key.
   """
-  def consume_one_time_key(address, key) do
+  def consume_identity_one_time_key(address, key) do
     with {:ok, query} = IdentityToken.verify_one_time_key_query(address, key),
          identity when is_struct(identity) <- Repo.one(query) do
-      case Repo.transaction(consume_one_time_key_multi(identity)) do
+      case Repo.transaction(consume_identity_one_time_key_multi(identity)) do
         {:ok, %{identity: identity}} -> {:ok, identity}
         {:error, :identity, changeset, _} -> {:error, changeset}
       end
@@ -264,7 +264,7 @@ defmodule Celestial.Accounts do
     end
   end
 
-  defp consume_one_time_key_multi(identity) do
+  defp consume_identity_one_time_key_multi(identity) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:identity, Identity.confirm_changeset(identity))
     |> Ecto.Multi.delete_all(

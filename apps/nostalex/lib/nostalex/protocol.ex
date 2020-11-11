@@ -3,7 +3,7 @@ defmodule Nostalex.Protocol do
   This module provides functions to work with the NostaleSE Protocol.
   """
 
-  alias Nostalex.Protocol.{Client, Gateway}
+  alias Nostalex.Protocol.{Client, HeroSelection, Gateway}
 
   def parse(data) when is_binary(data) do
     data |> String.split() |> parse()
@@ -13,6 +13,9 @@ defmodule Nostalex.Protocol do
   def parse([packet_id, "0"]), do: {:ping, packet_id}
   def parse(data), do: {:dynamic, data}
 
+  def pack(:clist_start, data), do: HeroSelection.pack_clist_start(data)
+  def pack(:clist_end, data), do: HeroSelection.pack_clist_end(data)
+  def pack(:clist, data), do: HeroSelection.pack_clist(data)
   def pack(:failc, data), do: Client.pack_failc(data)
   def pack(:nstest, data), do: Gateway.pack_nstest(data)
 end

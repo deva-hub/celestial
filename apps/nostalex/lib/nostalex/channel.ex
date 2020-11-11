@@ -77,21 +77,11 @@ defmodule Nostalex.Channel do
   end
 
   defp handle_reply({:push, {opcode, data}, socket}) do
-    data =
-      Protocol.pack(opcode, data)
-      |> Enum.join()
-      |> Crypto.encrypt()
-
-    {:push, {opcode, data}, socket}
+    {:push, encode_message(opcode, data), socket}
   end
 
   defp handle_reply({:reply, status, {opcode, data}, socket}) do
-    data =
-      Protocol.pack(opcode, data)
-      |> Enum.join()
-      |> Crypto.encrypt()
-
-    {:reply, status, {opcode, data}, socket}
+    {:reply, status, encode_message(opcode, data), socket}
   end
 
   defp handle_reply({:stop, reason, socket}) do
@@ -104,6 +94,25 @@ defmodule Nostalex.Channel do
 
   def __terminate__(_, _) do
     :ok
+  end
+
+  defp encode_message(:clist, data) do
+    chunks =
+      List.flatten([
+        [encode_data(:clist_start, %{length: length(data)})],
+        Enum.map(data, &encode_data(:clist, &1)),
+        [encode_data(:clist_end, %{})]
+      ])
+
+    {:chunked, chunks}
+  end
+
+  defp encode_message(opcode, data) do
+    {:plain, encode_data(opcode, data)}
+  end
+
+  defp encode_data(opcode, data) do
+    Protocol.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()
   end
 
   defp put_key(socket, key) do

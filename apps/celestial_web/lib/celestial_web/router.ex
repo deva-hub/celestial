@@ -58,5 +58,7 @@ defmodule CelestialWeb.Router do
       put "/migration/:token", MigrationController, :update
       patch "/migration/:token", MigrationController, :update
     end
+
+    resources "/heroes", HeroController, except: [:new, :edit]
   end
 end

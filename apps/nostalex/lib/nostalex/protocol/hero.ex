@@ -1,4 +1,4 @@
-defmodule Nostalex.Protocol.Character do
+defmodule Nostalex.Protocol.Hero do
   @moduledoc false
 
   alias Nostalex.Protocol.Helpers
@@ -19,7 +19,7 @@ defmodule Nostalex.Protocol.Character do
                  b: Helpers.pack_int(1),
                  c: Helpers.pack_int(2),
                  d: Helpers.pack_int(3),
-                 none: Helpers.pack_int(4)
+                 shave: Helpers.pack_int(4)
                })
 
   @spec parse_hair_style(binary) :: atom

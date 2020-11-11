@@ -64,21 +64,11 @@ defmodule Nostalex.Gateway do
   end
 
   defp handle_reply({:push, {opcode, data}, state}) do
-    data =
-      Protocol.pack(opcode, data)
-      |> Enum.join()
-      |> Crypto.encrypt()
-
-    {:push, {opcode, data}, state}
+    {:push, encode_packet(opcode, data), state}
   end
 
   defp handle_reply({:reply, status, {opcode, data}, state}) do
-    data =
-      Protocol.pack(opcode, data)
-      |> Enum.join()
-      |> Crypto.encrypt()
-
-    {:reply, status, {opcode, data}, state}
+    {:reply, status, encode_packet(opcode, data), state}
   end
 
   defp handle_reply({:stop, reason, state}) do
@@ -91,5 +81,9 @@ defmodule Nostalex.Gateway do
 
   def __terminate__(_, _) do
     :ok
+  end
+
+  defp encode_packet(opcode, data) do
+    {:plain, Protocol.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()}
   end
 end

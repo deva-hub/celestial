@@ -61,13 +61,13 @@ defmodule Nostalex.Endpoint.Protocol do
     loop({handler, state, socket})
   end
 
-  defp handle_reply({:push, {_, data}, state}, {handler, socket}) do
-    state.transport.send(socket, data)
+  defp handle_reply({:push, msg, state}, {handler, socket}) do
+    handle_message({msg, state}, socket)
     loop({handler, state, socket})
   end
 
-  defp handle_reply({:reply, _status, {_, data}, state}, {handler, socket}) do
-    state.transport.send(socket, data)
+  defp handle_reply({:reply, _status, msg, state}, {handler, socket}) do
+    handle_message({msg, state}, socket)
     loop({handler, state, socket})
   end
 
@@ -83,6 +83,14 @@ defmodule Nostalex.Endpoint.Protocol do
   defp terminate(reason, {handler, state, _}) do
     handler.terminate(reason, state)
     exit({:shutdown, reason})
+  end
+
+  defp handle_message({{:chunked, chunks}, state}, socket) do
+    Enum.each(chunks, &handle_message({{:plain, &1}, state}, socket))
+  end
+
+  defp handle_message({{:plain, data}, state}, socket) do
+    state.transport.send(socket, data)
   end
 
   defp get_connect_info(opts, socket, transport) do
