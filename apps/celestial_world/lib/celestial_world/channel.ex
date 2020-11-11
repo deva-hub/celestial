@@ -16,18 +16,14 @@ defmodule CelestialWorld.Channel do
   end
 
   def handle_packet({:dynamic, [_, email, packet_id, password]}, %{assigns: %{current_identity: nil}} = socket) do
-    if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-      case Accounts.consume_one_time_key(address, socket.key) do
-        {:ok, %{id: id}} when id == identity.id ->
-          {:ok, assign(socket, %{current_identity: identity, packet_id: packet_id})}
-
-        _ ->
-          {:stop, :normal, socket}
-      end
+    with identity when is_struct(identity) <- Accounts.get_identity_by_email_and_password(email, password),
+         {:ok, %{id: id}} when id == identity.id <- Accounts.consume_one_time_key(address, socket.key) do
+      {:ok, assign(socket, %{current_identity: identity, packet_id: packet_id})}
     else
-      {:stop, :normal, socket}
+      _ ->
+        {:stop, :normal, socket}
     end
   end
 

@@ -254,7 +254,7 @@ defmodule Celestial.Accounts do
   """
   def consume_one_time_key(address, key) do
     with {:ok, query} = IdentityToken.verify_one_time_key_query(address, key),
-         identity when not is_nil(identity) <- Repo.one(query) do
+         identity when is_struct(identity) <- Repo.one(query) do
       case Repo.transaction(consume_one_time_key_multi(identity)) do
         {:ok, %{identity: identity}} -> {:ok, identity}
         {:error, :identity, changeset, _} -> {:error, changeset}
@@ -325,7 +325,7 @@ defmodule Celestial.Accounts do
   """
   def confirm_identity(token) do
     with {:ok, query} <- IdentityToken.verify_email_token_query(token, "confirm"),
-         identity when not is_nil(identity) <- Repo.one(query) do
+         identity when is_struct(identity) <- Repo.one(query) do
       case Repo.transaction(confirm_identity_multi(identity)) do
         {:ok, %{identity: identity}} -> {:ok, identity}
         {:error, :identity, changeset, _} -> {:error, changeset}
