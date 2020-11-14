@@ -233,8 +233,8 @@ defmodule Celestial.Accounts do
   @doc """
   Generates a one time key from a given address.
   """
-  def generate_identity_one_time_key(address, identity) do
-    {key, identity_token} = IdentityToken.build_one_time_key(address, identity)
+  def generate_identity_otk(address, identity) do
+    {key, identity_token} = IdentityToken.build_otk(address, identity)
     Repo.insert!(identity_token)
     key
   end
@@ -251,10 +251,10 @@ defmodule Celestial.Accounts do
   @doc """
   Gets the identity with the given signed key.
   """
-  def consume_identity_one_time_key(address, key) do
-    with {:ok, query} <- IdentityToken.verify_one_time_key_query(address, key),
+  def consume_identity_otk(address, key) do
+    with {:ok, query} <- IdentityToken.verify_otk_query(address, key),
          identity when is_struct(identity) <- Repo.one(query),
-         {:ok, %{identity: identity}} <- Repo.transaction(consume_identity_one_time_key_multi(identity)) do
+         {:ok, %{identity: identity}} <- Repo.transaction(consume_identity_otk_multi(identity)) do
       {:ok, identity}
     else
       {:error, :identity, changeset, _} ->
@@ -265,7 +265,7 @@ defmodule Celestial.Accounts do
     end
   end
 
-  defp consume_identity_one_time_key_multi(identity) do
+  defp consume_identity_otk_multi(identity) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:identity, Identity.confirm_changeset(identity))
     |> Ecto.Multi.delete_all(

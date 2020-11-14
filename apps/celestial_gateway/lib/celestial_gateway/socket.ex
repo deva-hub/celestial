@@ -18,7 +18,6 @@ defmodule CelestialGateway.Socket do
     |> Crypto.decrypt()
     |> Nostalex.parse()
     |> handle_packet(state)
-    |> handle_reply()
   end
 
   @impl true
@@ -35,36 +34,21 @@ defmodule CelestialGateway.Socket do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with :ok <- validate_client_version(client_version),
-         {:ok, key} <- generate_one_time_key_by_email_and_password(address, email, password) do
-      {:reply, :ok, {:nstest, %{key: key, channels: Oracle.list_channels()}}, socket}
+         {:ok, key} <- generate_otk_by_email_and_password(address, email, password) do
+      channels = Oracle.list_channels()
+      {:reply, :ok, encode_packet(:nstest, %{key: key, channels: channels}), socket}
     else
       {:error, :outdated_client} ->
-        {:reply, :error, {:failc, %{error: :outdated_client}}, socket}
+        {:reply, :error, encode_packet(:failc, %{error: :outdated_client}), socket}
 
       {:error, :unvalid_credentials} ->
-        {:reply, :error, {:failc, %{error: :unvalid_credentials}}, socket}
+        {:reply, :error, encode_packet(:failc, %{error: :unvalid_credentials}), socket}
     end
   end
 
   def handle_packet(data, socket) do
     Logger.debug(["GARBAGE ", inspect(data)])
     {:ok, socket}
-  end
-
-  defp handle_reply({:ok, state}) do
-    {:ok, state}
-  end
-
-  defp handle_reply({:push, {opcode, data}, state}) do
-    {:push, encode_packet(opcode, data), state}
-  end
-
-  defp handle_reply({:reply, status, {opcode, data}, state}) do
-    {:reply, status, encode_packet(opcode, data), state}
-  end
-
-  defp handle_reply({:stop, reason, state}) do
-    {:stop, reason, state}
   end
 
   defp encode_packet(opcode, data) do
@@ -89,9 +73,9 @@ defmodule CelestialGateway.Socket do
     end
   end
 
-  defp generate_one_time_key_by_email_and_password(ip, email, password) do
+  defp generate_otk_by_email_and_password(ip, email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      {:ok, Accounts.generate_identity_one_time_key(ip, identity)}
+      {:ok, Accounts.generate_identity_otk(ip, identity)}
     else
       {:error, :unvalid_credentials}
     end

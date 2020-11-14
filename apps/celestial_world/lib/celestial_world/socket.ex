@@ -53,7 +53,7 @@ defmodule CelestialWorld.Socket do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with {:ok, identity} <- get_identity_by_email_and_password(email, password),
-         :ok <- consume_identity_one_time_key(identity, address, socket.key) do
+         :ok <- consume_identity_otk(identity, address, socket.key) do
       heroes = World.list_identity_heroes(identity)
 
       # TODO: remove placeholder data
@@ -198,8 +198,8 @@ defmodule CelestialWorld.Socket do
     end
   end
 
-  defp consume_identity_one_time_key(identity, address, key) do
-    case Accounts.consume_identity_one_time_key(address, key) do
+  defp consume_identity_otk(identity, address, key) do
+    case Accounts.consume_identity_otk(address, key) do
       {:ok, %{id: id}} when id == identity.id ->
         :ok
 

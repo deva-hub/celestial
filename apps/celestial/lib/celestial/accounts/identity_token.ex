@@ -13,7 +13,7 @@ defmodule Celestial.Accounts.IdentityToken do
   @confirm_validity_in_days 7
   @change_email_validity_in_days 7
   @access_validity_in_days 60
-  @one_time_key_validity_in_minute 5
+  @otk_validity_in_minute 5
 
   schema "identities_tokens" do
     field :token, :binary
@@ -28,13 +28,13 @@ defmodule Celestial.Accounts.IdentityToken do
   Generate a token that will be stored in the database.
   While a one time key is issued for identification.
   """
-  def build_one_time_key(address, identity) do
+  def build_otk(address, identity) do
     key = :rand.uniform(@uid_size)
-    hashed_one_time_key = :crypto.hash(@hash_algorithm, key |> to_string())
+    hashed_otk = :crypto.hash(@hash_algorithm, key |> to_string())
 
     {key,
      %Celestial.Accounts.IdentityToken{
-       token: hashed_one_time_key,
+       token: hashed_otk,
        context: "otk",
        sent_to: address,
        identity_id: identity.id
@@ -63,13 +63,13 @@ defmodule Celestial.Accounts.IdentityToken do
 
   The query returns the identity found by the user id.
   """
-  def verify_one_time_key_query(address, token) do
+  def verify_otk_query(address, token) do
     hashed_token = :crypto.hash(@hash_algorithm, token |> to_string())
 
     query =
       from token in token_and_context_query(hashed_token, "otk"),
         join: identity in assoc(token, :identity),
-        where: token.inserted_at > ago(@one_time_key_validity_in_minute, "minute") and token.sent_to == ^address,
+        where: token.inserted_at > ago(@otk_validity_in_minute, "minute") and token.sent_to == ^address,
         select: identity
 
     {:ok, query}
