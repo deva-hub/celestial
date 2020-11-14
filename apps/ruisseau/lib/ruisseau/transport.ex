@@ -1,4 +1,4 @@
-defmodule Nostalex.Transport do
+defmodule Ruisseau.Transport do
   @moduledoc false
 
   @type state :: term()

@@ -1,7 +1,7 @@
-defmodule Nostalex.Endpoint do
+defmodule Ruisseau.Endpoint do
   @moduledoc false
   require Logger
-  alias Nostalex.Endpoint.Protocol
+  alias Ruisseau.Endpoint.Protocol
 
   def child_spec(opts \\ []) do
     scheme = Keyword.get(opts, :scheme, :tcp)
@@ -29,7 +29,7 @@ defmodule Nostalex.Endpoint do
 
   defp protocol_config(handler, opts) do
     opts
-    |> Keyword.get(:protocol_opts, [])
+    |> Keyword.get(:handler_opts, [])
     |> Keyword.put(:handler, handler)
   end
 

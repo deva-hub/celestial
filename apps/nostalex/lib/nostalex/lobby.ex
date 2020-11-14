@@ -1,8 +1,8 @@
-defmodule Nostalex.Protocol.Lobby do
+defmodule Nostalex.Lobby do
   @moduledoc """
   Responses from the world server to select a hero.
   """
-  alias Nostalex.Protocol.{Hero, Helpers}
+  alias Nostalex.{Hero, Helpers}
 
   @type equipment :: %{
           hat_id: pos_integer | nil,

@@ -1,6 +1,6 @@
-defmodule Nostalex.Protocol.Society do
+defmodule Nostalex.Society do
   @moduledoc false
-  alias Nostalex.Protocol.Helpers
+  alias Nostalex.Helpers
 
   @reputations BiMap.new(%{
                  stupid_minded: Helpers.pack_int(-6),

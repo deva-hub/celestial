@@ -5,22 +5,14 @@ defmodule CelestialWorld.Application do
 
   use Application
 
-  alias CelestialWorld.{Gateway, Channel}
-
   def start(_type, _args) do
-    gateway_port =
-      Application.get_env(:celestial_world, :gateway_port) ||
-        raise ":gateway_port not set in :celestial_world application"
-
-    channel_port =
-      Application.get_env(:celestial_world, :channel_port) ||
-        raise ":channel_port not set in :celestial_world application"
+    port =
+      Application.get_env(:celestial_world, :port) ||
+        raise ":port not set in :celestial_world application"
 
     children = [
-      # Start the Gateway TCP Server
-      {Nostalex.Endpoint, [port: gateway_port, handler: Gateway, protocol_opts: [connect_info: [:peer_data]]]},
-      # Start the Channel TCP Server
-      {Nostalex.Endpoint, [port: channel_port, handler: Channel, protocol_opts: [connect_info: [:peer_data]]]}
+      # Start the TCP Server
+      {Ruisseau.Endpoint, [port: port, handler: CelestialWorld.Socket, handler_opts: [connect_info: [:peer_data]]]}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}
     ]

@@ -1,4 +1,4 @@
-defmodule Nostalex.Gateway.Crypto do
+defmodule CelestialGateway.Crypto do
   @moduledoc """
   NosTale Gateway cryptography suite
   """

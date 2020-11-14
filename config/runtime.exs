@@ -6,10 +6,13 @@ config :celestial, Celestial.Repo,
   password: System.get_env("POSTGRES_PASSWORD", "postgres"),
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
-# Configure Celestial channel node port
+# Configure Celestial world node port
 config :celestial_world,
-  gateway_port: System.get_env("CELESTIAL_CHANNEL_PORT", "4123") |> String.to_integer(),
-  channel_port: System.get_env("CELESTIAL_CHANNEL_PORT", "4124") |> String.to_integer()
+  port: System.get_env("CELESTIAL_WORLD_PORT", "4124") |> String.to_integer()
+
+# Configure Celestial gateway port
+config :celestial_gateway,
+  port: System.get_env("CELESTIAL_GATEWAY_PORT", "4123") |> String.to_integer()
 
 # Configure email redirection
 app_url = System.get_env("CELESTIAL_APP_URL", "http://localhost:3000")

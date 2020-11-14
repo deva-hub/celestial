@@ -1,6 +1,6 @@
-defmodule Nostalex.Protocol.UI do
+defmodule Nostalex.UI do
   @moduledoc false
-  alias Nostalex.Protocol.Helpers
+  alias Nostalex.Helpers
 
   @name_colors BiMap.new(%{
                  white: Helpers.pack_int(0),

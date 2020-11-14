@@ -1,9 +1,11 @@
-defmodule CelestialWorld.Channel do
+defmodule CelestialWorld.Socket do
   @moduledoc false
-  use Nostalex.Channel
+  @behaviour Ruisseau.Transport
 
   require Logger
+  import Ruisseau.Socket
   alias Celestial.{Accounts, World}
+  alias CelestialWorld.Crypto
 
   @impl true
   def init(socket) do
@@ -11,6 +13,38 @@ defmodule CelestialWorld.Channel do
   end
 
   @impl true
+  def handle_in({data, _}, %{key: nil} = socket) do
+    data = Crypto.decrypt(data)
+
+    case Nostalex.parse(data) do
+      {:dynamic, [packet_id, key]} ->
+        packet = {:upgrade, String.to_integer(packet_id)}
+        socket = put_key(socket, String.to_integer(key))
+        handle_packet(packet, socket) |> handle_reply()
+
+      _ ->
+        {:stop, :garbage, socket}
+    end
+  end
+
+  def handle_in({data, _}, socket) do
+    data
+    |> Crypto.decrypt(socket.key)
+    |> Nostalex.parse()
+    |> handle_packet(socket)
+    |> handle_reply()
+  end
+
+  @impl true
+  def handle_info({:socket_push, msg}, socket) do
+    handle_reply({:push, msg, socket})
+  end
+
+  @impl true
+  def terminate(_, _) do
+    :ok
+  end
+
   def handle_packet({:upgrade, id}, socket) do
     {:ok, assign(socket, :id, id)}
   end
@@ -140,6 +174,22 @@ defmodule CelestialWorld.Channel do
     {:ok, socket}
   end
 
+  defp handle_reply({:ok, socket}) do
+    {:ok, socket}
+  end
+
+  defp handle_reply({:push, {opcode, data}, socket}) do
+    {:push, encode_message(opcode, data), socket}
+  end
+
+  defp handle_reply({:reply, status, {opcode, data}, socket}) do
+    {:reply, status, encode_message(opcode, data), socket}
+  end
+
+  defp handle_reply({:stop, reason, socket}) do
+    {:stop, reason, socket}
+  end
+
   defp get_identity_by_email_and_password(email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
       {:ok, identity}
@@ -156,5 +206,28 @@ defmodule CelestialWorld.Channel do
       {:error, _} ->
         :error
     end
+  end
+
+  defp encode_message(:clist, data) do
+    chunks =
+      List.flatten([
+        [encode_data(:clist_start, %{length: length(data)})],
+        Enum.map(data, &encode_data(:clist, &1)),
+        [encode_data(:clist_end, %{})]
+      ])
+
+    {:chunked, chunks}
+  end
+
+  defp encode_message(opcode, data) do
+    {:plain, encode_data(opcode, data)}
+  end
+
+  defp encode_data(opcode, data) do
+    Nostalex.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()
+  end
+
+  defp put_key(socket, key) do
+    %{socket | key: key}
   end
 end

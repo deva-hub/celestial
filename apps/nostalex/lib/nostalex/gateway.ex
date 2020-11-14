@@ -1,88 +1,85 @@
 defmodule Nostalex.Gateway do
-  @moduledoc false
-  alias Nostalex.Protocol
-  alias Nostalex.Gateway.Crypto
-
-  @type state :: term()
-
-  @doc """
-  Handles incoming decoded socket packet.
-
-  It must return one of:
-
-    * `{:ok, state}` - continues the socket with no reply
-    * `{:reply, status, reply, state}` - continues the socket with reply
-    * `{:stop, reason, state}` - stops the socket
-
-  The `reply` is a tuple contain an `opcode` atom and a message that can
-  be any term. The built-in websocket transport supports both `:text` and
-  `:binary` opcode and the message must be always iodata. Long polling only
-  supports text opcode.
+  @moduledoc """
+  Authentification response serializer.
   """
-  @callback handle_packet(message :: term, state) ::
-              {:ok, state}
-              | {:reply, :ok | :error, {opcode :: atom, message :: term}, state}
-              | {:stop, reason :: term, state}
 
-  defmacro __using__(_opts) do
-    quote do
-      @behaviour Nostalex.Gateway
-      @behaviour Nostalex.Transport
+  alias Nostalex.Helpers
 
-      import Nostalex.Socket
+  @type channel :: %{
+          id: pos_integer,
+          world_id: pos_integer,
+          slot: pos_integer,
+          ip: :inet.ip4_address(),
+          port: :inet.port_number(),
+          population: non_neg_integer,
+          capacity: non_neg_integer
+        }
 
-      @impl true
-      def handle_in({data, options}, state) do
-        Nostalex.Gateway.__handle_in__(__MODULE__, {data, options}, state)
-      end
+  @type nstest :: %{
+          key: pos_integer,
+          channels: [channel]
+        }
 
-      @impl true
-      def handle_info(data, state) do
-        Nostalex.Gateway.__handle_info__(data, state)
-      end
+  @channel_terminator "-1:-1:-1:10000.10000.1"
 
-      @impl true
-      def terminate(reason, state) do
-        Nostalex.Gateway.__terminate__(reason, state)
-      end
+  @spec pack_nstest(nstest) :: iodata
+  def pack_nstest(nstest) do
+    Helpers.pack_list([
+      "NsTeST",
+      Helpers.pack_int(nstest.key),
+      nstest.channels
+      |> Enum.map(&pack_channel/1)
+      |> Helpers.pack_list(@channel_terminator)
+    ])
+  end
 
-      defoverridable terminate: 2
+  def pack_channel(channel) do
+    Helpers.pack_tuple([
+      pack_ip_address(channel.ip),
+      Helpers.pack_int(channel.port),
+      Helpers.pack_int(channel_color(channel.population, channel.capacity)),
+      Helpers.pack_struct([
+        Helpers.pack_int(channel.slot),
+        Helpers.pack_int(channel.world_id),
+        Helpers.pack_int(channel.id)
+      ])
+    ])
+  end
+
+  defp channel_color(population, capacity) do
+    round(population / capacity * 20) + 1
+  end
+
+  def pack_ip_address({d1, d2, d3, d4}) do
+    Helpers.pack_struct([
+      Helpers.pack_int(d1),
+      Helpers.pack_int(d2),
+      Helpers.pack_int(d3),
+      Helpers.pack_int(d4)
+    ])
+  end
+
+  @spec parse_nos0575([binary]) :: {:nos0575, String.t(), String.t(), String.t()}
+  def parse_nos0575([_, email, cipher_password, _, client_version]) do
+    password = decrypt_password(cipher_password)
+    version = Helpers.normalize_version(client_version)
+    {:nos0575, email, password, version}
+  end
+
+  defp decrypt_password(password) do
+    password
+    |> slice_password_padding()
+    |> String.codepoints()
+    |> Enum.take_every(2)
+    |> Enum.chunk_every(2)
+    |> Enum.map(&(&1 |> Enum.join() |> String.to_integer(16)))
+    |> to_string()
+  end
+
+  defp slice_password_padding(password) do
+    case password |> String.length() |> rem(2) do
+      0 -> String.slice(password, 3..-1)
+      1 -> String.slice(password, 4..-1)
     end
-  end
-
-  def __handle_in__(mod, {data, _}, state) do
-    data
-    |> Crypto.decrypt()
-    |> Protocol.parse()
-    |> mod.handle_packet(state)
-    |> handle_reply()
-  end
-
-  defp handle_reply({:ok, state}) do
-    {:ok, state}
-  end
-
-  defp handle_reply({:push, {opcode, data}, state}) do
-    {:push, encode_packet(opcode, data), state}
-  end
-
-  defp handle_reply({:reply, status, {opcode, data}, state}) do
-    {:reply, status, encode_packet(opcode, data), state}
-  end
-
-  defp handle_reply({:stop, reason, state}) do
-    {:stop, reason, state}
-  end
-
-  def __handle_info__(_, state) do
-    {:ok, state}
-  end
-
-  def __terminate__(_, _) do
-    :ok
-  end
-
-  defp encode_packet(opcode, data) do
-    {:plain, Protocol.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()}
   end
 end

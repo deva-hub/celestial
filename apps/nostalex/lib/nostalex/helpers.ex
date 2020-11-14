@@ -1,4 +1,4 @@
-defmodule Nostalex.Protocol.Helpers do
+defmodule Nostalex.Helpers do
   @moduledoc false
   def pack_list(list, terminator) do
     [terminator]

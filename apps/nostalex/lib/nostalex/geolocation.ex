@@ -1,6 +1,6 @@
-defmodule Nostalex.Protocol.Geolocation do
+defmodule Nostalex.Geolocation do
   @moduledoc false
-  alias Nostalex.Protocol.Helpers
+  alias Nostalex.Helpers
 
   @type at :: %{
           id: pos_integer,

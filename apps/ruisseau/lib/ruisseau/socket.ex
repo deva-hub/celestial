@@ -1,4 +1,4 @@
-defmodule Nostalex.Socket do
+defmodule Ruisseau.Socket do
   @moduledoc false
 
   defstruct assigns: %{},

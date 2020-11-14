@@ -1,8 +1,8 @@
-defmodule Nostalex.Endpoint.Protocol do
+defmodule Ruisseau.Endpoint.Protocol do
   @moduledoc false
   @behaviour :ranch_protocol
 
-  alias Nostalex.Socket
+  alias Ruisseau.Socket
 
   @impl true
   def start_link(ref, _, transport, opts) do

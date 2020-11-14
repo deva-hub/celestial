@@ -1,9 +1,9 @@
-defmodule Nostalex.Protocol.Client do
+defmodule Nostalex.Client do
   @moduledoc """
   Client specific response.
   """
 
-  alias Nostalex.Protocol.Helpers
+  alias Nostalex.Helpers
 
   @type error :: %{error: atom}
 
