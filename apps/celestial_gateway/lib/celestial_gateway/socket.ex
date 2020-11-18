@@ -39,7 +39,7 @@ defmodule CelestialGateway.Socket do
   end
 
   def handle_in(data, socket) do
-    Logger.debug(["GARBAGE ", inspect(data)])
+    Logger.debug("GARBAGE #{data}")
     {:ok, socket}
   end
 
