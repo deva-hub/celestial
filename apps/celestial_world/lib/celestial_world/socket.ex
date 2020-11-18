@@ -168,8 +168,8 @@ defmodule CelestialWorld.Socket do
     {:ok, assign(socket, :id, id)}
   end
 
-  def handle_in(%{event: "heartbeat", payload: payload, id: id}, socket) do
-    Logger.debug(["HEARTBEAT ", id])
+  def handle_in(%{event: "0", id: id}, socket) do
+    Logger.debug(["HEARTBEAT ", inspect(id)])
     {:ok, assign(socket, :id, id)}
   end
 
