@@ -1,11 +1,19 @@
-defmodule Ruisseau.Socket do
+defmodule Nostalex.Socket do
   @moduledoc false
+
+  defmodule InvalidMessageError do
+    @moduledoc """
+    Raised when the socket message is invalid.
+    """
+    defexception [:message]
+  end
 
   defstruct assigns: %{},
             connect_info: %{},
             key: nil,
             transport: nil,
-            transport_pid: nil
+            transport_pid: nil,
+            serializer: nil
 
   @doc """
   Adds key value pairs to socket assigns.

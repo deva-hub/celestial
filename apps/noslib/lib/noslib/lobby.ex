@@ -1,8 +1,8 @@
-defmodule Nostalex.Lobby do
+defmodule Noslib.Lobby do
   @moduledoc """
   Responses from the world server to select a hero.
   """
-  alias Nostalex.{Hero, Helpers}
+  alias Noslib.{Hero, Helpers}
 
   @type equipment :: %{
           hat_id: pos_integer | nil,
@@ -47,62 +47,58 @@ defmodule Nostalex.Lobby do
           level: pos_integer
         }
 
-  def parse_char_new([packet_id, name, slot, gender, hair_style, hair_color]) do
-    slot = String.to_integer(slot)
-    gender = Hero.parse_gender(gender)
-    hair_style = Hero.parse_hair_style(hair_style)
-    hair_color = Hero.parse_hair_color(hair_color)
-    {:char_del, packet_id, slot, name, gender, hair_style, hair_color}
+  def decode_char_new([name, slot, gender, hair_style, hair_color]) do
+    %{
+      slot: String.to_integer(slot),
+      name: name,
+      gender: Hero.decode_gender(gender),
+      hair_style: Hero.decode_hair_style(hair_style),
+      hair_color: Hero.decode_hair_color(hair_color)
+    }
   end
 
-  def parse_select([packet_id, slot]) do
-    {:select, packet_id, String.to_integer(slot)}
+  def decode_select([slot]) do
+    %{slot: String.to_integer(slot)}
   end
 
-  def parse_char_del([packet_id, slot, name]) do
-    {:char_del, packet_id, String.to_integer(slot), name}
+  def decode_char_del([slot, name]) do
+    %{slot: String.to_integer(slot), name: name}
   end
 
   @pets_terminator "-1"
 
-  @spec pack_clist_start(clists_start) :: iodata
-  def pack_clist_start(clists_start) do
-    Helpers.pack_list(["clist_start", clists_start.length])
+  @spec encode_clist_start(clists_start) :: iodata
+  def encode_clist_start(clists_start) do
+    Helpers.encode_list([clists_start.length])
   end
 
-  @spec pack_clist_end(clists_end) :: iodata
-  def pack_clist_end(_) do
-    Helpers.pack_list(["clist_end"])
-  end
-
-  @spec pack_clist(clist) :: iodata
-  def pack_clist(clist) do
-    Helpers.pack_list([
-      "clist",
-      Helpers.pack_int(clist.slot),
+  @spec encode_clist(clist) :: iodata
+  def encode_clist(clist) do
+    Helpers.encode_list([
+      Helpers.encode_int(clist.slot),
       clist.name,
       "0",
-      Hero.pack_gender(clist.gender),
-      Hero.pack_hair_style(clist.hair_style),
-      Hero.pack_hair_color(clist.hair_color),
+      Hero.encode_gender(clist.gender),
+      Hero.encode_hair_style(clist.hair_style),
+      Hero.encode_hair_color(clist.hair_color),
       "0",
-      Hero.pack_class(clist.class),
-      Helpers.pack_int(clist.level),
-      Helpers.pack_int(clist.hero_level),
-      pack_equipment(%{}),
-      pack_equipment(clist.equipment),
-      Helpers.pack_int(clist.job_level),
+      Hero.encode_class(clist.class),
+      Helpers.encode_int(clist.level),
+      Helpers.encode_int(clist.hero_level),
+      encode_equipment(%{}),
+      encode_equipment(clist.equipment),
+      Helpers.encode_int(clist.job_level),
       "1",
       "1",
       clist.pets
-      |> Enum.map(&pack_pet/1)
-      |> Helpers.pack_list(@pets_terminator),
+      |> Enum.map(&encode_pet/1)
+      |> Helpers.encode_list(@pets_terminator),
       "0"
     ])
   end
 
-  defp pack_equipment(equipment) do
-    Helpers.pack_struct([
+  defp encode_equipment(equipment) do
+    Helpers.encode_struct([
       Map.get(equipment, :hat, "-1"),
       Map.get(equipment, :armor, "-1"),
       Map.get(equipment, :weapon_skin, "-1"),
@@ -115,10 +111,10 @@ defmodule Nostalex.Lobby do
     ])
   end
 
-  defp pack_pet(pet) do
-    Helpers.pack_struct([
-      Helpers.pack_int(pet.skin_id),
-      Helpers.pack_int(pet.id)
+  defp encode_pet(pet) do
+    Helpers.encode_struct([
+      Helpers.encode_int(pet.skin_id),
+      Helpers.encode_int(pet.id)
     ])
   end
 end

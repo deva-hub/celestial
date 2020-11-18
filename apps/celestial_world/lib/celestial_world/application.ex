@@ -12,7 +12,7 @@ defmodule CelestialWorld.Application do
 
     children = [
       # Start the TCP Server
-      {Ruisseau.Endpoint, [port: port, handler: CelestialWorld.Socket, handler_opts: [connect_info: [:peer_data]]]}
+      {Nostalex.Endpoint, [port: port, handler: CelestialWorld.Socket, handler_opts: [connect_info: [:peer_data]]]}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}
     ]

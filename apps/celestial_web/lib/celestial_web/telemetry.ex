@@ -33,7 +33,7 @@ defmodule CelestialWeb.Telemetry do
 
       # Database Metrics
       summary("celestial.repo.query.total_time", unit: {:native, :millisecond}),
-      summary("celestial.repo.query.decode_time", unit: {:native, :millisecond}),
+      summary("celestial.repo.query.encode_time", unit: {:native, :millisecond}),
       summary("celestial.repo.query.query_time", unit: {:native, :millisecond}),
       summary("celestial.repo.query.queue_time", unit: {:native, :millisecond}),
       summary("celestial.repo.query.idle_time", unit: {:native, :millisecond}),

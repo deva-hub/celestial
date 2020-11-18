@@ -1,55 +1,34 @@
 defmodule CelestialWorld.Socket do
   @moduledoc false
-  @behaviour Ruisseau.Transport
+  @behaviour Nostalex.Socket.Transport
 
   require Logger
-  import Ruisseau.Socket
+  import Nostalex.Socket
+  alias Nostalex.Socket.Message
   alias Celestial.{Accounts, World}
   alias CelestialWorld.Crypto
 
   @impl true
   def init(socket) do
-    {:ok, assign(socket, %{current_identity: nil, packet_id: nil})}
+    {:ok, assign(socket, %{current_identity: nil, id: nil})}
   end
 
   @impl true
-  def handle_in({data, _}, %{key: nil} = socket) do
-    data = Crypto.decrypt(data)
-
-    case Nostalex.parse(data) do
-      {:dynamic, [packet_id, key]} ->
-        packet = {:upgrade, String.to_integer(packet_id)}
-        socket = put_key(socket, String.to_integer(key))
-        handle_packet(packet, socket) |> handle_reply()
-
-      _ ->
-        {:stop, :garbage, socket}
-    end
+  def handle_in({payload, opts}, %{key: nil} = socket) do
+    msg = payload |> Crypto.decrypt() |> socket.serializer.decode!(opts)
+    handle_in(msg, socket)
   end
 
-  def handle_in({data, _}, socket) do
-    data
-    |> Crypto.decrypt(socket.key)
-    |> Nostalex.parse()
-    |> handle_packet(socket)
-    |> handle_reply()
+  def handle_in({payload, opts}, socket) do
+    msg = payload |> Crypto.decrypt(socket.key) |> socket.serializer.decode!(opts)
+    handle_in(msg, socket)
   end
 
-  @impl true
-  def handle_info({:socket_push, msg}, socket) do
-    handle_reply({:push, msg, socket})
+  def handle_in(%{payload: [id, key]}, %{key: nil} = socket) do
+    {:ok, socket |> assign(:id, id) |> put_key(String.to_integer(key))}
   end
 
-  @impl true
-  def terminate(_, _) do
-    :ok
-  end
-
-  def handle_packet({:upgrade, id}, socket) do
-    {:ok, assign(socket, :id, id)}
-  end
-
-  def handle_packet({:dynamic, [_, email, packet_id, password]}, %{assigns: %{current_identity: nil}} = socket) do
+  def handle_in(%{payload: [_, email, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with {:ok, identity} <- get_identity_by_email_and_password(email, password),
@@ -57,39 +36,58 @@ defmodule CelestialWorld.Socket do
       heroes = World.list_identity_heroes(identity)
 
       # TODO: remove placeholder data
-      heroes =
-        Enum.map(heroes, fn hero ->
-          %{
-            slot: hero.slot,
-            name: hero.name,
-            gender: hero.gender,
-            hair_style: hero.hair_style,
-            hair_color: hero.hair_color,
-            class: hero.class,
-            level: hero.level,
-            hero_level: hero.hero_level,
-            job_level: hero.job_level,
-            pets: [],
-            equipment: %{}
-          }
-        end)
+      {opcode, payload} =
+        encode_reply(socket, %Message{
+          event: "clist_start",
+          payload: %{length: length(heroes)}
+        })
 
-      {:reply, :ok, {:clist, heroes}, assign(socket, %{current_identity: identity, packet_id: packet_id})}
+      send(self(), {:socket_push, opcode, payload})
+
+      Enum.each(heroes, fn hero ->
+        {opcode, payload} =
+          encode_reply(socket, %Message{
+            event: "clist",
+            payload: %{
+              slot: hero.slot,
+              name: hero.name,
+              gender: hero.gender,
+              hair_style: hero.hair_style,
+              hair_color: hero.hair_color,
+              class: hero.class,
+              level: hero.level,
+              hero_level: hero.hero_level,
+              job_level: hero.job_level,
+              pets: [],
+              equipment: %{}
+            }
+          })
+
+        send(self(), {:socket_push, opcode, payload})
+      end)
+
+      {opcode, payload} =
+        encode_reply(socket, %Message{
+          event: "clist_end"
+        })
+
+      send(self(), {:socket_push, opcode, payload})
+
+      {:ok, assign(socket, %{current_identity: identity, id: id})}
     else
       :error ->
         {:stop, :normal, socket}
     end
   end
 
-  def handle_packet({:select, packet_id, slot}, socket) do
-    hero = World.get_hero!(slot)
+  def handle_in(%{event: "select", payload: payload, id: id}, socket) do
+    hero = World.get_hero!(payload.slot)
 
     # TODO: remove placeholder data
-    send(
-      self(),
-      {:socket_push,
-       {:c_info,
-        %{
+    {opcode, paylaod} =
+      encode_reply(socket, %Message{
+        event: "c_info",
+        payload: %{
           name: hero.name,
           group_id: 0,
           family_id: 0,
@@ -107,34 +105,37 @@ defmodule CelestialWorld.Socket do
           family_level: 1,
           morph_upgrade?: false,
           arena_winner?: false
-        }}}
-    )
+        }
+      })
 
-    send(
-      self(),
-      {:socket_push,
-       {:tit,
-        %{
+    send(self(), {:socket_push, opcode, paylaod})
+
+    {opcode, paylaod} =
+      encode_reply(socket, %Message{
+        event: "tit",
+        payload: %{
           class: hero.class,
           name: hero.name
-        }}}
-    )
+        }
+      })
 
-    send(
-      self(),
-      {:socket_push,
-       {:fd,
-        %{
+    send(self(), {:socket_push, opcode, paylaod})
+
+    {opcode, paylaod} =
+      encode_reply(socket, %Message{
+        event: "fd",
+        payload: %{
           reputation: :beginner,
           dignity: :basic
-        }}}
-    )
+        }
+      })
 
-    send(
-      self(),
-      {:socket_push,
-       {:lev,
-        %{
+    send(self(), {:socket_push, opcode, paylaod})
+
+    {opcode, paylaod} =
+      encode_reply(socket, %Message{
+        event: "lev",
+        payload: %{
           level: hero.level,
           job_level: hero.job_level,
           job_xp: hero.job_xp,
@@ -145,49 +146,55 @@ defmodule CelestialWorld.Socket do
           hero_xp: hero.xp,
           hero_level: hero.hero_level,
           hero_xp_max: 10_000
-        }}}
-    )
+        }
+      })
 
-    send(
-      self(),
-      {:socket_push,
-       {:at,
-        %{
+    send(self(), {:socket_push, opcode, paylaod})
+
+    {opcode, paylaod} =
+      encode_reply(socket, %Message{
+        event: "at",
+        payload: %{
           id: hero.id,
           map_id: 1,
           music_id: 0,
           position_x: :rand.uniform(3) + 77,
           position_y: :rand.uniform(4) + 11
-        }}}
-    )
+        }
+      })
 
-    {:ok, assign(socket, :packet_id, packet_id)}
+    send(self(), {:socket_push, opcode, paylaod})
+
+    {:ok, assign(socket, :id, id)}
   end
 
-  def handle_packet({:heartbeat, packet_id}, socket) do
-    Logger.debug(["HEARTBEAT ", packet_id])
-    {:ok, assign(socket, :packet_id, packet_id)}
+  def handle_in(%{event: "heartbeat", payload: payload, id: id}, socket) do
+    Logger.debug(["HEARTBEAT ", id])
+    {:ok, assign(socket, :id, id)}
   end
 
-  def handle_packet(data, socket) do
+  def handle_in(data, socket) do
     Logger.debug(["GARBAGE ", inspect(data)])
     {:ok, socket}
   end
 
-  defp handle_reply({:ok, socket}) do
-    {:ok, socket}
+  @impl true
+  def handle_info({:socket_push, opcode, payload}, socket) do
+    {:push, {opcode, payload}, socket}
   end
 
-  defp handle_reply({:push, {opcode, data}, socket}) do
-    {:push, encode_message(opcode, data), socket}
+  @impl true
+  def terminate(_, _) do
+    :ok
   end
 
-  defp handle_reply({:reply, status, {opcode, data}, socket}) do
-    {:reply, status, encode_message(opcode, data), socket}
+  defp encode_reply(socket, data) do
+    {:socket_push, opcode, payload} = socket.serializer.encode!(data)
+    {opcode, payload |> Enum.join() |> Crypto.encrypt()}
   end
 
-  defp handle_reply({:stop, reason, socket}) do
-    {:stop, reason, socket}
+  defp put_key(socket, key) do
+    %{socket | key: key}
   end
 
   defp get_identity_by_email_and_password(email, password) do
@@ -206,28 +213,5 @@ defmodule CelestialWorld.Socket do
       {:error, _} ->
         :error
     end
-  end
-
-  defp encode_message(:clist, data) do
-    chunks =
-      List.flatten([
-        [encode_data(:clist_start, %{length: length(data)})],
-        Enum.map(data, &encode_data(:clist, &1)),
-        [encode_data(:clist_end, %{})]
-      ])
-
-    {:chunked, chunks}
-  end
-
-  defp encode_message(opcode, data) do
-    {:plain, encode_data(opcode, data)}
-  end
-
-  defp encode_data(opcode, data) do
-    Nostalex.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()
-  end
-
-  defp put_key(socket, key) do
-    %{socket | key: key}
   end
 end

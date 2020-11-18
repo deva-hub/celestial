@@ -1,8 +1,8 @@
-defmodule Ruisseau.Endpoint.Protocol do
+defmodule Nostalex.Endpoint.Protocol do
   @moduledoc false
   @behaviour :ranch_protocol
 
-  alias Ruisseau.Socket
+  alias Nostalex.Socket
 
   @impl true
   def start_link(ref, _, transport, opts) do
@@ -20,12 +20,14 @@ defmodule Ruisseau.Endpoint.Protocol do
 
   defp init(parent, socket, transport, opts) do
     handler = Keyword.fetch!(opts, :handler)
+    serializer = Keyword.fetch!(opts, :serializer)
     connect_info = get_connect_info(opts, socket, transport)
 
     state = %Socket{
       transport: transport,
       transport_pid: parent,
-      connect_info: connect_info
+      connect_info: connect_info,
+      serializer: serializer
     }
 
     {:ok, state} = handler.init(state)

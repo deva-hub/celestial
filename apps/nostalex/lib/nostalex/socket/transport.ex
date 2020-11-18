@@ -1,4 +1,4 @@
-defmodule Ruisseau.Transport do
+defmodule Nostalex.Socket.Transport do
   @moduledoc false
 
   @type state :: term()
@@ -22,7 +22,7 @@ defmodule Ruisseau.Transport do
     * `{:stop, reason, state}` - stops the socket
 
   The `reply` is a tuple contain an `opcode` atom and a message that can
-  be any term. The built-in websocket transport supports both `:text` and
+  be any term. The built-in websocket transport supports both `:plain` and
   `:binary` opcode and the message must be always iodata. Long polling only
   supports text opcode.
   """
@@ -41,7 +41,7 @@ defmodule Ruisseau.Transport do
     * `{:stop, reason, state}` - stops the socket
 
   The `reply` is a tuple contain an `opcode` atom and a message that can
-  be any term. The built-in websocket transport supports both `:text` and
+  be any term. The built-in websocket transport supports both `:plain` and
   `:binary` opcode and the message must be always iodata. Long polling only
   supports text opcode.
   """

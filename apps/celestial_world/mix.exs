@@ -32,8 +32,8 @@ defmodule CelestialWorld.MixProject do
   defp deps do
     [
       {:celestial, in_umbrella: true},
-      {:ruisseau, in_umbrella: true},
-      {:nostalex, in_umbrella: true}
+      {:nostalex, in_umbrella: true},
+      {:noslib, in_umbrella: true}
     ]
   end
 

@@ -1,22 +1,22 @@
-defmodule Nostalex.UI do
+defmodule Noslib.UI do
   @moduledoc false
-  alias Nostalex.Helpers
+  alias Noslib.Helpers
 
   @name_colors BiMap.new(%{
-                 white: Helpers.pack_int(0),
-                 # ???: Helpers.pack_int(1),
-                 purple: Helpers.pack_int(2),
-                 # ???: Helpers.pack_int(3),
-                 # ???: Helpers.pack_int(4),
-                 # ???: Helpers.pack_int(5),
-                 invisible: Helpers.pack_int(6)
+                 white: Helpers.encode_int(0),
+                 # ???: Helpers.encode_int(1),
+                 purple: Helpers.encode_int(2),
+                 # ???: Helpers.encode_int(3),
+                 # ???: Helpers.encode_int(4),
+                 # ???: Helpers.encode_int(5),
+                 invisible: Helpers.encode_int(6)
                })
 
-  @spec parse_name_color(binary) :: atom
-  def parse_name_color(name_color), do: BiMap.get_key(@name_colors, name_color)
+  @spec decode_name_color(binary) :: atom
+  def decode_name_color(name_color), do: BiMap.get_key(@name_colors, name_color)
 
-  @spec pack_name_color(atom) :: iodata
-  def pack_name_color(name_color), do: BiMap.get(@name_colors, name_color)
+  @spec encode_name_color(atom) :: iodata
+  def encode_name_color(name_color), do: BiMap.get(@name_colors, name_color)
 
   @dignity_icons %{
     basic: -100,
@@ -33,8 +33,8 @@ defmodule Nostalex.UI do
     end)
   end
 
-  @spec pack_dignity_icon(atom) :: iodata
-  def pack_dignity_icon(dignity_icon), do: BiMap.get(@dignity_icons, dignity_icon)
+  @spec encode_dignity_icon(atom) :: iodata
+  def encode_dignity_icon(dignity_icon), do: BiMap.get(@dignity_icons, dignity_icon)
 
   @reputation_icons %{
     stupid_minded: -800,

@@ -1,11 +1,12 @@
 defmodule CelestialGateway.Socket do
   @moduledoc false
-  @behaviour Ruisseau.Transport
+  @behaviour Nostalex.Socket.Transport
 
   require Logger
   alias Celestial.Accounts
   alias CelestialWorld.Oracle
   alias CelestialGateway.Crypto
+  alias Nostalex.Socket.{Message}
 
   @impl true
   def init(socket) do
@@ -13,16 +14,38 @@ defmodule CelestialGateway.Socket do
   end
 
   @impl true
-  def handle_in({data, _}, state) do
-    data
-    |> Crypto.decrypt()
-    |> Nostalex.parse()
-    |> handle_packet(state)
+  def handle_in({payload, opts}, socket) do
+    msg = payload |> Crypto.decrypt() |> socket.serializer.decode!(opts)
+    handle_in(msg, socket)
+  end
+
+  def handle_in(%{event: "NoS0575", payload: payload}, socket) do
+    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+
+    with :ok <- validate_client_version(payload.version),
+         {:ok, key} <- generate_otk_by_email_and_password(address, payload.email, payload.password) do
+      channels = Oracle.list_channels()
+      message = %Message{event: "NsTeST", payload: %{key: key, channels: channels}}
+      {:reply, :ok, encode_reply(socket, message), socket}
+    else
+      {:error, :outdated_client} ->
+        message = %Message{event: "failc", payload: %{error: :outdated_client}}
+        {:reply, :error, encode_reply(socket, message), socket}
+
+      {:error, :unvalid_credentials} ->
+        message = %Message{event: "failc", payload: %{error: :unvalid_credentials}}
+        {:reply, :error, encode_reply(socket, message), socket}
+    end
+  end
+
+  def handle_in(data, socket) do
+    Logger.debug(["GARBAGE ", inspect(data)])
+    {:ok, socket}
   end
 
   @impl true
-  def handle_info(_, state) do
-    {:ok, state}
+  def handle_info(_, socket) do
+    {:ok, socket}
   end
 
   @impl true
@@ -30,29 +53,9 @@ defmodule CelestialGateway.Socket do
     :ok
   end
 
-  def handle_packet({:nos0575, email, password, client_version}, socket) do
-    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-
-    with :ok <- validate_client_version(client_version),
-         {:ok, key} <- generate_otk_by_email_and_password(address, email, password) do
-      channels = Oracle.list_channels()
-      {:reply, :ok, encode_packet(:nstest, %{key: key, channels: channels}), socket}
-    else
-      {:error, :outdated_client} ->
-        {:reply, :error, encode_packet(:failc, %{error: :outdated_client}), socket}
-
-      {:error, :unvalid_credentials} ->
-        {:reply, :error, encode_packet(:failc, %{error: :unvalid_credentials}), socket}
-    end
-  end
-
-  def handle_packet(data, socket) do
-    Logger.debug(["GARBAGE ", inspect(data)])
-    {:ok, socket}
-  end
-
-  defp encode_packet(opcode, data) do
-    {:plain, Nostalex.pack(opcode, data) |> Enum.join() |> Crypto.encrypt()}
+  defp encode_reply(socket, data) do
+    {:socket_push, opcode, payload} = socket.serializer.encode!(data)
+    {opcode, payload |> Enum.join() |> Crypto.encrypt()}
   end
 
   defp validate_client_version(version) do

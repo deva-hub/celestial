@@ -1,2 +1,0 @@
-defmodule Ruisseau do
-end
