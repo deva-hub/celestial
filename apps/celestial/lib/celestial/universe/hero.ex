@@ -1,4 +1,4 @@
-defmodule Celestial.World.Hero do
+defmodule Celestial.Universe.Hero do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -75,6 +75,6 @@ defmodule Celestial.World.Hero do
   Gets all heroes for the given identity.
   """
   def identity_query(identity) do
-    from h in Celestial.World.Hero, where: h.identity_id == ^identity.id
+    from h in Celestial.Universe.Hero, where: h.identity_id == ^identity.id
   end
 end

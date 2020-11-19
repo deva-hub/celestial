@@ -7,8 +7,22 @@ config :celestial, Celestial.Repo,
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
 # Configure Celestial world node port
-config :celestial_world,
-  port: System.get_env("CELESTIAL_WORLD_PORT", "4124") |> String.to_integer()
+hostname =
+  case System.get_env("CELESTIAL_CHANNEL_HOST") |> to_charlist() |> :inet.parse_address() do
+    {:ok, hostname} ->
+      hostname
+
+    {:error, _} ->
+      raise """
+      environment variable CELESTIAL_CHANNEL_HOST is not a valid hostname.
+      Channel need a valid hostname to broadcast the current game server hostname.
+      """
+  end
+
+config :celestial_channel,
+  name: System.get_env("CELESTIAL_CHANNEL_NAME", "Celestial"),
+  hostname: hostname,
+  port: System.get_env("CELESTIAL_CHANNEL_PORT", "4124") |> String.to_integer()
 
 # Configure Celestial gateway port
 config :celestial_gateway,
@@ -27,7 +41,7 @@ config :celestial_web,
 # generating URLs.
 config :celestial_web, CelestialWeb.Endpoint,
   url: [
-    host: System.get_env("HOST", "0.0.0.0"),
+    hostname: System.get_env("HOST", "0.0.0.0"),
     port: System.get_env("PORT", "4000") |> String.to_integer()
   ]
 
@@ -54,7 +68,7 @@ case config_env() do
         Enforce a compatible and stable client version
         """
 
-    config :celestial_world, client_version: client_version
+    config :celestial_channel, client_version: client_version
 
     # Configures the endpoint
     secret_key_base =

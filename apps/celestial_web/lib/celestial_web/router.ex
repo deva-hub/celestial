@@ -60,5 +60,6 @@ defmodule CelestialWeb.Router do
     end
 
     resources "/heroes", HeroController, except: [:new, :edit]
+    resources "/worlds", WorldController, except: [:new, :edit]
   end
 end

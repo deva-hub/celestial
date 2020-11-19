@@ -19,6 +19,8 @@ defmodule Nostalex.Endpoint.Protocol do
   end
 
   defp init(parent, socket, transport, opts) do
+    Process.flag(:trap_exit, true)
+
     handler = Keyword.fetch!(opts, :handler)
     serializer = Keyword.fetch!(opts, :serializer)
     connect_info = get_connect_info(opts, socket, transport)
@@ -48,6 +50,9 @@ defmodule Nostalex.Endpoint.Protocol do
 
       {^closed, ^socket} ->
         terminate(:close, {handler, state, socket})
+
+      {:EXIT, _, _} ->
+        loop({handler, state, socket})
 
       message ->
         handler.handle_info(message, state) |> handle_reply({handler, socket})

@@ -8,8 +8,8 @@ defmodule Noslib.Gateway do
   @type channel :: %{
           id: pos_integer,
           world_id: pos_integer,
-          slot: pos_integer,
-          ip: :inet.ip4_address(),
+          world_name: pos_integer,
+          hostname: :inet.ip4_address(),
           port: :inet.port_number(),
           population: non_neg_integer,
           capacity: non_neg_integer
@@ -34,12 +34,12 @@ defmodule Noslib.Gateway do
 
   def encode_channel(channel) do
     Helpers.encode_tuple([
-      encode_ip_address(channel.ip),
+      encode_ip_address(channel.hostname),
       Helpers.encode_int(channel.port),
       Helpers.encode_int(channel_color(channel.population, channel.capacity)),
       Helpers.encode_struct([
-        Helpers.encode_int(channel.slot),
         Helpers.encode_int(channel.world_id),
+        channel.world_name,
         Helpers.encode_int(channel.id)
       ])
     ])

@@ -1,8 +1,8 @@
 defmodule CelestialWeb.HeroControllerTest do
   use CelestialWeb.ConnCase
 
-  alias Celestial.World
-  alias Celestial.World.Hero
+  alias Celestial.Universe
+  alias Celestial.Universe.Hero
 
   @create_attrs %{
     class: "some class",
@@ -33,7 +33,7 @@ defmodule CelestialWeb.HeroControllerTest do
   @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, slot: nil, xp: nil}
 
   def fixture(:hero) do
-    {:ok, hero} = World.create_hero(@create_attrs)
+    {:ok, hero} = Universe.create_hero(@create_attrs)
     hero
   end
 

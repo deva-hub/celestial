@@ -4,7 +4,7 @@ defmodule CelestialGateway.Socket do
 
   require Logger
   alias Celestial.Accounts
-  alias CelestialWorld.Oracle
+  alias CelestialChannel.Presence
   alias CelestialGateway.Crypto
   alias Nostalex.Socket.Message
 
@@ -21,8 +21,8 @@ defmodule CelestialGateway.Socket do
 
   def handle_in(%{event: "NoS0575", payload: payload}, %{connect_info: %{peer_data: peer_data}} = socket) do
     with :ok <- validate_client_version(payload.version),
-         {:ok, key} <- generate_otk(peer_data.address, payload.email, payload.password),
-         {:ok, channels} <- list_online_channel() do
+         {:ok, key} <- generate_otk(peer_data.address, payload.email, payload.password) do
+      channels = list_online_channel()
       {:reply, :ok, encode_nstest(socket, key, channels), socket}
     else
       {:error, :outdated_client} ->
@@ -34,7 +34,7 @@ defmodule CelestialGateway.Socket do
   end
 
   def handle_in(data, socket) do
-    Logger.debug("GARBAGE #{data}")
+    Logger.debug("GARBAGE #{data.id} #{inspect(data.payload)}")
     {:ok, socket}
   end
 
@@ -90,9 +90,17 @@ defmodule CelestialGateway.Socket do
   end
 
   defp list_online_channel do
-    case Oracle.list_channels() do
-      [] -> {:error, :maintenance}
-      channels -> {:ok, channels}
-    end
+    Presence.list("channels")
+    |> Enum.map(fn {id, %{metas: [meta]}} ->
+      %{
+        id: id,
+        world_id: meta.world_id,
+        world_name: meta.world_name,
+        hostname: meta.hostname,
+        port: meta.port,
+        population: meta.population,
+        capacity: meta.capacity
+      }
+    end)
   end
 end

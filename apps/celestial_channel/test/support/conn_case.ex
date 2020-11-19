@@ -1,4 +1,4 @@
-defmodule CelestialWorld.ConnCase do
+defmodule CelestialChannel.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -7,7 +7,7 @@ defmodule CelestialWorld.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use CelestialWorld.ConnCase, async: true`, although
+  by setting `use CelestialChannel.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 

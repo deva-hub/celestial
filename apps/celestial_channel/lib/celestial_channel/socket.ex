@@ -1,12 +1,12 @@
-defmodule CelestialWorld.Socket do
+defmodule CelestialChannel.Socket do
   @moduledoc false
   @behaviour Nostalex.Socket.Transport
 
   require Logger
   import Nostalex.Socket
   alias Nostalex.Socket.Message
-  alias Celestial.{Accounts, World}
-  alias CelestialWorld.Crypto
+  alias Celestial.{Accounts, Universe}
+  alias CelestialChannel.Crypto
 
   @impl true
   def init(socket) do
@@ -33,7 +33,7 @@ defmodule CelestialWorld.Socket do
 
     with {:ok, identity} <- get_identity_by_email_and_password(email, password),
          :ok <- consume_identity_otk(identity, address, socket.key) do
-      heroes = World.list_identity_heroes(identity)
+      heroes = Universe.list_identity_heroes(identity)
 
       # TODO: remove placeholder data
       {opcode, payload} =
@@ -81,7 +81,7 @@ defmodule CelestialWorld.Socket do
   end
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
-    hero = World.get_hero!(payload.slot)
+    hero = Universe.get_hero!(payload.slot)
 
     # TODO: remove placeholder data
     {opcode, paylaod} =
@@ -174,7 +174,7 @@ defmodule CelestialWorld.Socket do
   end
 
   def handle_in(data, socket) do
-    Logger.debug("GARBAGE #{data}")
+    Logger.debug("GARBAGE #{data.id} #{inspect(data.payload)}")
     {:ok, socket}
   end
 
