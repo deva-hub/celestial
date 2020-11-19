@@ -6,7 +6,7 @@ defmodule CelestialGateway.Socket do
   alias Celestial.Accounts
   alias CelestialWorld.Oracle
   alias CelestialGateway.Crypto
-  alias Nostalex.Socket.{Message}
+  alias Nostalex.Socket.Message
 
   @impl true
   def init(socket) do
@@ -19,22 +19,17 @@ defmodule CelestialGateway.Socket do
     handle_in(msg, socket)
   end
 
-  def handle_in(%{event: "NoS0575", payload: payload}, socket) do
-    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-
+  def handle_in(%{event: "NoS0575", payload: payload}, %{connect_info: %{peer_data: peer_data}} = socket) do
     with :ok <- validate_client_version(payload.version),
-         {:ok, key} <- generate_otk_by_email_and_password(address, payload.email, payload.password) do
-      channels = Oracle.list_channels()
-      message = %Message{event: "NsTeST", payload: %{key: key, channels: channels}}
-      {:reply, :ok, encode_reply(socket, message), socket}
+         {:ok, key} <- generate_otk(peer_data.address, payload.email, payload.password),
+         {:ok, channels} <- list_online_channel() do
+      {:reply, :ok, encode_nstest(socket, key, channels), socket}
     else
       {:error, :outdated_client} ->
-        message = %Message{event: "failc", payload: %{error: :outdated_client}}
-        {:reply, :error, encode_reply(socket, message), socket}
+        {:reply, :error, encode_error(socket, :outdated_client), socket}
 
       {:error, :unvalid_credentials} ->
-        message = %Message{event: "failc", payload: %{error: :unvalid_credentials}}
-        {:reply, :error, encode_reply(socket, message), socket}
+        {:reply, :error, encode_error(socket, :unvalid_credentials), socket}
     end
   end
 
@@ -51,6 +46,16 @@ defmodule CelestialGateway.Socket do
   @impl true
   def terminate(_, _) do
     :ok
+  end
+
+  defp encode_nstest(socket, key, channels) do
+    message = %Message{event: "NsTeST", payload: %{key: key, channels: channels}}
+    encode_reply(socket, message)
+  end
+
+  defp encode_error(socket, reason) do
+    message = %Message{event: "failc", payload: %{error: reason}}
+    encode_reply(socket, message)
   end
 
   defp encode_reply(socket, data) do
@@ -76,11 +81,18 @@ defmodule CelestialGateway.Socket do
     end
   end
 
-  defp generate_otk_by_email_and_password(ip, email, password) do
+  defp generate_otk(address, email, password) do
     if identity = Accounts.get_identity_by_email_and_password(email, password) do
-      {:ok, Accounts.generate_identity_otk(ip, identity)}
+      {:ok, Accounts.generate_identity_otk(address |> :inet.ntoa() |> to_string(), identity)}
     else
       {:error, :unvalid_credentials}
+    end
+  end
+
+  defp list_online_channel do
+    case Oracle.list_channels() do
+      [] -> {:error, :maintenance}
+      channels -> {:ok, channels}
     end
   end
 end
