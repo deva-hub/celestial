@@ -87,11 +87,4 @@ case config_env() do
     config :celestial, Celestial.Repo,
       database: System.get_env("POSTGRES_DB", "celestial"),
       pool_size: System.get_env("POOL_SIZE", "10") |> String.to_integer()
-
-    # Configure the distribution protocol port
-    dist_port = System.get_env("CELESTIAL_DIST_PORT", "49300") |> String.to_integer()
-
-    config :kernel,
-      inet_dist_listen_min: dist_port,
-      inet_dist_listen_max: dist_port
 end
