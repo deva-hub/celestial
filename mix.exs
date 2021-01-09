@@ -20,7 +20,7 @@ defmodule Celestial.Umbrella.MixProject do
         applications: [
           runtime_tools: :permanent,
           celestial: :permanent,
-          celestial_channel: :permanent,
+          celestial_portal: :permanent,
           celestial_web: :permanent
         ]
       ]

@@ -1,3 +1,3 @@
-# CelestialChannel
+# CelestialPortal
 
 **TODO: Add description**

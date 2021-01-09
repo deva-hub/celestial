@@ -1,4 +1,4 @@
-defmodule CelestialChannel.Socket do
+defmodule CelestialPortal.Socket do
   @moduledoc false
   @behaviour Nostalex.Socket.Transport
 
@@ -6,7 +6,7 @@ defmodule CelestialChannel.Socket do
   import Nostalex.Socket
   alias Nostalex.Socket.Message
   alias Celestial.{Accounts, Universe}
-  alias CelestialChannel.Crypto
+  alias CelestialPortal.Crypto
 
   @impl true
   def init(socket) do

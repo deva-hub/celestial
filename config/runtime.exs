@@ -8,21 +8,21 @@ config :celestial, Celestial.Repo,
 
 # Configure Celestial world node port
 hostname =
-  case System.get_env("CELESTIAL_CHANNEL_HOST") |> to_charlist() |> :inet.parse_address() do
+  case System.get_env("CELESTIAL_PORTAL_HOST") |> to_charlist() |> :inet.parse_address() do
     {:ok, hostname} ->
       hostname
 
     {:error, _} ->
       raise """
-      environment variable CELESTIAL_CHANNEL_HOST is not a valid hostname.
+      environment variable CELESTIAL_PORTAL_HOST is not a valid hostname.
       Channel need a valid hostname to broadcast the current game server hostname.
       """
   end
 
-config :celestial_channel,
-  name: System.get_env("CELESTIAL_CHANNEL_NAME", "Celestial"),
+config :celestial_portal,
+  name: System.get_env("CELESTIAL_PORTAL_NAME", "Celestial"),
   hostname: hostname,
-  port: System.get_env("CELESTIAL_CHANNEL_PORT", "4124") |> String.to_integer()
+  port: System.get_env("CELESTIAL_PORTAL_PORT", "4124") |> String.to_integer()
 
 # Configure Celestial gateway port
 config :celestial_gateway,
@@ -68,7 +68,7 @@ case config_env() do
         Enforce a compatible and stable client version
         """
 
-    config :celestial_channel, client_version: client_version
+    config :celestial_portal, client_version: client_version
 
     # Configures the endpoint
     secret_key_base =

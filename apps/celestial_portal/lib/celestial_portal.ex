@@ -1,4 +1,4 @@
-defmodule CelestialChannel do
+defmodule CelestialPortal do
   @moduledoc """
   The entrypoint for the game server interface.
   """

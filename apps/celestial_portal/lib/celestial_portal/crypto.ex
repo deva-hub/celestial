@@ -1,4 +1,4 @@
-defmodule CelestialChannel.Crypto do
+defmodule CelestialPortal.Crypto do
   @moduledoc """
   NosTale Channel cryptography suite
   """

@@ -4,7 +4,7 @@ defmodule CelestialGateway.Socket do
 
   require Logger
   alias Celestial.Accounts
-  alias CelestialChannel.Presence
+  alias CelestialPortal.Presence
   alias CelestialGateway.Crypto
   alias Nostalex.Socket.Message
 
@@ -90,8 +90,7 @@ defmodule CelestialGateway.Socket do
   end
 
   defp list_online_channel do
-    Presence.list("channels")
-    |> Enum.map(fn {id, %{metas: [meta]}} ->
+    for {id, %{metas: [meta]}} <- Presence.list("channels") do
       %{
         id: id,
         world_id: meta.world_id,
@@ -101,6 +100,6 @@ defmodule CelestialGateway.Socket do
         population: meta.population,
         capacity: meta.capacity
       }
-    end)
+    end
   end
 end

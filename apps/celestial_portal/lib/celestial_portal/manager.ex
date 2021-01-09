@@ -1,7 +1,7 @@
-defmodule CelestialChannel.Manager do
+defmodule CelestialPortal.Manager do
   use GenServer
 
-  alias CelestialChannel.Presence
+  alias CelestialPortal.Presence
 
   @default_capacity 2_147_483_647
 
