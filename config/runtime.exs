@@ -6,7 +6,7 @@ config :celestial, Celestial.Repo,
   password: System.get_env("POSTGRES_PASSWORD", "postgres"),
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
-# Configure Celestial world node port
+# Configure Celestial portal host
 hostname =
   case System.get_env("CELESTIAL_PORTAL_HOST") |> to_charlist() |> :inet.parse_address() do
     {:ok, hostname} ->
