@@ -1,9 +1,9 @@
-defmodule CelestialPortal.MixProject do
+defmodule CelestialWorld.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :celestial_portal,
+      app: :celestial_world,
       version: "0.2.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -21,7 +21,7 @@ defmodule CelestialPortal.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {CelestialPortal.Application, []},
+      mod: {CelestialWorld.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -31,10 +31,7 @@ defmodule CelestialPortal.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:celestial, in_umbrella: true},
-      {:celestial_world, in_umbrella: true},
-      {:nostalex, in_umbrella: true},
-      {:noslib, in_umbrella: true}
+      {:celestial, in_umbrella: true}
     ]
   end
 
