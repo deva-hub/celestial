@@ -81,7 +81,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
-    hero = Universe.get_hero!(payload.slot)
+    hero = Universe.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
     # TODO: remove placeholder data
     {opcode, paylaod} =
@@ -166,6 +166,137 @@ defmodule CelestialPortal.Socket do
     send(self(), {:socket_push, opcode, paylaod})
 
     {:ok, assign(socket, :id, id)}
+  end
+
+  def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
+    case Universe.create_hero(socket.assigns.current_identity, payload) do
+      {:ok, _} ->
+        heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
+
+        # TODO: remove placeholder data
+        {opcode, payload} =
+          encode_reply(socket, %Message{
+            event: "clist_start",
+            payload: %{length: length(heroes)}
+          })
+
+        send(self(), {:socket_push, opcode, payload})
+
+        Enum.each(heroes, fn hero ->
+          {opcode, payload} =
+            encode_reply(socket, %Message{
+              event: "clist",
+              payload: %{
+                slot: hero.slot,
+                name: hero.name,
+                gender: hero.gender,
+                hair_style: hero.hair_style,
+                hair_color: hero.hair_color,
+                class: hero.class,
+                level: hero.level,
+                hero_level: hero.hero_level,
+                job_level: hero.job_level,
+                pets: [],
+                equipment: %{}
+              }
+            })
+
+          send(self(), {:socket_push, opcode, payload})
+        end)
+
+        {opcode, payload} =
+          encode_reply(socket, %Message{
+            event: "clist_end"
+          })
+
+        send(self(), {:socket_push, opcode, payload})
+
+        :ok
+
+      {:error, _} ->
+        {opcode, paylaod} =
+          encode_reply(socket, %Message{
+            event: "failc",
+            payload: %{error: :unexpected_error}
+          })
+
+        send(self(), {:socket_push, opcode, paylaod})
+    end
+
+    {:ok, socket}
+  end
+
+  def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
+    case get_identity_by_email_and_password(socket.assigns.current_identity.email, payload.password) do
+      {:ok, identity} ->
+        hero = Universe.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
+
+        case Universe.delete_hero(hero) do
+          {:ok, _} ->
+            heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
+
+            # TODO: remove placeholder data
+            {opcode, payload} =
+              encode_reply(socket, %Message{
+                event: "clist_start",
+                payload: %{length: length(heroes)}
+              })
+
+            send(self(), {:socket_push, opcode, payload})
+
+            Enum.each(heroes, fn hero ->
+              {opcode, payload} =
+                encode_reply(socket, %Message{
+                  event: "clist",
+                  payload: %{
+                    slot: hero.slot,
+                    name: hero.name,
+                    gender: hero.gender,
+                    hair_style: hero.hair_style,
+                    hair_color: hero.hair_color,
+                    class: hero.class,
+                    level: hero.level,
+                    hero_level: hero.hero_level,
+                    job_level: hero.job_level,
+                    pets: [],
+                    equipment: %{}
+                  }
+                })
+
+              send(self(), {:socket_push, opcode, payload})
+            end)
+
+            {opcode, payload} =
+              encode_reply(socket, %Message{
+                event: "clist_end"
+              })
+
+            send(self(), {:socket_push, opcode, payload})
+
+            {:ok, assign(socket, :current_identity, identity)}
+
+          {:error, _} ->
+            {opcode, paylaod} =
+              encode_reply(socket, %Message{
+                event: "failc",
+                payload: %{error: :unexpected_error}
+              })
+
+            send(self(), {:socket_push, opcode, paylaod})
+
+            {:ok, socket}
+        end
+
+      {:error, _} ->
+        {opcode, paylaod} =
+          encode_reply(socket, %Message{
+            event: "failc",
+            payload: %{error: :unvalid_credentials}
+          })
+
+        send(self(), {:socket_push, opcode, paylaod})
+        {:ok, socket}
+    end
   end
 
   def handle_in(%{event: "0", id: id}, socket) do

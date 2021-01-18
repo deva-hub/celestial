@@ -51,6 +51,24 @@ defmodule Celestial.Universe do
   def get_hero!(id), do: Repo.get!(Hero, id)
 
   @doc """
+  Gets a single hero by slot.
+
+  Raises `Ecto.NoResultsError` if the Hero does not exist.
+
+  ## Examples
+
+      iex> get_hero_by_slot!(%Identity{}, 123)
+      %Hero{}
+
+      iex> get_hero_by_slot!(%Identity{}, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_hero_by_slot!(identity, slot) do
+    Repo.get_by!(Hero, identity_id: identity.id, slot: slot)
+  end
+
+  @doc """
   Creates a hero.
 
   ## Examples

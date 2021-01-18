@@ -17,12 +17,12 @@ defmodule Noslib do
     [String.to_integer(id), "select", Lobby.decode_select(payload)]
   end
 
-  def decode([id, "char_del" | payload]) do
-    [String.to_integer(id), "char_del", Lobby.decode_char_del(payload)]
+  def decode([id, "Char_DEL" | payload]) do
+    [String.to_integer(id), "Char_DEL", Lobby.decode_char_del(payload)]
   end
 
-  def decode([id, "char_new" | payload]) do
-    [String.to_integer(id), "char_new", Lobby.decode_char_new(payload)]
+  def decode([id, "Char_NEW" | payload]) do
+    [String.to_integer(id), "Char_NEW", Lobby.decode_char_new(payload)]
   end
 
   def decode([id, "0"]) do

@@ -61,8 +61,8 @@ defmodule Noslib.Lobby do
     %{slot: String.to_integer(slot)}
   end
 
-  def decode_char_del([slot, name]) do
-    %{slot: String.to_integer(slot), name: name}
+  def decode_char_del([slot, password]) do
+    %{slot: String.to_integer(slot), password: password}
   end
 
   @pets_terminator "-1"
