@@ -44,10 +44,10 @@ defmodule Noslib.Society do
                })
 
   @spec decode_reputation(binary) :: atom
-  def decode_reputation(reputation), do: BiMap.get_key(@reputations, reputation)
+  def decode_reputation(reputation), do: BiMap.fetch_key!(@reputations, reputation)
 
   @spec encode_reputation(atom) :: iodata
-  def encode_reputation(reputation), do: BiMap.get(@reputations, reputation)
+  def encode_reputation(reputation), do: BiMap.fetch!(@reputations, reputation)
 
   @dignities BiMap.new(%{
                basic: Helpers.encode_int(1),
@@ -59,10 +59,10 @@ defmodule Noslib.Society do
              })
 
   @spec decode_dignity(binary) :: atom
-  def decode_dignity(dignity), do: BiMap.get_key(@dignities, dignity)
+  def decode_dignity(dignity), do: BiMap.fetch_key!(@dignities, dignity)
 
   @spec encode_dignity(atom) :: iodata
-  def encode_dignity(dignity), do: BiMap.get(@dignities, dignity)
+  def encode_dignity(dignity), do: BiMap.fetch!(@dignities, dignity)
 
   @factions BiMap.new(%{
               neutral: Helpers.encode_int(0),
@@ -71,10 +71,10 @@ defmodule Noslib.Society do
             })
 
   @spec decode_faction(binary) :: atom
-  def decode_faction(faction), do: BiMap.get_key(@factions, faction)
+  def decode_faction(faction), do: BiMap.fetch_key!(@factions, faction)
 
   @spec encode_faction(atom) :: iodata
-  def encode_faction(faction), do: BiMap.get(@factions, faction)
+  def encode_faction(faction), do: BiMap.fetch!(@factions, faction)
 
   @minilands BiMap.new(%{
                open: Helpers.encode_int(0),
@@ -83,8 +83,8 @@ defmodule Noslib.Society do
              })
 
   @spec decode_miniland(binary) :: atom
-  def decode_miniland(miniland), do: BiMap.get_key(@minilands, miniland)
+  def decode_miniland(miniland), do: BiMap.fetch_key!(@minilands, miniland)
 
   @spec encode_miniland(atom) :: iodata
-  def encode_miniland(miniland), do: BiMap.get(@minilands, miniland)
+  def encode_miniland(miniland), do: BiMap.fetch!(@minilands, miniland)
 end

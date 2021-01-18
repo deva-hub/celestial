@@ -1,10 +1,10 @@
 defmodule Celestial.WorldTest do
   use Celestial.DataCase
 
-  alias Celestial.Universe
+  alias Celestial.Galaxy
 
   describe "heroes" do
-    alias Celestial.Universe.Hero
+    alias Celestial.Galaxy.Hero
 
     @valid_attrs %{
       class: "some class",
@@ -38,23 +38,23 @@ defmodule Celestial.WorldTest do
       {:ok, hero} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Universe.create_hero()
+        |> Galaxy.create_hero()
 
       hero
     end
 
     test "list_heroes/0 returns all heroes" do
       hero = hero_fixture()
-      assert Universe.list_heroes() == [hero]
+      assert Galaxy.list_heroes() == [hero]
     end
 
     test "get_hero!/1 returns the hero with given id" do
       hero = hero_fixture()
-      assert Universe.get_hero!(hero.id) == hero
+      assert Galaxy.get_hero!(hero.id) == hero
     end
 
     test "create_hero/1 with valid data creates a hero" do
-      assert {:ok, %Hero{} = hero} = Universe.create_hero(@valid_attrs)
+      assert {:ok, %Hero{} = hero} = Galaxy.create_hero(@valid_attrs)
       assert hero.class == "some class"
       assert hero.hair_color == "some hair_color"
       assert hero.hair_style == "some hair_style"
@@ -69,12 +69,12 @@ defmodule Celestial.WorldTest do
     end
 
     test "create_hero/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Universe.create_hero(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Galaxy.create_hero(@invalid_attrs)
     end
 
     test "update_hero/2 with valid data updates the hero" do
       hero = hero_fixture()
-      assert {:ok, %Hero{} = hero} = Universe.update_hero(hero, @update_attrs)
+      assert {:ok, %Hero{} = hero} = Galaxy.update_hero(hero, @update_attrs)
       assert hero.class == "some updated class"
       assert hero.hair_color == "some updated hair_color"
       assert hero.hair_style == "some updated hair_style"
@@ -90,24 +90,24 @@ defmodule Celestial.WorldTest do
 
     test "update_hero/2 with invalid data returns error changeset" do
       hero = hero_fixture()
-      assert {:error, %Ecto.Changeset{}} = Universe.update_hero(hero, @invalid_attrs)
-      assert hero == Universe.get_hero!(hero.id)
+      assert {:error, %Ecto.Changeset{}} = Galaxy.update_hero(hero, @invalid_attrs)
+      assert hero == Galaxy.get_hero!(hero.id)
     end
 
     test "delete_hero/1 deletes the hero" do
       hero = hero_fixture()
-      assert {:ok, %Hero{}} = Universe.delete_hero(hero)
-      assert_raise Ecto.NoResultsError, fn -> Universe.get_hero!(hero.id) end
+      assert {:ok, %Hero{}} = Galaxy.delete_hero(hero)
+      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_hero!(hero.id) end
     end
 
     test "change_hero/1 returns a hero changeset" do
       hero = hero_fixture()
-      assert %Ecto.Changeset{} = Universe.change_hero(hero)
+      assert %Ecto.Changeset{} = Galaxy.change_hero(hero)
     end
   end
 
   describe "worlds" do
-    alias Celestial.Universe.World
+    alias Celestial.Galaxy.World
 
     @valid_attrs %{name: "some name"}
     @update_attrs %{name: "some updated name"}
@@ -117,51 +117,51 @@ defmodule Celestial.WorldTest do
       {:ok, world} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Universe.create_world()
+        |> Galaxy.create_world()
 
       world
     end
 
     test "list_worlds/0 returns all worlds" do
       world = world_fixture()
-      assert Universe.list_worlds() == [world]
+      assert Galaxy.list_worlds() == [world]
     end
 
     test "get_world!/1 returns the world with given id" do
       world = world_fixture()
-      assert Universe.get_world!(world.id) == world
+      assert Galaxy.get_world!(world.id) == world
     end
 
     test "create_world/1 with valid data creates a world" do
-      assert {:ok, %World{} = world} = Universe.create_world(@valid_attrs)
+      assert {:ok, %World{} = world} = Galaxy.create_world(@valid_attrs)
       assert world.name == "some name"
     end
 
     test "create_world/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Universe.create_world(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Galaxy.create_world(@invalid_attrs)
     end
 
     test "update_world/2 with valid data updates the world" do
       world = world_fixture()
-      assert {:ok, %World{} = world} = Universe.update_world(world, @update_attrs)
+      assert {:ok, %World{} = world} = Galaxy.update_world(world, @update_attrs)
       assert world.name == "some updated name"
     end
 
     test "update_world/2 with invalid data returns error changeset" do
       world = world_fixture()
-      assert {:error, %Ecto.Changeset{}} = Universe.update_world(world, @invalid_attrs)
-      assert world == Universe.get_world!(world.id)
+      assert {:error, %Ecto.Changeset{}} = Galaxy.update_world(world, @invalid_attrs)
+      assert world == Galaxy.get_world!(world.id)
     end
 
     test "delete_world/1 deletes the world" do
       world = world_fixture()
-      assert {:ok, %World{}} = Universe.delete_world(world)
-      assert_raise Ecto.NoResultsError, fn -> Universe.get_world!(world.id) end
+      assert {:ok, %World{}} = Galaxy.delete_world(world)
+      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_world!(world.id) end
     end
 
     test "change_world/1 returns a world changeset" do
       world = world_fixture()
-      assert %Ecto.Changeset{} = Universe.change_world(world)
+      assert %Ecto.Changeset{} = Galaxy.change_world(world)
     end
   end
 end

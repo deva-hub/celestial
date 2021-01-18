@@ -1,8 +1,8 @@
 defmodule CelestialWeb.WorldControllerTest do
   use CelestialWeb.ConnCase
 
-  alias Celestial.Universe
-  alias Celestial.Universe.World
+  alias Celestial.Galaxy
+  alias Celestial.Galaxy.World
 
   @create_attrs %{
     name: "some name"
@@ -13,7 +13,7 @@ defmodule CelestialWeb.WorldControllerTest do
   @invalid_attrs %{name: nil}
 
   def fixture(:world) do
-    {:ok, world} = Universe.create_world(@create_attrs)
+    {:ok, world} = Galaxy.create_world(@create_attrs)
     world
   end
 

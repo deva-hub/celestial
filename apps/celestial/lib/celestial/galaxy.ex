@@ -1,12 +1,12 @@
-defmodule Celestial.Universe do
+defmodule Celestial.Galaxy do
   @moduledoc """
-  The Universe context.
+  The Galaxy context.
   """
 
   import Ecto.Query, warn: false
   alias Celestial.Repo
 
-  alias Celestial.Universe.Hero
+  alias Celestial.Galaxy.Hero
 
   @doc """
   Returns the list of heroes.
@@ -21,16 +21,7 @@ defmodule Celestial.Universe do
     Repo.all(Hero)
   end
 
-  @doc """
-  Returns the identity list of heroes.
-
-  ## Examples
-
-      iex> list_identity_heroes()
-      [%Hero{}, ...]
-
-  """
-  def list_identity_heroes(identity) do
+  def list_heroes(identity) do
     Repo.all(Hero.identity_query(identity))
   end
 
@@ -49,6 +40,10 @@ defmodule Celestial.Universe do
 
   """
   def get_hero!(id), do: Repo.get!(Hero, id)
+
+  def get_hero!(identity, id) do
+    Repo.get_by!(Hero, identity_id: identity.id, id: id)
+  end
 
   @doc """
   Gets a single hero by slot.
@@ -120,7 +115,7 @@ defmodule Celestial.Universe do
     Repo.delete(hero)
   end
 
-  alias Celestial.Universe.World
+  alias Celestial.Galaxy.World
 
   @doc """
   Returns the list of worlds.

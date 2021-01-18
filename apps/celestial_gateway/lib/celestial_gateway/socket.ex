@@ -21,7 +21,7 @@ defmodule CelestialGateway.Socket do
 
   def handle_in(%{event: "NoS0575", payload: payload}, %{connect_info: %{peer_data: peer_data}} = socket) do
     with :ok <- validate_client_version(payload.version),
-         {:ok, key} <- generate_otk(peer_data.address, payload.email, payload.password) do
+         {:ok, key} <- generate_otk(peer_data.address, payload.username, payload.password) do
       channels = list_online_channel()
       {:reply, :ok, encode_nstest(socket, key, channels), socket}
     else
@@ -81,8 +81,8 @@ defmodule CelestialGateway.Socket do
     end
   end
 
-  defp generate_otk(address, email, password) do
-    if identity = Accounts.get_identity_by_email_and_password(email, password) do
+  defp generate_otk(address, username, password) do
+    if identity = Accounts.get_identity_by_username_and_password(username, password) do
       {:ok, Accounts.generate_identity_otk(address |> :inet.ntoa() |> to_string(), identity)}
     else
       {:error, :unvalid_credentials}

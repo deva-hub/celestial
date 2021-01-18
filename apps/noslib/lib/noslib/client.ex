@@ -32,10 +32,10 @@ defmodule Noslib.Client do
           })
 
   @spec decode_error(binary) :: atom
-  def decode_error(error), do: BiMap.get_key(@errors, error)
+  def decode_error(error), do: BiMap.fetch_key!(@errors, error)
 
   @spec encode_error(atom) :: iodata
-  def encode_error(error), do: BiMap.get(@errors, error)
+  def encode_error(error), do: BiMap.fetch!(@errors, error)
 
   @languages BiMap.new(%{
                kr: Helpers.encode_int(0),
@@ -43,8 +43,8 @@ defmodule Noslib.Client do
              })
 
   @spec decode_language(binary) :: atom
-  def decode_language(language), do: BiMap.get_key(@languages, language)
+  def decode_language(language), do: BiMap.fetch_key!(@languages, language)
 
   @spec encode_language(atom) :: iodata
-  def encode_language(language), do: BiMap.get(@languages, language)
+  def encode_language(language), do: BiMap.fetch!(@languages, language)
 end

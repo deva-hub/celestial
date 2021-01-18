@@ -5,10 +5,9 @@ defmodule Celestial.Accounts.Identity do
 
   @derive {Inspect, except: [:password]}
   schema "identities" do
-    field :email, :string
+    field :username, :string
     field :password, :string, virtual: true
     field :hashed_password, :string
-    field :confirmed_at, :naive_datetime
 
     timestamps()
   end
@@ -16,34 +15,31 @@ defmodule Celestial.Accounts.Identity do
   @doc """
   A identity changeset for registration.
 
-  It is important to validate the length of both email and password.
-  Otherwise databases may truncate the email without warnings, which
+  It is important to validate the length of both username and password.
+  Otherwise databases may truncate the username without warnings, which
   could lead to unpredictable or insecure behaviour. Long passwords may
   also be very expensive to hash for certain algorithms.
   """
-  def registration_changeset(identity, attrs) do
+  def changeset(identity, attrs) do
     identity
-    |> cast(attrs, [:email, :password])
-    |> validate_email()
+    |> cast(attrs, [:username, :password])
+    |> validate_username()
     |> validate_password()
   end
 
-  defp validate_email(changeset) do
+  defp validate_username(changeset) do
     changeset
-    |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-    |> validate_length(:email, max: 160)
-    |> unsafe_validate_unique(:email, Celestial.Repo)
-    |> unique_constraint(:email)
+    |> validate_required([:username])
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+/)
+    |> validate_length(:username, max: 160)
+    |> unsafe_validate_unique(:username, Celestial.Repo)
+    |> unique_constraint(:username)
   end
 
   defp validate_password(changeset) do
     changeset
     |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 80)
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    |> validate_length(:password, max: 80)
     |> prepare_changes(&hash_password/1)
   end
 
@@ -53,39 +49,6 @@ defmodule Celestial.Accounts.Identity do
     changeset
     |> put_change(:hashed_password, Argon2.hash_pwd_salt(password))
     |> delete_change(:password)
-  end
-
-  @doc """
-  A identity changeset for changing the email.
-
-  It requires the email to change otherwise an error is added.
-  """
-  def email_changeset(identity, attrs) do
-    identity
-    |> cast(attrs, [:email])
-    |> validate_email()
-    |> case do
-      %{changes: %{email: _}} = changeset -> changeset
-      %{} = changeset -> add_error(changeset, :email, "did not change")
-    end
-  end
-
-  @doc """
-  A identity changeset for changing the password.
-  """
-  def password_changeset(identity, attrs) do
-    identity
-    |> cast(attrs, [:password])
-    |> validate_confirmation(:password, message: "does not match password")
-    |> validate_password()
-  end
-
-  @doc """
-  Confirms the account by setting `confirmed_at`.
-  """
-  def confirm_changeset(identity) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    change(identity, confirmed_at: now)
   end
 
   @doc """

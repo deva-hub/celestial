@@ -30,14 +30,6 @@ config :celestial_portal,
 config :celestial_gateway,
   port: System.get_env("CELESTIAL_GATEWAY_PORT", "4123") |> String.to_integer()
 
-# Configure email redirection
-app_url = System.get_env("CELESTIAL_APP_URL", "http://localhost:3000")
-
-config :celestial_web,
-  recovery_url: "#{app_url}/recovery",
-  email_url: "#{app_url}/email",
-  confirmation_url: "#{app_url}/confirmation"
-
 # Don't forget to configure the url hostto something
 # meaningful, Phoenix uses this information when
 # generating URLs.

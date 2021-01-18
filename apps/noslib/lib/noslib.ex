@@ -38,7 +38,7 @@ defmodule Noslib do
   end
 
   def encode(["clist_start", payload]) do
-    Helpers.encode_list(["clist_start" | Lobby.encode_clist_start(payload)])
+    Helpers.encode_list(["clist_start", Lobby.encode_clist_start(payload)])
   end
 
   def encode(["clist_end", _]) do
@@ -46,34 +46,34 @@ defmodule Noslib do
   end
 
   def encode(["clist", payload]) do
-    Helpers.encode_list(["clist" | Lobby.encode_clist(payload)])
+    Helpers.encode_list(["clist", Lobby.encode_clist(payload)])
   end
 
   def encode(["c_info", payload]) do
-    Helpers.encode_list(["c_info" | Hero.encode_c_info(payload)])
+    Helpers.encode_list(["c_info", Hero.encode_c_info(payload)])
   end
 
   def encode(["failc", payload]) do
-    Helpers.encode_list(["failc" | Client.encode_failc(payload)])
+    Helpers.encode_list(["failc", Client.encode_failc(payload)])
   end
 
   def encode(["fd", payload]) do
-    Helpers.encode_list(["fd" | Hero.encode_fd(payload)])
+    Helpers.encode_list(["fd", Hero.encode_fd(payload)])
   end
 
   def encode(["tit", payload]) do
-    Helpers.encode_list(["tit" | Hero.encode_tit(payload)])
+    Helpers.encode_list(["tit", Hero.encode_tit(payload)])
   end
 
   def encode(["lev", payload]) do
-    Helpers.encode_list(["lev" | Hero.encode_lev(payload)])
+    Helpers.encode_list(["lev", Hero.encode_lev(payload)])
   end
 
   def encode(["NsTeST", payload]) do
-    Helpers.encode_list(["NsTeST" | Gateway.encode_nstest(payload)])
+    Helpers.encode_list(["NsTeST", Gateway.encode_nstest(payload)])
   end
 
   def encode(["at", payload]) do
-    Helpers.encode_list(["at" | Geolocation.encode_at(payload)])
+    Helpers.encode_list(["at", Geolocation.encode_at(payload)])
   end
 end

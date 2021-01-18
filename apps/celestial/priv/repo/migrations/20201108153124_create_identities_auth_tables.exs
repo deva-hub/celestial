@@ -5,13 +5,12 @@ defmodule Celestial.Repo.Migrations.CreateIdentitiesAuthTables do
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:identities) do
-      add :email, :citext, null: false
+      add :username, :citext, null: false
       add :hashed_password, :string, null: false
-      add :confirmed_at, :naive_datetime
       timestamps()
     end
 
-    create unique_index(:identities, [:email])
+    create unique_index(:identities, [:username])
 
     create table(:identities_tokens) do
       add :identity_id, references(:identities, on_delete: :delete_all), null: false

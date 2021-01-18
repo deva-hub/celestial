@@ -4,15 +4,11 @@ defmodule Celestial.Accounts.IdentityToken do
   import Ecto.Query
 
   @hash_algorithm :sha256
-  @rand_size 32
-  @uid_size 2_147_483_647
+  @otk_size 2_147_483_647
 
-  # It is very important to keep the recovery password token expiry short,
-  # since someone with access to the email may take over the account.
-  @recovery_validity_in_days 1
-  @confirm_validity_in_days 7
-  @change_email_validity_in_days 7
-  @access_validity_in_days 60
+  # It is very important to keep the otk token expiry short since
+  # someone, with access to the username and the same public ip may
+  # take over the account.
   @otk_validity_in_minute 5
 
   schema "identities_tokens" do
@@ -29,7 +25,7 @@ defmodule Celestial.Accounts.IdentityToken do
   While a one time key is issued for identification.
   """
   def build_otk(address, identity) do
-    key = :rand.uniform(@uid_size)
+    key = :rand.uniform(@otk_size)
     hashed_otk = :crypto.hash(@hash_algorithm, key |> to_string())
 
     {key,
@@ -37,22 +33,6 @@ defmodule Celestial.Accounts.IdentityToken do
        token: hashed_otk,
        context: "otk",
        sent_to: address,
-       identity_id: identity.id
-     }}
-  end
-
-  @doc """
-  Generates a token that will be stored in a signed place,
-  such as session or cookie. As they are signed, those
-  tokens do not need to be hashed.
-  """
-  def build_access_token(identity) do
-    token = :crypto.strong_rand_bytes(@rand_size) |> Base.url_encode64(padding: false)
-
-    {token,
-     %Celestial.Accounts.IdentityToken{
-       token: token,
-       context: "access",
        identity_id: identity.id
      }}
   end
@@ -73,94 +53,6 @@ defmodule Celestial.Accounts.IdentityToken do
         select: identity
 
     {:ok, query}
-  end
-
-  @doc """
-  Checks if the token is valid and returns its underlying lookup query.
-
-  The query returns the identity found by the token.
-  """
-  def verify_access_token_query(token) do
-    query =
-      from token in token_and_context_query(token, "access"),
-        join: identity in assoc(token, :identity),
-        where: token.inserted_at > ago(@access_validity_in_days, "day"),
-        select: identity
-
-    {:ok, query}
-  end
-
-  @doc """
-  Builds a token with a hashed counter part.
-
-  The non-hashed token is sent to the identity email while the
-  hashed part is stored in the database, to avoid reconstruction.
-  The token is valid for a week as long as identitys don't change
-  their email.
-  """
-  def build_email_token(identity, context) do
-    build_hashed_token(identity, context, identity.email)
-  end
-
-  defp build_hashed_token(identity, context, sent_to) do
-    token = :crypto.strong_rand_bytes(@rand_size)
-    hashed_token = :crypto.hash(@hash_algorithm, token)
-
-    {Base.url_encode64(token, padding: false),
-     %Celestial.Accounts.IdentityToken{
-       token: hashed_token,
-       context: context,
-       sent_to: sent_to,
-       identity_id: identity.id
-     }}
-  end
-
-  @doc """
-  Checks if the token is valid and returns its underlying lookup query.
-
-  The query returns the identity found by the token.
-  """
-  def verify_email_token_query(token, context) do
-    case Base.url_decode64(token, padding: false) do
-      {:ok, decoded_token} ->
-        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-        days = days_for_context(context)
-
-        query =
-          from token in token_and_context_query(hashed_token, context),
-            join: identity in assoc(token, :identity),
-            where: token.inserted_at > ago(^days, "day") and token.sent_to == identity.email,
-            select: identity
-
-        {:ok, query}
-
-      :error ->
-        :error
-    end
-  end
-
-  defp days_for_context("confirm"), do: @confirm_validity_in_days
-  defp days_for_context("recovery"), do: @recovery_validity_in_days
-
-  @doc """
-  Checks if the token is valid and returns its underlying lookup query.
-
-  The query returns the identity token record.
-  """
-  def verify_change_email_token_query(token, context) do
-    case Base.url_decode64(token, padding: false) do
-      {:ok, decoded_token} ->
-        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-
-        query =
-          from token in token_and_context_query(hashed_token, context),
-            where: token.inserted_at > ago(@change_email_validity_in_days, "day")
-
-        {:ok, query}
-
-      :error ->
-        :error
-    end
   end
 
   @doc """

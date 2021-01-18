@@ -29,9 +29,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-# Configure local mailing service
-config :celestial_web, CelestialWeb.Mailer, adapter: Swoosh.Adapters.Local
-
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

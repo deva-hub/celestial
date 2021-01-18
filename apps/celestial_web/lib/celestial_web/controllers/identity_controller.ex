@@ -2,7 +2,7 @@ defmodule CelestialWeb.IdentityController do
   use CelestialWeb, :controller
 
   alias Celestial.Accounts
-  alias CelestialWeb.{Mailer, ConfirmationEmail}
+  alias Celestial.Accounts.Identity
 
   action_fallback CelestialWeb.FallbackController
 
@@ -11,24 +11,33 @@ defmodule CelestialWeb.IdentityController do
     render(conn, "index.json", identities: identities)
   end
 
+  def create(conn, %{"identity" => identity_params}) do
+    with {:ok, %Identity{} = identity} <- Accounts.create_identity(identity_params) do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", Routes.identity_path(conn, :show, identity))
+      |> render("show.json", identity: identity)
+    end
+  end
+
   def show(conn, %{"id" => id}) do
     identity = Accounts.get_identity!(id)
     render(conn, "show.json", identity: identity)
   end
 
-  def create(conn, %{"identity" => identity_params}) do
-    with {:ok, identity} <- Accounts.register_identity(identity_params) do
-      with {:ok, encoded_token} <- Accounts.prepare_identity_confirmation_token(identity) do
-        url = Routes.confirmation_url(conn, :update, encoded_token)
+  def update(conn, %{"id" => id, "identity" => identity_params}) do
+    identity = Accounts.get_identity!(id)
 
-        identity
-        |> ConfirmationEmail.new(url)
-        |> Mailer.deliver()
-      end
+    with {:ok, %Identity{} = identity} <- Accounts.update_identity(identity, identity_params) do
+      render(conn, "show.json", identity: identity)
+    end
+  end
 
-      conn
-      |> put_status(:created)
-      |> render("show.json", identity: identity)
+  def delete(conn, %{"id" => id}) do
+    identity = Accounts.get_identity!(id)
+
+    with {:ok, %Identity{}} <- Accounts.delete_identity(identity) do
+      send_resp(conn, :no_content, "")
     end
   end
 end

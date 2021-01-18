@@ -24,7 +24,7 @@ defmodule Noslib.Lobby do
   @type clist :: %{
           slot: pos_integer,
           name: bitstring,
-          gender: Hero.gender(),
+          sex: Hero.sex(),
           hair_style: Hero.hair_style(),
           hair_color: Hero.hair_color(),
           class: Hero.class(),
@@ -47,11 +47,11 @@ defmodule Noslib.Lobby do
           level: pos_integer
         }
 
-  def decode_char_new([name, slot, gender, hair_style, hair_color]) do
+  def decode_char_new([name, slot, sex, hair_style, hair_color]) do
     %{
       slot: String.to_integer(slot),
       name: name,
-      gender: Hero.decode_gender(gender),
+      sex: Hero.decode_sex(sex),
       hair_style: Hero.decode_hair_style(hair_style),
       hair_color: Hero.decode_hair_color(hair_color)
     }
@@ -78,7 +78,7 @@ defmodule Noslib.Lobby do
       Helpers.encode_int(clist.slot),
       clist.name,
       "0",
-      Hero.encode_gender(clist.gender),
+      Hero.encode_sex(clist.sex),
       Hero.encode_hair_style(clist.hair_style),
       Hero.encode_hair_color(clist.hair_color),
       "0",

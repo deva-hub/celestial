@@ -13,10 +13,10 @@ defmodule Noslib.UI do
                })
 
   @spec decode_name_color(binary) :: atom
-  def decode_name_color(name_color), do: BiMap.get_key(@name_colors, name_color)
+  def decode_name_color(name_color), do: BiMap.fetch_key!(@name_colors, name_color)
 
   @spec encode_name_color(atom) :: iodata
-  def encode_name_color(name_color), do: BiMap.get(@name_colors, name_color)
+  def encode_name_color(name_color), do: BiMap.fetch!(@name_colors, name_color)
 
   @dignity_icons %{
     basic: -100,
@@ -34,7 +34,7 @@ defmodule Noslib.UI do
   end
 
   @spec encode_dignity_icon(atom) :: iodata
-  def encode_dignity_icon(dignity_icon), do: BiMap.get(@dignity_icons, dignity_icon)
+  def encode_dignity_icon(dignity_icon), do: BiMap.fetch!(@dignity_icons, dignity_icon)
 
   @reputation_icons %{
     stupid_minded: -800,

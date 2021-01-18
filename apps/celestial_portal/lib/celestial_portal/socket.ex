@@ -5,7 +5,7 @@ defmodule CelestialPortal.Socket do
   require Logger
   import Nostalex.Socket
   alias Nostalex.Socket.Message
-  alias Celestial.{Accounts, Universe}
+  alias Celestial.{Accounts, Galaxy}
   alias CelestialPortal.Crypto
 
   @impl true
@@ -28,12 +28,12 @@ defmodule CelestialPortal.Socket do
     {:ok, socket |> assign(:id, id) |> put_key(String.to_integer(key))}
   end
 
-  def handle_in(%{payload: [_, email, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
+  def handle_in(%{payload: [_, username, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-    with {:ok, identity} <- get_identity_by_email_and_password(email, password),
+    with {:ok, identity} <- get_identity_by_username_and_password(username, password),
          :ok <- consume_identity_otk(identity, address, socket.key) do
-      heroes = Universe.list_identity_heroes(identity)
+      heroes = Galaxy.list_heroes(identity)
 
       # TODO: remove placeholder data
       push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
@@ -45,7 +45,7 @@ defmodule CelestialPortal.Socket do
           %{
             slot: hero.slot,
             name: hero.name,
-            gender: hero.gender,
+            sex: hero.sex,
             hair_style: hero.hair_style,
             hair_color: hero.hair_color,
             class: hero.class,
@@ -69,7 +69,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
-    hero = Universe.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
+    hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
     # TODO: remove placeholder data
     push(
@@ -82,7 +82,7 @@ defmodule CelestialPortal.Socket do
         family_name: "beta",
         id: hero.id,
         name_color: :white,
-        gender: hero.gender,
+        sex: hero.sex,
         hair_style: hero.hair_style,
         hair_color: hero.hair_color,
         class: hero.class,
@@ -152,9 +152,9 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
-    case Universe.create_hero(socket.assigns.current_identity, payload) do
+    case Galaxy.create_hero(socket.assigns.current_identity, payload) do
       {:ok, _} ->
-        heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
+        heroes = Galaxy.list_heroes(socket.assigns.current_identity)
 
         # TODO: remove placeholder data
         push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
@@ -166,7 +166,7 @@ defmodule CelestialPortal.Socket do
             %{
               slot: hero.slot,
               name: hero.name,
-              gender: hero.gender,
+              sex: hero.sex,
               hair_style: hero.hair_style,
               hair_color: hero.hair_color,
               class: hero.class,
@@ -192,13 +192,13 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
-    case get_identity_by_email_and_password(socket.assigns.current_identity.email, payload.password) do
+    case get_identity_by_username_and_password(socket.assigns.current_identity.username, payload.password) do
       {:ok, identity} ->
-        hero = Universe.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
+        hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
-        case Universe.delete_hero(hero) do
+        case Galaxy.delete_hero(hero) do
           {:ok, _} ->
-            heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
+            heroes = Galaxy.list_heroes(socket.assigns.current_identity)
 
             # TODO: remove placeholder data
             push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
@@ -210,7 +210,7 @@ defmodule CelestialPortal.Socket do
                 %{
                   slot: hero.slot,
                   name: hero.name,
-                  gender: hero.gender,
+                  sex: hero.sex,
                   hair_style: hero.hair_style,
                   hair_color: hero.hair_color,
                   class: hero.class,
@@ -270,8 +270,8 @@ defmodule CelestialPortal.Socket do
     %{socket | key: key}
   end
 
-  defp get_identity_by_email_and_password(email, password) do
-    if identity = Accounts.get_identity_by_email_and_password(email, password) do
+  defp get_identity_by_username_and_password(username, password) do
+    if identity = Accounts.get_identity_by_username_and_password(username, password) do
       {:ok, identity}
     else
       :error
@@ -283,7 +283,7 @@ defmodule CelestialPortal.Socket do
       {:ok, %{id: id}} when id == identity.id ->
         :ok
 
-      {:error, _} ->
+      :error ->
         :error
     end
   end

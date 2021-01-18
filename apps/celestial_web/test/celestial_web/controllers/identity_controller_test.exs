@@ -10,24 +10,24 @@ defmodule CelestialWeb.IdentityControllerTest do
 
   describe "create identity" do
     test "renders identity when data is valid", %{conn: conn} do
-      email = unique_identity_email()
+      username = unique_identity_username()
 
       conn =
         post(conn, Routes.identity_path(conn, :create), %{
           "identity" => %{
-            "email" => email,
+            "username" => username,
             "password" => valid_identity_password()
           }
         })
 
       assert %{"id" => id} = json_response(conn, 201)["data"]
-      assert id == Accounts.get_identity_by_email(email).id
+      assert id == Accounts.get_identity_by_username(username).id
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
       conn =
         post(conn, Routes.identity_path(conn, :create), %{
-          "identity" => %{"email" => "with spaces", "password" => "too short"}
+          "identity" => %{"username" => "with spaces", "password" => "too short"}
         })
 
       assert json_response(conn, 422)["errors"] != %{}

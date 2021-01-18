@@ -11,6 +11,7 @@ defmodule CelestialWeb.IdentityView do
   end
 
   def render("identity.json", %{identity: identity}) do
-    %{id: identity.id}
+    %{id: identity.id,
+      username: identity.username}
   end
 end

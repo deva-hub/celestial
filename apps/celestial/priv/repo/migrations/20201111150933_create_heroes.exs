@@ -6,7 +6,7 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
       add :name, :string
       add :slot, :integer
       add :class, :string
-      add :gender, :string
+      add :sex, :string
       add :hair_color, :string
       add :hair_style, :string
       add :level, :integer

@@ -4,7 +4,7 @@ defmodule CelestialWeb.MixProject do
   def project do
     [
       app: :celestial_web,
-      version: "0.1.0",
+      version: "0.2.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -37,11 +37,8 @@ defmodule CelestialWeb.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:swoosh, "~> 1.1"},
       {:phoenix, "~> 1.5.6"},
       {:phoenix_ecto, "~> 4.0"},
-      {:phoenix_swoosh, "~> 0.3.2"},
-      {:phoenix_html, "~> 2.14"},
       {:phoenix_live_dashboard, "~> 0.3 or ~> 0.2.9"},
       {:telemetry_metrics, "~> 0.4"},
       {:telemetry_poller, "~> 0.4"},

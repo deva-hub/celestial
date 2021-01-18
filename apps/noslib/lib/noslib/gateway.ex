@@ -59,9 +59,9 @@ defmodule Noslib.Gateway do
   end
 
   @spec decode_nos0575([binary]) :: map
-  def decode_nos0575([_, email, cipher_password, _, client_version]) do
+  def decode_nos0575([_, username, cipher_password, _, client_version]) do
     %{
-      email: email,
+      username: username,
       password: decrypt_password(cipher_password),
       version: Helpers.normalize_version(client_version)
     }

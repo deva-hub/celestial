@@ -2,16 +2,16 @@ defmodule Noslib.Hero do
   @moduledoc false
   alias Noslib.{Helpers, UI, Society}
 
-  @genders BiMap.new(%{
-             male: Helpers.encode_int(0),
-             female: Helpers.encode_int(1)
-           })
+  @sexs BiMap.new(%{
+          male: Helpers.encode_int(0),
+          female: Helpers.encode_int(1)
+        })
 
-  @spec decode_gender(binary) :: atom
-  def decode_gender(gender), do: BiMap.get_key(@genders, gender)
+  @spec decode_sex(binary) :: atom
+  def decode_sex(sex), do: BiMap.fetch_key!(@sexs, sex)
 
-  @spec encode_gender(atom) :: iodata
-  def encode_gender(gender), do: BiMap.get(@genders, gender)
+  @spec encode_sex(atom) :: iodata
+  def encode_sex(sex), do: BiMap.fetch!(@sexs, sex)
 
   @hair_styles BiMap.new(%{
                  a: Helpers.encode_int(0),
@@ -22,10 +22,10 @@ defmodule Noslib.Hero do
                })
 
   @spec decode_hair_style(binary) :: atom
-  def decode_hair_style(hair_style), do: BiMap.get_key(@hair_styles, hair_style)
+  def decode_hair_style(hair_style), do: BiMap.fetch_key!(@hair_styles, hair_style)
 
   @spec encode_hair_style(atom) :: iodata
-  def encode_hair_style(hair_style), do: BiMap.get(@hair_styles, hair_style)
+  def encode_hair_style(hair_style), do: BiMap.fetch!(@hair_styles, hair_style)
 
   @hair_colors BiMap.new(%{
                  mauve_taupe: Helpers.encode_int(0),
@@ -41,10 +41,10 @@ defmodule Noslib.Hero do
                })
 
   @spec decode_hair_color(binary) :: atom
-  def decode_hair_color(hair_color), do: BiMap.get_key(@hair_colors, hair_color)
+  def decode_hair_color(hair_color), do: BiMap.fetch_key!(@hair_colors, hair_color)
 
   @spec encode_hair_color(atom) :: iodata
-  def encode_hair_color(hair_color), do: BiMap.get(@hair_colors, hair_color)
+  def encode_hair_color(hair_color), do: BiMap.fetch!(@hair_colors, hair_color)
 
   @classes BiMap.new(%{
              adventurer: Helpers.encode_int(0),
@@ -55,10 +55,10 @@ defmodule Noslib.Hero do
            })
 
   @spec decode_class(binary) :: atom
-  def decode_class(class), do: BiMap.get_key(@classes, class)
+  def decode_class(class), do: BiMap.fetch_key!(@classes, class)
 
   @spec encode_class(atom) :: iodata
-  def encode_class(class), do: BiMap.get(@classes, class)
+  def encode_class(class), do: BiMap.fetch!(@classes, class)
 
   @type c_info :: %{
           name: binary,
@@ -67,7 +67,7 @@ defmodule Noslib.Hero do
           family_name: binary,
           id: pos_integer,
           name_color: atom,
-          gender: atom,
+          sex: atom,
           hair_style: atom,
           hair_color: atom,
           class: atom,
@@ -89,7 +89,7 @@ defmodule Noslib.Hero do
       c_info.family_name,
       Helpers.encode_int(c_info.id),
       UI.encode_name_color(c_info.name_color),
-      encode_gender(c_info.gender),
+      encode_sex(c_info.sex),
       encode_hair_style(c_info.hair_style),
       encode_hair_color(c_info.hair_color),
       encode_class(c_info.class),
