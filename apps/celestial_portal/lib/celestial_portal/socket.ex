@@ -244,7 +244,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(data, socket) do
-    Logger.debug("GARBAGE #{data.id} #{inspect(data.payload)}")
+    Logger.debug("GARBAGE id=\"#{data.id}\" event=\"#{data.event}\"\n#{inspect(data.payload)}")
     {:ok, socket}
   end
 
