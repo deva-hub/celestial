@@ -13,6 +13,7 @@ services:
     ports:
       - "${CELESTIAL_GATEWAY_PORT:-4123}:4123"
       - "${CELESTIAL_PORTAL_PORT:-4124}:4124"
+      - "${CELESTIAL_API_PORT:-4000}:4000"
     volumes:
       - .:/workspace
     working_dir: /workspace

@@ -21,10 +21,20 @@ hostname =
       """
   end
 
+# Configure Celestial portal port
+port =
+  case System.get_env("PORT") do
+    nil ->
+      System.get_env("CELESTIAL_PORTAL_PORT", "4124") |> String.to_integer()
+
+    port ->
+      port |> String.to_integer()
+  end
+
 config :celestial_portal,
   name: System.get_env("CELESTIAL_PORTAL_NAME", "Celestial"),
   hostname: hostname,
-  port: System.get_env("CELESTIAL_PORTAL_PORT", "4124") |> String.to_integer()
+  port: port
 
 # Configure Celestial gateway port
 config :celestial_gateway,
@@ -36,7 +46,7 @@ config :celestial_gateway,
 config :celestial_web, CelestialWeb.Endpoint,
   url: [
     hostname: System.get_env("HOST", "0.0.0.0"),
-    port: System.get_env("PORT", "4000") |> String.to_integer()
+    port: System.get_env("CELESTIAL_API_PORT", "4000") |> String.to_integer()
   ]
 
 case config_env() do
