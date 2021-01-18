@@ -36,42 +36,30 @@ defmodule CelestialPortal.Socket do
       heroes = Universe.list_identity_heroes(identity)
 
       # TODO: remove placeholder data
-      {opcode, payload} =
-        encode_reply(socket, %Message{
-          event: "clist_start",
-          payload: %{length: length(heroes)}
-        })
-
-      send(self(), {:socket_push, opcode, payload})
+      push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
 
       Enum.each(heroes, fn hero ->
-        {opcode, payload} =
-          encode_reply(socket, %Message{
-            event: "clist",
-            payload: %{
-              slot: hero.slot,
-              name: hero.name,
-              gender: hero.gender,
-              hair_style: hero.hair_style,
-              hair_color: hero.hair_color,
-              class: hero.class,
-              level: hero.level,
-              hero_level: hero.hero_level,
-              job_level: hero.job_level,
-              pets: [],
-              equipment: %{}
-            }
-          })
-
-        send(self(), {:socket_push, opcode, payload})
+        push(
+          self(),
+          "clist",
+          %{
+            slot: hero.slot,
+            name: hero.name,
+            gender: hero.gender,
+            hair_style: hero.hair_style,
+            hair_color: hero.hair_color,
+            class: hero.class,
+            level: hero.level,
+            hero_level: hero.hero_level,
+            job_level: hero.job_level,
+            pets: [],
+            equipment: %{}
+          },
+          socket.serializer
+        )
       end)
 
-      {opcode, payload} =
-        encode_reply(socket, %Message{
-          event: "clist_end"
-        })
-
-      send(self(), {:socket_push, opcode, payload})
+      push(self(), "clist_end", %{}, socket.serializer)
 
       {:ok, assign(socket, %{current_identity: identity, id: id})}
     else
@@ -84,86 +72,81 @@ defmodule CelestialPortal.Socket do
     hero = Universe.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
     # TODO: remove placeholder data
-    {opcode, paylaod} =
-      encode_reply(socket, %Message{
-        event: "c_info",
-        payload: %{
-          name: hero.name,
-          group_id: 0,
-          family_id: 0,
-          family_name: "beta",
-          id: hero.id,
-          name_color: :white,
-          gender: hero.gender,
-          hair_style: hero.hair_style,
-          hair_color: hero.hair_color,
-          class: hero.class,
-          reputation: :beginner,
-          compliment: 0,
-          morph: 0,
-          invisible?: false,
-          family_level: 1,
-          morph_upgrade?: false,
-          arena_winner?: false
-        }
-      })
+    push(
+      self(),
+      "c_info",
+      %{
+        name: hero.name,
+        group_id: 0,
+        family_id: 0,
+        family_name: "beta",
+        id: hero.id,
+        name_color: :white,
+        gender: hero.gender,
+        hair_style: hero.hair_style,
+        hair_color: hero.hair_color,
+        class: hero.class,
+        reputation: :beginner,
+        compliment: 0,
+        morph: 0,
+        invisible?: false,
+        family_level: 1,
+        morph_upgrade?: false,
+        arena_winner?: false
+      },
+      socket.serializer
+    )
 
-    send(self(), {:socket_push, opcode, paylaod})
+    push(
+      self(),
+      "tit",
+      %{
+        class: hero.class,
+        name: hero.name
+      },
+      socket.serializer
+    )
 
-    {opcode, paylaod} =
-      encode_reply(socket, %Message{
-        event: "tit",
-        payload: %{
-          class: hero.class,
-          name: hero.name
-        }
-      })
+    push(
+      self(),
+      "fd",
+      %{
+        reputation: :beginner,
+        dignity: :basic
+      },
+      socket.serializer
+    )
 
-    send(self(), {:socket_push, opcode, paylaod})
+    push(
+      self(),
+      "lev",
+      %{
+        level: hero.level,
+        job_level: hero.job_level,
+        job_xp: hero.job_xp,
+        xp_max: 10_000,
+        job_xp_max: 10_000,
+        reputation: :beginner,
+        cp: 1,
+        hero_xp: hero.xp,
+        hero_level: hero.hero_level,
+        hero_xp_max: 10_000
+      },
+      socket.serializer
+    )
 
-    {opcode, paylaod} =
-      encode_reply(socket, %Message{
-        event: "fd",
-        payload: %{
-          reputation: :beginner,
-          dignity: :basic
-        }
-      })
-
-    send(self(), {:socket_push, opcode, paylaod})
-
-    {opcode, paylaod} =
-      encode_reply(socket, %Message{
-        event: "lev",
-        payload: %{
-          level: hero.level,
-          job_level: hero.job_level,
-          job_xp: hero.job_xp,
-          xp_max: 10_000,
-          job_xp_max: 10_000,
-          reputation: :beginner,
-          cp: 1,
-          hero_xp: hero.xp,
-          hero_level: hero.hero_level,
-          hero_xp_max: 10_000
-        }
-      })
-
-    send(self(), {:socket_push, opcode, paylaod})
-
-    {opcode, paylaod} =
-      encode_reply(socket, %Message{
-        event: "at",
-        payload: %{
-          id: hero.id,
-          map_id: 1,
-          music_id: 0,
-          position_x: :rand.uniform(3) + 77,
-          position_y: :rand.uniform(4) + 11
-        }
-      })
-
-    send(self(), {:socket_push, opcode, paylaod})
+    push(
+      self(),
+      "at",
+      %{
+        id: hero.id,
+        map_id: 1,
+        music_id: 0,
+        position_x: :rand.uniform(3) + 77,
+        position_y: :rand.uniform(4) + 11
+      },
+      socket.serializer
+    )
 
     {:ok, assign(socket, :id, id)}
   end
@@ -174,53 +157,35 @@ defmodule CelestialPortal.Socket do
         heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
 
         # TODO: remove placeholder data
-        {opcode, payload} =
-          encode_reply(socket, %Message{
-            event: "clist_start",
-            payload: %{length: length(heroes)}
-          })
-
-        send(self(), {:socket_push, opcode, payload})
+        push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
 
         Enum.each(heroes, fn hero ->
-          {opcode, payload} =
-            encode_reply(socket, %Message{
-              event: "clist",
-              payload: %{
-                slot: hero.slot,
-                name: hero.name,
-                gender: hero.gender,
-                hair_style: hero.hair_style,
-                hair_color: hero.hair_color,
-                class: hero.class,
-                level: hero.level,
-                hero_level: hero.hero_level,
-                job_level: hero.job_level,
-                pets: [],
-                equipment: %{}
-              }
-            })
-
-          send(self(), {:socket_push, opcode, payload})
+          push(
+            self(),
+            "clist",
+            %{
+              slot: hero.slot,
+              name: hero.name,
+              gender: hero.gender,
+              hair_style: hero.hair_style,
+              hair_color: hero.hair_color,
+              class: hero.class,
+              level: hero.level,
+              hero_level: hero.hero_level,
+              job_level: hero.job_level,
+              pets: [],
+              equipment: %{}
+            },
+            socket.serializer
+          )
         end)
 
-        {opcode, payload} =
-          encode_reply(socket, %Message{
-            event: "clist_end"
-          })
-
-        send(self(), {:socket_push, opcode, payload})
+        push(self(), "clist_end", %{}, socket.serializer)
 
         :ok
 
       {:error, _} ->
-        {opcode, paylaod} =
-          encode_reply(socket, %Message{
-            event: "failc",
-            payload: %{error: :unexpected_error}
-          })
-
-        send(self(), {:socket_push, opcode, paylaod})
+        push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
     end
 
     {:ok, socket}
@@ -236,65 +201,40 @@ defmodule CelestialPortal.Socket do
             heroes = Universe.list_identity_heroes(socket.assigns.current_identity)
 
             # TODO: remove placeholder data
-            {opcode, payload} =
-              encode_reply(socket, %Message{
-                event: "clist_start",
-                payload: %{length: length(heroes)}
-              })
-
-            send(self(), {:socket_push, opcode, payload})
+            push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
 
             Enum.each(heroes, fn hero ->
-              {opcode, payload} =
-                encode_reply(socket, %Message{
-                  event: "clist",
-                  payload: %{
-                    slot: hero.slot,
-                    name: hero.name,
-                    gender: hero.gender,
-                    hair_style: hero.hair_style,
-                    hair_color: hero.hair_color,
-                    class: hero.class,
-                    level: hero.level,
-                    hero_level: hero.hero_level,
-                    job_level: hero.job_level,
-                    pets: [],
-                    equipment: %{}
-                  }
-                })
-
-              send(self(), {:socket_push, opcode, payload})
+              push(
+                self(),
+                "clist",
+                %{
+                  slot: hero.slot,
+                  name: hero.name,
+                  gender: hero.gender,
+                  hair_style: hero.hair_style,
+                  hair_color: hero.hair_color,
+                  class: hero.class,
+                  level: hero.level,
+                  hero_level: hero.hero_level,
+                  job_level: hero.job_level,
+                  pets: [],
+                  equipment: %{}
+                },
+                socket.serializer
+              )
             end)
 
-            {opcode, payload} =
-              encode_reply(socket, %Message{
-                event: "clist_end"
-              })
-
-            send(self(), {:socket_push, opcode, payload})
+            push(self(), "clist_end", %{}, socket.serializer)
 
             {:ok, assign(socket, :current_identity, identity)}
 
           {:error, _} ->
-            {opcode, paylaod} =
-              encode_reply(socket, %Message{
-                event: "failc",
-                payload: %{error: :unexpected_error}
-              })
-
-            send(self(), {:socket_push, opcode, paylaod})
-
+            push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
             {:ok, socket}
         end
 
       {:error, _} ->
-        {opcode, paylaod} =
-          encode_reply(socket, %Message{
-            event: "failc",
-            payload: %{error: :unvalid_credentials}
-          })
-
-        send(self(), {:socket_push, opcode, paylaod})
+        push(self(), "failc", %{error: :unvalid_credentials}, socket.serializer)
         {:ok, socket}
     end
   end
@@ -319,9 +259,11 @@ defmodule CelestialPortal.Socket do
     :ok
   end
 
-  defp encode_reply(socket, data) do
-    {:socket_push, opcode, payload} = socket.serializer.encode!(data)
-    {opcode, payload |> Enum.join() |> Crypto.encrypt()}
+  defp push(pid, event, payload, serializer) do
+    message = %Message{event: event, payload: payload}
+    {:socket_push, opcode, payload} = serializer.encode!(message)
+    send(pid, {:socket_push, opcode, payload |> IO.iodata_to_binary() |> Crypto.encrypt()})
+    :ok
   end
 
   defp put_key(socket, key) do
