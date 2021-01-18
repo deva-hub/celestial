@@ -60,7 +60,7 @@ defmodule CelestialGateway.Socket do
 
   defp encode_reply(socket, data) do
     {:socket_push, opcode, payload} = socket.serializer.encode!(data)
-    {opcode, payload |> IO.iodata_to_binary() |> Crypto.encrypt()}
+    {opcode, payload}
   end
 
   defp validate_client_version(version) do

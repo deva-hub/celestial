@@ -31,7 +31,6 @@ defmodule Nostalex.Endpoint do
     opts
     |> Keyword.get(:handler_opts, [])
     |> Keyword.put(:handler, handler)
-    |> Keyword.put_new(:serializer, Nostalex.Socket.NostaleSerializer)
   end
 
   defp build_ref(plug, scheme) do

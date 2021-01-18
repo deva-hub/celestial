@@ -1,7 +1,8 @@
-defmodule Nostalex.Socket.NostaleSerializer do
+defmodule CelestialPortal.Serializer do
   @moduledoc false
   @behaviour Nostalex.Socket.Serializer
 
+  alias CelestialPortal.Crypto
   alias Nostalex.Socket.{Broadcast, Message}
 
   @impl true
@@ -13,17 +14,12 @@ defmodule Nostalex.Socket.NostaleSerializer do
   @impl true
   def encode!(%Message{} = msg) do
     data = Noslib.encode([msg.event, msg.payload])
-    {:socket_push, :plain, data}
+    {:socket_push, :plain, data |> IO.iodata_to_binary() |> Crypto.encrypt()}
   end
 
   @impl true
   def decode!(raw_message, _opts) do
     [id, event, payload | _] = Noslib.decode(raw_message)
-
-    %Message{
-      event: event,
-      payload: payload,
-      id: id
-    }
+    %Message{event: event, payload: payload, id: id}
   end
 end

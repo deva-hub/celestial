@@ -261,8 +261,7 @@ defmodule CelestialPortal.Socket do
 
   defp push(pid, event, payload, serializer) do
     message = %Message{event: event, payload: payload}
-    {:socket_push, opcode, payload} = serializer.encode!(message)
-    send(pid, {:socket_push, opcode, payload |> IO.iodata_to_binary() |> Crypto.encrypt()})
+    send(pid, serializer.encode!(message))
     :ok
   end
 

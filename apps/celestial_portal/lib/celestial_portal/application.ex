@@ -35,7 +35,10 @@ defmodule CelestialPortal.Application do
        [
          port: port,
          handler: CelestialPortal.Socket,
-         handler_opts: [connect_info: [:peer_data]]
+         handler_opts: [
+           serializer: CelestialPortal.Serializer,
+           connect_info: [:peer_data]
+         ]
        ]}
       # Start a worker by calling: CelestialPortal.Worker.start_link(arg)
       # {CelestialPortal.Worker, arg}

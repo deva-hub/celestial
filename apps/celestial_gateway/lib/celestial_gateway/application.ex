@@ -12,7 +12,13 @@ defmodule CelestialGateway.Application do
 
     children = [
       # Start the TCP Server
-      {Nostalex.Endpoint, port: port, handler: CelestialGateway.Socket, handler_opts: [connect_info: [:peer_data]]}
+      {Nostalex.Endpoint,
+       port: port,
+       handler: CelestialGateway.Socket,
+       handler_opts: [
+         serializer: CelestialGateway.Serializer,
+         connect_info: [:peer_data]
+       ]}
       # Start a worker by calling: CelestialGateway.Worker.start_link(arg)
       # {CelestialGateway.Worker, arg}
     ]
