@@ -240,7 +240,6 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "0", id: id}, socket) do
-    Logger.debug("HEARTBEAT #{id}")
     {:ok, assign(socket, :id, id)}
   end
 
