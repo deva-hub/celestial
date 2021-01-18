@@ -2,13 +2,15 @@ import Config
 
 # Configure the database
 config :celestial, Celestial.Repo,
-  username: System.get_env("POSTGRES_USER", "postgres"),
-  password: System.get_env("POSTGRES_PASSWORD", "postgres"),
+  username: System.get_env("POSTGRES_USER", "celestial"),
+  password: System.get_env("POSTGRES_PASSWORD", "celestial"),
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
 # Configure Celestial portal host
 hostname =
-  case System.get_env("CELESTIAL_PORTAL_HOST") |> to_charlist() |> :inet.parse_address() do
+  case System.get_env("CELESTIAL_PORTAL_HOST", "0.0.0.0")
+       |> to_charlist()
+       |> :inet.parse_address() do
     {:ok, hostname} ->
       hostname
 

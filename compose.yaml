@@ -1,0 +1,51 @@
+services:
+  celestial:
+    build:
+      context: .
+      target: base
+    entrypoint: iex -S
+    command: mix phx.server
+    tty: true
+    stdin_open: true
+    environment:
+      CELESTIAL_PORTAL_HOST: ${CELESTIAL_PORTAL_HOST:?}
+      POSTGRES_HOST: celestial-postgres
+    ports:
+      - "${CELESTIAL_GATEWAY_PORT:-4123}:4123"
+      - "${CELESTIAL_PORTAL_PORT:-4124}:4124"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    depends_on:
+      celestial-postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celestial-migration:
+    build:
+      context: .
+      target: base
+    command: mix ecto.migrate
+    tty: true
+    environment:
+      POSTGRES_HOST: celestial-postgres
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    depends_on:
+      celestial-postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  celestial-postgres:
+    image: postgres:13.1-alpine
+    tty: true
+    environment:
+      POSTGRES_USER: celestial
+      POSTGRES_PASSWORD: celestial
+      POSTGRES_DB: celestial_dev
+    healthcheck:
+      test: pg_isready -U celestial -d celestial_dev
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    restart: always

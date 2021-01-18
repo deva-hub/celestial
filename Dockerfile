@@ -1,4 +1,4 @@
-FROM hexpm/elixir:1.11.3-erlang-22.0.6-alpine-3.11.3 as base
+FROM hexpm/elixir:1.11.3-erlang-23.2.2-alpine-3.12.1 AS base
 
 WORKDIR /workspace
 
@@ -9,7 +9,7 @@ RUN --mount=type=cache,id=apk,sharing=locked,target=/var/cache/apk \
 # Install Mix depedencies
 RUN mix do local.rebar --force, local.hex --force
 
-FROM base as deps
+FROM base AS deps
 
 # Define production build env
 ENV MIX_ENV=prod
