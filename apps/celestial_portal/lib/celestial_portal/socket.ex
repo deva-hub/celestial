@@ -9,7 +9,7 @@ defmodule CelestialPortal.Socket do
 
   @impl true
   def init(socket) do
-    {:ok, assign(socket, %{current_identity: nil, id: nil})}
+    {:ok, assign(socket, %{current_identity: nil, last_message_id: nil})}
   end
 
   @impl true
@@ -22,7 +22,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{payload: [id, key]}, %{key: nil} = socket) do
-    {:ok, socket |> assign(:id, id) |> put_key(String.to_integer(key))}
+    {:ok, socket |> assign(:last_message_id, id) |> put_key(String.to_integer(key))}
   end
 
   def handle_in(%{payload: [_, username, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
@@ -147,7 +147,7 @@ defmodule CelestialPortal.Socket do
       socket.serializer
     )
 
-    {:ok, assign(socket, :id, id)}
+    {:ok, assign(socket, :last_message_id, id)}
   end
 
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
@@ -231,7 +231,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "0", id: id}, socket) do
-    {:ok, assign(socket, :id, id)}
+    {:ok, assign(socket, :last_message_id, id)}
   end
 
   def handle_in(data, socket) do
