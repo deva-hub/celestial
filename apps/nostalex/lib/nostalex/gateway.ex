@@ -49,8 +49,6 @@ defmodule Nostalex.Gateway do
   end
 
   def __in__(mod, %{event: "NoS0575", payload: payload}, socket) do
-    IO.inspect(payload.version)
-
     if Version.match?(payload.version, @version_requirement) do
       authenticate(mod, payload, socket)
     else
