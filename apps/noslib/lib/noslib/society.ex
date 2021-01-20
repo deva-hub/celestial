@@ -38,9 +38,9 @@ defmodule Noslib.Society do
                  elite_r: Helpers.encode_int(27),
                  legend_g: Helpers.encode_int(28),
                  legend_b: Helpers.encode_int(29),
-                 ancien_heros: Helpers.encode_int(30),
-                 mysterious_heros: Helpers.encode_int(31),
-                 legendary_heros: Helpers.encode_int(32)
+                 ancien_hero: Helpers.encode_int(30),
+                 mysterious_hero: Helpers.encode_int(31),
+                 legendary_hero: Helpers.encode_int(32)
                })
 
   @spec decode_reputation(binary) :: atom
