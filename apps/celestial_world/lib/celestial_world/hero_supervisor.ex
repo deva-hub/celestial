@@ -12,6 +12,16 @@ defmodule CelestialWorld.HeroSupervisor do
 
   def start_hero(attrs) do
     spec = {CelestialWorld.HeroEntity, attrs}
-    DynamicSupervisor.start_child(__MODULE__, spec)
+
+    case DynamicSupervisor.start_child(__MODULE__, spec) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

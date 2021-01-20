@@ -6,10 +6,17 @@ defmodule CelestialPortal.Socket do
   import Nostalex.Socket
   alias Nostalex.Socket.Message
   alias Celestial.{Accounts, Galaxy}
+  alias CelestialWorld.HeroEntity
 
   @impl true
   def init(socket) do
-    {:ok, assign(socket, %{current_identity: nil, last_message_id: nil})}
+    state = %{
+      current_identity: nil,
+      hero_pid: nil,
+      last_message_id: nil
+    }
+
+    {:ok, assign(socket, state)}
   end
 
   @impl true
@@ -42,7 +49,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
     hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
-    {:ok, _} = CelestialWorld.HeroSupervisor.start_hero(hero)
+    {:ok, hero_pid} = CelestialWorld.HeroSupervisor.start_hero(hero)
 
     # TODO: remove placeholder data
     push(
@@ -115,13 +122,15 @@ defmodule CelestialPortal.Socket do
         id: hero.id,
         map_id: 1,
         music_id: 0,
-        position_x: :rand.uniform(3) + 77,
-        position_y: :rand.uniform(4) + 11
+        axis: %{
+          x: :rand.uniform(3) + 77,
+          y: :rand.uniform(4) + 11
+        }
       },
       socket.serializer
     )
 
-    {:ok, assign(socket, :last_message_id, id)}
+    {:ok, assign(socket, %{last_message_id: id, hero_pid: hero_pid})}
   end
 
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
@@ -147,6 +156,11 @@ defmodule CelestialPortal.Socket do
         push(self(), "failc", %{error: :unvalid_credentials}, socket.serializer)
         {:ok, socket}
     end
+  end
+
+  def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
+    HeroEntity.walk(socket.assigns.hero_pid, payload.axis, payload.speed)
+    {:ok, assign(socket, :last_message_id, id)}
   end
 
   def handle_in(%{event: "0", id: id}, socket) do
