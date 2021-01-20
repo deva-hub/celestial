@@ -1,96 +1,29 @@
 defmodule CelestialGateway.Socket do
   @moduledoc false
-  @behaviour Nostalex.Socket.Transport
+  use Nostalex.Gateway
 
   require Logger
   alias Celestial.Accounts
   alias CelestialPortal.Presence
-  alias CelestialGateway.Crypto
-  alias Nostalex.Socket.Message
 
   @impl true
-  def init(socket) do
-    {:ok, socket}
-  end
-
-  @impl true
-  def handle_in({payload, opts}, socket) do
-    msg = payload |> Crypto.decrypt() |> socket.serializer.decode!(opts)
-    handle_in(msg, socket)
-  end
-
-  def handle_in(%{event: "NoS0575", payload: payload}, %{connect_info: %{peer_data: peer_data}} = socket) do
-    with :ok <- validate_client_version(payload.version),
-         {:ok, key} <- generate_otk(peer_data.address, payload.username, payload.password) do
-      channels = list_online_channel()
-      {:reply, :ok, encode_nstest(socket, key, channels), socket}
+  def connect(params, socket) do
+    if identity = Accounts.get_identity_by_username_and_password(params.username, params.password) do
+      {:ok, assign(socket, :current_identity, identity)}
     else
-      {:error, :outdated_client} ->
-        {:reply, :error, encode_error(socket, :outdated_client), socket}
-
-      {:error, :unvalid_credentials} ->
-        {:reply, :error, encode_error(socket, :unvalid_credentials), socket}
+      :error
     end
-  end
-
-  def handle_in(data, socket) do
-    Logger.debug("GARBAGE id=\"#{data.id}\" event=\"#{data.event}\"\n#{inspect(data.payload)}")
-    {:ok, socket}
   end
 
   @impl true
-  def handle_info(_, socket) do
-    {:ok, socket}
+  def key(socket) do
+    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+    Accounts.generate_identity_otk(address, socket.assigns.current_identity)
   end
 
   @impl true
-  def terminate(_, _) do
-    :ok
-  end
-
-  defp encode_nstest(socket, key, channels) do
-    message = %Message{event: "NsTeST", payload: %{key: key, channels: channels}}
-    encode_reply(socket, message)
-  end
-
-  defp encode_error(socket, reason) do
-    message = %Message{event: "failc", payload: %{error: reason}}
-    encode_reply(socket, message)
-  end
-
-  defp encode_reply(socket, data) do
-    {:socket_push, opcode, payload} = socket.serializer.encode!(data)
-    {opcode, payload}
-  end
-
-  defp validate_client_version(version) do
-    case Application.get_env(:celestial_gateway, :client_version) do
-      nil ->
-        :ok
-
-      requirement ->
-        validate_client_verion_requirement(version, requirement)
-    end
-  end
-
-  defp validate_client_verion_requirement(version, requirement) do
-    if Version.match?(version, requirement) do
-      :ok
-    else
-      {:error, :outdated_client}
-    end
-  end
-
-  defp generate_otk(address, username, password) do
-    if identity = Accounts.get_identity_by_username_and_password(username, password) do
-      {:ok, Accounts.generate_identity_otk(address |> :inet.ntoa() |> to_string(), identity)}
-    else
-      {:error, :unvalid_credentials}
-    end
-  end
-
-  defp list_online_channel do
-    for {id, %{metas: [meta]}} <- Presence.list("channels") do
+  def portals(_socket) do
+    for {id, %{metas: [meta]}} <- Presence.list("portals") do
       %{
         id: id,
         world_id: meta.world_id,

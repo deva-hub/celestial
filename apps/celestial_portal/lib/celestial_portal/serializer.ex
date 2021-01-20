@@ -8,7 +8,7 @@ defmodule CelestialPortal.Serializer do
   @impl true
   def fastlane!(%Broadcast{} = msg) do
     data = Noslib.encode([msg.event, msg.payload])
-    {:socket_push, :plain, data}
+    {:socket_push, :plain, data |> IO.iodata_to_binary() |> Crypto.encrypt()}
   end
 
   @impl true
@@ -19,7 +19,7 @@ defmodule CelestialPortal.Serializer do
 
   @impl true
   def decode!(raw_message, _opts) do
-    [id, event, payload | _] = Noslib.decode(raw_message)
+    [id, event, payload | _] = raw_message |> Crypto.decrypt() |> Noslib.decode()
     %Message{event: event, payload: payload, id: id}
   end
 end

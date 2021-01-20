@@ -5,7 +5,7 @@ defmodule Noslib.Gateway do
 
   alias Noslib.Helpers
 
-  @type channel :: %{
+  @type portal :: %{
           id: pos_integer,
           world_id: pos_integer,
           world_name: pos_integer,
@@ -17,35 +17,35 @@ defmodule Noslib.Gateway do
 
   @type nstest :: %{
           key: pos_integer,
-          channels: [channel]
+          portals: [portal]
         }
 
-  @channel_terminator "-1:-1:-1:10000.10000.1"
+  @portal_terminator "-1:-1:-1:10000.10000.1"
 
   @spec encode_nstest(nstest) :: iodata
   def encode_nstest(nstest) do
     Helpers.encode_list([
       Helpers.encode_int(nstest.key),
-      nstest.channels
-      |> Enum.map(&encode_channel/1)
-      |> Helpers.encode_list(@channel_terminator)
+      nstest.portals
+      |> Enum.map(&encode_portal/1)
+      |> Helpers.encode_list(@portal_terminator)
     ])
   end
 
-  def encode_channel(channel) do
+  def encode_portal(portal) do
     Helpers.encode_tuple([
-      encode_ip_address(channel.hostname),
-      Helpers.encode_int(channel.port),
-      Helpers.encode_int(channel_color(channel.population, channel.capacity)),
+      encode_ip_address(portal.hostname),
+      Helpers.encode_int(portal.port),
+      Helpers.encode_int(portal_color(portal.population, portal.capacity)),
       Helpers.encode_struct([
-        Helpers.encode_int(channel.world_id),
-        channel.world_name,
-        Helpers.encode_int(channel.id)
+        Helpers.encode_int(portal.world_id),
+        portal.world_name,
+        Helpers.encode_int(portal.id)
       ])
     ])
   end
 
-  defp channel_color(population, capacity) do
+  defp portal_color(population, capacity) do
     round(population / capacity * 20) + 1
   end
 
@@ -59,11 +59,11 @@ defmodule Noslib.Gateway do
   end
 
   @spec decode_nos0575([binary]) :: map
-  def decode_nos0575([_, username, cipher_password, _, client_version]) do
+  def decode_nos0575([_, username, cipher_password, _, version]) do
     %{
       username: username,
       password: decrypt_password(cipher_password),
-      version: Helpers.normalize_version(client_version)
+      version: Helpers.normalize_version(version)
     }
   end
 

@@ -6,7 +6,6 @@ defmodule CelestialPortal.Socket do
   import Nostalex.Socket
   alias Nostalex.Socket.Message
   alias Celestial.{Accounts, Galaxy}
-  alias CelestialPortal.Crypto
 
   @impl true
   def init(socket) do
@@ -15,13 +14,11 @@ defmodule CelestialPortal.Socket do
 
   @impl true
   def handle_in({payload, opts}, %{key: nil} = socket) do
-    msg = payload |> Crypto.decrypt() |> socket.serializer.decode!(opts)
-    handle_in(msg, socket)
+    handle_in(socket.serializer.decode!(payload, opts), socket)
   end
 
   def handle_in({payload, opts}, socket) do
-    msg = payload |> Crypto.decrypt(socket.key) |> socket.serializer.decode!(opts)
-    handle_in(msg, socket)
+    handle_in(socket.serializer.decode!(payload, opts), socket)
   end
 
   def handle_in(%{payload: [id, key]}, %{key: nil} = socket) do

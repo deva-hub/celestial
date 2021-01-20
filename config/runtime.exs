@@ -64,16 +64,6 @@ case config_env() do
       pool: Ecto.Adapters.SQL.Sandbox
 
   :prod ->
-    # Configure Celestial gateway client version requirement
-    client_version =
-      System.get_env("CELESTIAL_CLIENT_VERSION") ||
-        raise """
-        environment variable CELESTIAL_CLIENT_VERSION is missing.
-        Enforce a compatible and stable client version
-        """
-
-    config :celestial_portal, client_version: client_version
-
     # Configures the endpoint
     secret_key_base =
       System.get_env("CELESTIAL_SECRET_KEY_BASE") ||

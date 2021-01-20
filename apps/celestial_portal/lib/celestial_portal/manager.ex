@@ -18,7 +18,7 @@ defmodule CelestialPortal.Manager do
     hostname = Keyword.fetch!(opts, :hostname)
     capacity = Keyword.get(opts, :capacity, @default_capacity)
 
-    Presence.track(self(), "channels", id, %{
+    Presence.track(self(), "portals", id, %{
       world_id: world_id,
       world_name: world_name,
       hostname: hostname,
