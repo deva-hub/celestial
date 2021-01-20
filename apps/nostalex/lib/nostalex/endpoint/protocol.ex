@@ -72,11 +72,6 @@ defmodule Nostalex.Endpoint.Protocol do
     loop({handler, state, socket})
   end
 
-  defp handle_reply({:reply, _status, msg, state}, {handler, socket}) do
-    handle_message({msg, state}, socket)
-    loop({handler, state, socket})
-  end
-
   defp handle_reply({:stop, reason, state}, {handler, socket}) do
     terminate(reason, {handler, state, socket})
   end

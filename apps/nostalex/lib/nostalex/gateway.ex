@@ -54,7 +54,7 @@ defmodule Nostalex.Gateway do
     if Version.match?(payload.version, @version_requirement) do
       authenticate(mod, payload, socket)
     else
-      {:reply, :error, encode_error(socket, :outdated_client), socket}
+      {:push, encode_error(socket, :outdated_client), socket}
     end
   end
 
@@ -63,17 +63,17 @@ defmodule Nostalex.Gateway do
       {:ok, socket} ->
         case {mod.portals(socket), mod.key(socket)} do
           {[], _} ->
-            {:reply, :error, encode_error(socket, :maintenance), socket}
+            {:push, encode_error(socket, :maintenance), socket}
 
           {_, nil} ->
-            {:reply, :error, encode_error(socket, :session_already_used), socket}
+            {:push, encode_error(socket, :session_already_used), socket}
 
           {portals, key} ->
-            {:reply, :ok, encode_nstest(socket, key, portals), socket}
+            {:push, encode_nstest(socket, key, portals), socket}
         end
 
       :error ->
-        {:reply, :error, encode_error(socket, :unvalid_credentials), socket}
+        {:push, encode_error(socket, :unvalid_credentials), socket}
     end
   end
 
