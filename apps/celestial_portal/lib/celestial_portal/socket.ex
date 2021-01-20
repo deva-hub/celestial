@@ -18,7 +18,8 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in({payload, opts}, socket) do
-    handle_in(socket.serializer.decode!(payload, opts), socket)
+    decode_opts = Keyword.put(opts, :key, socket.key)
+    handle_in(socket.serializer.decode!(payload, decode_opts), socket)
   end
 
   def handle_in(%{payload: [id, key]}, %{key: nil} = socket) do

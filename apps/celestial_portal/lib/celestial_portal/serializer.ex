@@ -18,8 +18,16 @@ defmodule CelestialPortal.Serializer do
   end
 
   @impl true
-  def decode!(raw_message, _opts) do
-    [id, event, payload | _] = raw_message |> Crypto.decrypt() |> Noslib.decode()
+  def decode!(raw_message, opts) do
+    decrypted_message = decrypt_message(raw_message, opts)
+    [id, event, payload | _] = Noslib.decode(decrypted_message)
     %Message{event: event, payload: payload, id: id}
+  end
+
+  defp decrypt_message(message, opts) do
+    case Keyword.get(opts, :key) do
+      nil -> Crypto.decrypt(message)
+      key -> Crypto.decrypt(message, key)
+    end
   end
 end
