@@ -30,34 +30,7 @@ defmodule CelestialPortal.Socket do
 
     with {:ok, identity} <- get_identity_by_username_and_password(username, password),
          :ok <- consume_identity_otk(identity, address, socket.key) do
-      heroes = Galaxy.list_heroes(identity)
-
-      # TODO: remove placeholder data
-      push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
-
-      Enum.each(heroes, fn hero ->
-        push(
-          self(),
-          "clist",
-          %{
-            slot: hero.slot,
-            name: hero.name,
-            sex: hero.sex,
-            hair_style: hero.hair_style,
-            hair_color: hero.hair_color,
-            class: hero.class,
-            level: hero.level,
-            hero_level: hero.hero_level,
-            job_level: hero.job_level,
-            pets: [],
-            equipment: %{}
-          },
-          socket.serializer
-        )
-      end)
-
-      push(self(), "clist_end", %{}, socket.serializer)
-
+      push_heroes(self(), Galaxy.list_heroes(identity), socket.serializer)
       {:ok, assign(socket, %{current_identity: identity, id: id})}
     else
       :error ->
@@ -153,35 +126,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
     case Galaxy.create_hero(socket.assigns.current_identity, payload) do
       {:ok, _} ->
-        heroes = Galaxy.list_heroes(socket.assigns.current_identity)
-
-        # TODO: remove placeholder data
-        push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
-
-        Enum.each(heroes, fn hero ->
-          push(
-            self(),
-            "clist",
-            %{
-              slot: hero.slot,
-              name: hero.name,
-              sex: hero.sex,
-              hair_style: hero.hair_style,
-              hair_color: hero.hair_color,
-              class: hero.class,
-              level: hero.level,
-              hero_level: hero.hero_level,
-              job_level: hero.job_level,
-              pets: [],
-              equipment: %{}
-            },
-            socket.serializer
-          )
-        end)
-
-        push(self(), "clist_end", %{}, socket.serializer)
-
-        :ok
+        push_heroes(self(), Galaxy.list_heroes(socket.assigns.current_identity), socket.serializer)
 
       {:error, _} ->
         push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
@@ -194,34 +139,7 @@ defmodule CelestialPortal.Socket do
     with {:ok, identity} <- get_identity_by_username_and_password(socket.assigns.current_identity.username, payload.password),
          hero when is_struct(hero) <- Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot),
          {:ok, _} <- Galaxy.delete_hero(hero) do
-      heroes = Galaxy.list_heroes(socket.assigns.current_identity)
-
-      # TODO: remove placeholder data
-      push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
-
-      Enum.each(heroes, fn hero ->
-        push(
-          self(),
-          "clist",
-          %{
-            slot: hero.slot,
-            name: hero.name,
-            sex: hero.sex,
-            hair_style: hero.hair_style,
-            hair_color: hero.hair_color,
-            class: hero.class,
-            level: hero.level,
-            hero_level: hero.hero_level,
-            job_level: hero.job_level,
-            pets: [],
-            equipment: %{}
-          },
-          socket.serializer
-        )
-      end)
-
-      push(self(), "clist_end", %{}, socket.serializer)
-
+      push_heroes(self(), Galaxy.list_heroes(socket.assigns.current_identity), socket.serializer)
       {:ok, assign(socket, :current_identity, identity)}
     else
       {:error, _} ->
@@ -252,6 +170,36 @@ defmodule CelestialPortal.Socket do
   defp push(pid, event, payload, serializer) do
     message = %Message{event: event, payload: payload}
     send(pid, serializer.encode!(message))
+    :ok
+  end
+
+  # TODO: remove placeholder data
+  defp push_heroes(pid, heroes, serializer) do
+    push(pid, "clist_start", %{length: length(heroes)}, serializer)
+
+    Enum.each(heroes, fn hero ->
+      push(
+        pid,
+        "clist",
+        %{
+          slot: hero.slot,
+          name: hero.name,
+          sex: hero.sex,
+          hair_style: hero.hair_style,
+          hair_color: hero.hair_color,
+          class: hero.class,
+          level: hero.level,
+          hero_level: hero.hero_level,
+          job_level: hero.job_level,
+          pets: [],
+          equipment: %{}
+        },
+        serializer
+      )
+    end)
+
+    push(pid, "clist_end", %{}, serializer)
+
     :ok
   end
 
