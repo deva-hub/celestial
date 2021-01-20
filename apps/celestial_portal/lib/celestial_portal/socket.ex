@@ -194,47 +194,39 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
-    case get_identity_by_username_and_password(socket.assigns.current_identity.username, payload.password) do
-      {:ok, identity} ->
-        hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
+    with {:ok, identity} <- get_identity_by_username_and_password(socket.assigns.current_identity.username, payload.password),
+         hero when is_struct(hero) <- Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot),
+         {:ok, _} <- Galaxy.delete_hero(hero) do
+      heroes = Galaxy.list_heroes(socket.assigns.current_identity)
 
-        case Galaxy.delete_hero(hero) do
-          {:ok, _} ->
-            heroes = Galaxy.list_heroes(socket.assigns.current_identity)
+      # TODO: remove placeholder data
+      push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
 
-            # TODO: remove placeholder data
-            push(self(), "clist_start", %{length: length(heroes)}, socket.serializer)
+      Enum.each(heroes, fn hero ->
+        push(
+          self(),
+          "clist",
+          %{
+            slot: hero.slot,
+            name: hero.name,
+            sex: hero.sex,
+            hair_style: hero.hair_style,
+            hair_color: hero.hair_color,
+            class: hero.class,
+            level: hero.level,
+            hero_level: hero.hero_level,
+            job_level: hero.job_level,
+            pets: [],
+            equipment: %{}
+          },
+          socket.serializer
+        )
+      end)
 
-            Enum.each(heroes, fn hero ->
-              push(
-                self(),
-                "clist",
-                %{
-                  slot: hero.slot,
-                  name: hero.name,
-                  sex: hero.sex,
-                  hair_style: hero.hair_style,
-                  hair_color: hero.hair_color,
-                  class: hero.class,
-                  level: hero.level,
-                  hero_level: hero.hero_level,
-                  job_level: hero.job_level,
-                  pets: [],
-                  equipment: %{}
-                },
-                socket.serializer
-              )
-            end)
+      push(self(), "clist_end", %{}, socket.serializer)
 
-            push(self(), "clist_end", %{}, socket.serializer)
-
-            {:ok, assign(socket, :current_identity, identity)}
-
-          {:error, _} ->
-            push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
-            {:ok, socket}
-        end
-
+      {:ok, assign(socket, :current_identity, identity)}
+    else
       {:error, _} ->
         push(self(), "failc", %{error: :unvalid_credentials}, socket.serializer)
         {:ok, socket}
