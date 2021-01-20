@@ -8,7 +8,10 @@ defmodule CelestialWorld.HeroEntity do
   end
 
   def start_link(%Hero{} = hero) do
-    GenServer.start_link(__MODULE__, hero, name: via_tuple(hero.id))
+    GenServer.start_link(__MODULE__, hero,
+      name: via_tuple(hero.id),
+      hibernate_after: :timer.minutes(5)
+    )
   end
 
   @impl true
