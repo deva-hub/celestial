@@ -48,88 +48,7 @@ defmodule CelestialPortal.Socket do
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
     hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
-
-    {:ok, entity_pid} = CelestialWorld.EntitySupervisor.start_hero(hero)
-
-    # TODO: remove placeholder data
-    push(
-      self(),
-      "c_info",
-      %{
-        name: hero.name,
-        group_id: 0,
-        family_id: 0,
-        family_name: "beta",
-        id: hero.id,
-        name_color: :white,
-        sex: hero.sex,
-        hair_style: hero.hair_style,
-        hair_color: hero.hair_color,
-        class: hero.class,
-        reputation: :beginner,
-        compliment: 0,
-        morph: 0,
-        invisible?: false,
-        family_level: 1,
-        morph_upgrade?: false,
-        arena_winner?: false
-      },
-      socket.serializer
-    )
-
-    push(
-      self(),
-      "tit",
-      %{
-        class: hero.class,
-        name: hero.name
-      },
-      socket.serializer
-    )
-
-    push(
-      self(),
-      "fd",
-      %{
-        reputation: :beginner,
-        dignity: :basic
-      },
-      socket.serializer
-    )
-
-    push(
-      self(),
-      "lev",
-      %{
-        level: hero.level,
-        job_level: hero.job_level,
-        job_xp: hero.job_xp,
-        xp_max: 10_000,
-        job_xp_max: 10_000,
-        reputation: :beginner,
-        cp: 1,
-        hero_xp: hero.xp,
-        hero_level: hero.hero_level,
-        hero_xp_max: 10_000
-      },
-      socket.serializer
-    )
-
-    push(
-      self(),
-      "at",
-      %{
-        id: hero.id,
-        map_id: 1,
-        music_id: 0,
-        axis: %{
-          x: :rand.uniform(3) + 77,
-          y: :rand.uniform(4) + 11
-        }
-      },
-      socket.serializer
-    )
-
+    {:ok, entity_pid} = CelestialWorld.EntitySupervisor.start_hero(socket, hero)
     {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
   end
 
@@ -175,6 +94,10 @@ defmodule CelestialPortal.Socket do
   @impl true
   def handle_info({:socket_push, opcode, payload}, socket) do
     {:push, {opcode, payload}, socket}
+  end
+
+  def handle_info(_, socket) do
+    {:ok, socket}
   end
 
   @impl true

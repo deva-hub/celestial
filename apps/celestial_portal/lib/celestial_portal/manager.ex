@@ -12,14 +12,14 @@ defmodule CelestialPortal.Manager do
   @impl true
   def init(opts) do
     id = Keyword.fetch!(opts, :id)
-    world_id = Keyword.fetch!(opts, :world_id)
+    channel_id = Keyword.fetch!(opts, :channel_id)
     world_name = Keyword.fetch!(opts, :world_name)
     port = Keyword.fetch!(opts, :port)
     hostname = Keyword.fetch!(opts, :hostname)
     capacity = Keyword.get(opts, :capacity, @default_capacity)
 
     Presence.track(self(), "portals", id, %{
-      world_id: world_id,
+      channel_id: channel_id,
       world_name: world_name,
       hostname: hostname,
       port: port,

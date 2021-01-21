@@ -10,15 +10,15 @@ defmodule Nostalex.Endpoint.Protocol do
   end
 
   def start_link(ref, transport, opts \\ []) do
-    {:ok, :proc_lib.spawn_link(__MODULE__, :connection_process, [{self(), ref, transport, opts}])}
+    {:ok, :proc_lib.spawn_link(__MODULE__, :connection_process, [{ref, transport, opts}])}
   end
 
-  def connection_process({parent, ref, transport, opts}) do
+  def connection_process({ref, transport, opts}) do
     {:ok, socket} = :ranch.handshake(ref)
-    init(parent, socket, transport, opts)
+    init(socket, transport, opts)
   end
 
-  defp init(parent, socket, transport, opts) do
+  defp init(socket, transport, opts) do
     Process.flag(:trap_exit, true)
 
     handler = Keyword.fetch!(opts, :handler)
@@ -27,7 +27,7 @@ defmodule Nostalex.Endpoint.Protocol do
 
     state = %Socket{
       transport: transport,
-      transport_pid: parent,
+      transport_pid: self(),
       connect_info: connect_info,
       serializer: serializer
     }

@@ -7,7 +7,7 @@ defmodule Noslib.Gateway do
 
   @type portal :: %{
           id: pos_integer,
-          world_id: pos_integer,
+          channel_id: pos_integer,
           world_name: pos_integer,
           hostname: :inet.ip4_address(),
           port: :inet.port_number(),
@@ -38,9 +38,9 @@ defmodule Noslib.Gateway do
       Helpers.encode_int(portal.port),
       Helpers.encode_int(portal_color(portal.population, portal.capacity)),
       Helpers.encode_struct([
-        Helpers.encode_int(portal.world_id),
+        Helpers.encode_int(portal.id),
         portal.world_name,
-        Helpers.encode_int(portal.id)
+        Helpers.encode_int(portal.channel_id)
       ])
     ])
   end

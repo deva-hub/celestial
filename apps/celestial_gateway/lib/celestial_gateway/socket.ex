@@ -26,7 +26,7 @@ defmodule CelestialGateway.Socket do
     for {id, %{metas: [meta]}} <- Presence.list("portals") do
       %{
         id: id,
-        world_id: meta.world_id,
+        channel_id: meta.channel_id,
         world_name: meta.world_name,
         hostname: meta.hostname,
         port: meta.port,

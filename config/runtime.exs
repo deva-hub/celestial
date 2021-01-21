@@ -31,10 +31,15 @@ port =
       port |> String.to_integer()
   end
 
+
 config :celestial_portal,
-  name: System.get_env("CELESTIAL_PORTAL_NAME", "Celestial"),
   hostname: hostname,
   port: port
+
+config :celestial_world,
+  id: System.get_env("CELESTIAL_WORLD_ID", "1") |> String.to_integer(),
+  channel_id: System.get_env("CELESTIAL_CHANNEL_ID", "1") |> String.to_integer(),
+  name: System.get_env("CELESTIAL_WORLD_NAME", "Celestial")
 
 # Configure Celestial gateway port
 config :celestial_gateway,

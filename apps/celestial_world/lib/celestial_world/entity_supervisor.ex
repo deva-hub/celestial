@@ -10,8 +10,11 @@ defmodule CelestialWorld.EntitySupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_hero(attrs) do
-    spec = {CelestialWorld.HeroEntity, attrs}
+  def start_hero(socket, hero) do
+    spec = %{
+      id: CelestialWorld.HeroEntity,
+      start: {CelestialWorld.HeroEntity, :start_link, [socket, hero]}
+    }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
       {:ok, pid} ->
