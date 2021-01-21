@@ -1,4 +1,4 @@
-defmodule CelestialWorld.HeroSupervisor do
+defmodule CelestialWorld.EntitySupervisor do
   use DynamicSupervisor
 
   def start_link(opts) do

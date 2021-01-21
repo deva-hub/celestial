@@ -49,7 +49,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
     hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
-    {:ok, hero_pid} = CelestialWorld.HeroSupervisor.start_hero(hero)
+    {:ok, hero_pid} = CelestialWorld.EntitySupervisor.start_hero(hero)
 
     # TODO: remove placeholder data
     push(

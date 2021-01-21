@@ -10,7 +10,7 @@ defmodule CelestialWorld.Application do
       # Start the Entity registry
       {Registry, keys: :unique, name: CelestialWorld.Registry},
       # Start Hero entity supervisor
-      {CelestialWorld.HeroSupervisor, []}
+      {CelestialWorld.EntitySupervisor, []}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}
     ]
