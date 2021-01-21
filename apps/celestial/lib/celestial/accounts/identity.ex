@@ -46,8 +46,13 @@ defmodule Celestial.Accounts.Identity do
   defp hash_password(changeset) do
     password = get_change(changeset, :password)
 
+    hashed_password =
+      :crypto.hash(:sha512, password)
+      |> Base.encode16()
+      |> Argon2.hash_pwd_salt()
+
     changeset
-    |> put_change(:hashed_password, Argon2.hash_pwd_salt(password))
+    |> put_change(:hashed_password, hashed_password)
     |> delete_change(:password)
   end
 
