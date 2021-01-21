@@ -12,7 +12,7 @@ defmodule CelestialPortal.Socket do
   def init(socket) do
     state = %{
       current_identity: nil,
-      hero_pid: nil,
+      entity_pid: nil,
       last_message_id: nil
     }
 
@@ -49,7 +49,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
     hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
 
-    {:ok, hero_pid} = CelestialWorld.EntitySupervisor.start_hero(hero)
+    {:ok, entity_pid} = CelestialWorld.EntitySupervisor.start_hero(hero)
 
     # TODO: remove placeholder data
     push(
@@ -130,7 +130,7 @@ defmodule CelestialPortal.Socket do
       socket.serializer
     )
 
-    {:ok, assign(socket, %{last_message_id: id, hero_pid: hero_pid})}
+    {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
   end
 
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
@@ -159,7 +159,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    HeroEntity.walk(socket.assigns.hero_pid, payload.axis, payload.speed)
+    HeroEntity.walk(socket.assigns.entity_pid, payload.axis, payload.speed)
     {:ok, assign(socket, :last_message_id, id)}
   end
 
