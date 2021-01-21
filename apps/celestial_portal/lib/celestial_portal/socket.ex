@@ -78,7 +78,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    HeroEntity.walk(socket.assigns.entity_pid, payload.axis, payload.speed)
+    HeroEntity.walk(socket.assigns.entity_pid, payload.coordinates, payload.speed)
     {:ok, assign(socket, :last_message_id, id)}
   end
 
@@ -130,7 +130,7 @@ defmodule CelestialPortal.Socket do
           hero_level: hero.hero_level,
           job_level: hero.job_level,
           pets: [],
-          equipment: %{}
+          equipments: %{}
         },
         serializer
       )

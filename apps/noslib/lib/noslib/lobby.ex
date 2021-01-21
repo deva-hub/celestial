@@ -4,7 +4,7 @@ defmodule Noslib.Lobby do
   """
   alias Noslib.{Hero, Helpers}
 
-  @type equipment :: %{
+  @type equipments :: %{
           hat_id: pos_integer | nil,
           armor_id: pos_integer | nil,
           weapon_skin_id: pos_integer | nil,
@@ -24,14 +24,14 @@ defmodule Noslib.Lobby do
   @type clist :: %{
           slot: pos_integer,
           name: bitstring,
-          sex: Hero.sex(),
-          hair_style: Hero.hair_style(),
-          hair_color: Hero.hair_color(),
-          class: Hero.class(),
+          sex: atom,
+          hair_style: atom,
+          hair_color: atom,
+          class: atom,
           level: integer,
           hero_level: integer,
           job_level: integer,
-          equipment: equipment,
+          equipments: equipments,
           pets: [pet]
         }
 
@@ -77,37 +77,23 @@ defmodule Noslib.Lobby do
     Helpers.encode_list([
       Helpers.encode_int(clist.slot),
       clist.name,
-      "0",
+      Helpers.encode_int(0),
       Hero.encode_sex(clist.sex),
       Hero.encode_hair_style(clist.hair_style),
       Hero.encode_hair_color(clist.hair_color),
-      "0",
+      Helpers.encode_int(0),
       Hero.encode_class(clist.class),
       Helpers.encode_int(clist.level),
       Helpers.encode_int(clist.hero_level),
-      encode_equipment(%{}),
-      encode_equipment(clist.equipment),
+      Hero.encode_equipments(%{}),
+      Hero.encode_equipments(clist.equipments),
       Helpers.encode_int(clist.job_level),
-      "1",
-      "1",
+      Helpers.encode_int("1"),
+      Helpers.encode_int("1"),
       clist.pets
       |> Enum.map(&encode_pet/1)
       |> Helpers.encode_list(@pets_terminator),
-      "0"
-    ])
-  end
-
-  defp encode_equipment(equipment) do
-    Helpers.encode_struct([
-      Map.get(equipment, :hat, "-1"),
-      Map.get(equipment, :armor, "-1"),
-      Map.get(equipment, :weapon_skin, "-1"),
-      Map.get(equipment, :main_weapon, "-1"),
-      Map.get(equipment, :secondary_weapon, "-1"),
-      Map.get(equipment, :mask, "-1"),
-      Map.get(equipment, :fairy, "-1"),
-      Map.get(equipment, :costume_suit, "-1"),
-      Map.get(equipment, :costume_hat, "-1")
+      Helpers.encode_int("0")
     ])
   end
 

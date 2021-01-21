@@ -76,17 +76,17 @@ defmodule Noslib.Hero do
           morph: pos_integer,
           invisible?: boolean,
           family_level: pos_integer,
-          morph_upgrade?: boolean,
+          morph_upgrade: non_neg_integer,
           arena_winner?: boolean
         }
 
   def encode_c_info(c_info) do
     Helpers.encode_list([
-      c_info.name,
-      "-",
+      Helpers.encode_string(c_info.name),
+      Helpers.encode_string(""),
       Helpers.encode_int(c_info.group_id),
       Helpers.encode_int(c_info.family_id),
-      c_info.family_name,
+      Helpers.encode_string(c_info.family_name),
       Helpers.encode_int(c_info.id),
       UI.encode_name_color(c_info.name_color),
       encode_sex(c_info.sex),
@@ -98,20 +98,20 @@ defmodule Noslib.Hero do
       Helpers.encode_int(c_info.morph),
       Helpers.encode_bool(c_info.invisible?),
       Helpers.encode_int(c_info.family_level),
-      Helpers.encode_bool(c_info.morph_upgrade?),
+      Helpers.encode_int(c_info.morph_upgrade),
       Helpers.encode_bool(c_info.arena_winner?)
     ])
   end
 
   @type tit :: %{
-          class: atom,
+          title: binary,
           name: binary
         }
 
   def encode_tit(tit) do
     Helpers.encode_list([
-      tit.class |> to_string |> String.capitalize(),
-      tit.name
+      Helpers.encode_string(tit.title),
+      Helpers.encode_string(tit.name)
     ])
   end
 
@@ -125,7 +125,7 @@ defmodule Noslib.Hero do
       Society.encode_reputation(fd.reputation),
       Helpers.encode_int(UI.dignity_icon(fd.reputation)),
       Society.encode_dignity(fd.dignity),
-      Helpers.encode_int(UI.reputation_icon(fd.dignity))
+      Helpers.encode_int(UI.reputation(fd.dignity))
     ])
   end
 
@@ -154,6 +154,20 @@ defmodule Noslib.Hero do
       Helpers.encode_int(lev.hero_xp),
       Helpers.encode_int(lev.hero_level),
       Helpers.encode_int(lev.hero_xp_max)
+    ])
+  end
+
+  def encode_equipments(equipments) do
+    Helpers.encode_struct([
+      Map.get(equipments, :hat, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :armor, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :weapon_skin, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :main_weapon, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :secondary_weapon, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :mask, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :fairy, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :costume_suit, -1) |> Helpers.encode_int(),
+      Map.get(equipments, :costume_hat, -1) |> Helpers.encode_int()
     ])
   end
 end

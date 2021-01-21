@@ -37,6 +37,10 @@ defmodule Noslib do
     [0, "", payload]
   end
 
+  def encode(["in", payload]) do
+    Helpers.encode_list(["in", Geolocation.encode_in(payload)])
+  end
+
   def encode(["clist_start", payload]) do
     Helpers.encode_list(["clist_start", Lobby.encode_clist_start(payload)])
   end

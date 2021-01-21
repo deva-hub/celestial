@@ -39,7 +39,7 @@ defmodule Noslib.Gateway do
       Helpers.encode_int(portal_color(portal.population, portal.capacity)),
       Helpers.encode_struct([
         Helpers.encode_int(portal.id),
-        portal.world_name,
+        Helpers.encode_string(portal.world_name),
         Helpers.encode_int(portal.channel_id)
       ])
     ])

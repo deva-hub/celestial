@@ -2,6 +2,7 @@ defmodule Noslib.Society do
   @moduledoc false
   alias Noslib.Helpers
 
+  # TODO: Refactor reputation based on number
   @reputations BiMap.new(%{
                  stupid_minded: Helpers.encode_int(-6),
                  useless: Helpers.encode_int(-5),
@@ -65,7 +66,7 @@ defmodule Noslib.Society do
   def encode_dignity(dignity), do: BiMap.fetch!(@dignities, dignity)
 
   @factions BiMap.new(%{
-              neutral: Helpers.encode_int(0),
+              neutre: Helpers.encode_int(0),
               angel: Helpers.encode_int(1),
               demon: Helpers.encode_int(2)
             })

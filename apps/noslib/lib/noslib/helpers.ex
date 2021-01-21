@@ -19,9 +19,10 @@ defmodule Noslib.Helpers do
     Enum.intersperse(struct, ".")
   end
 
-  def encode_int(number) do
-    number |> to_string
-  end
+  def encode_int(number), do: number |> to_string
+
+  def encode_string(""), do: "-"
+  def encode_string(str), do: str
 
   def encode_bool(true), do: encode_int(1)
   def encode_bool(false), do: encode_int(0)

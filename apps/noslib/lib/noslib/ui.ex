@@ -36,7 +36,7 @@ defmodule Noslib.UI do
   @spec encode_dignity_icon(atom) :: iodata
   def encode_dignity_icon(dignity_icon), do: BiMap.fetch!(@dignity_icons, dignity_icon)
 
-  @reputation_icons %{
+  @reputations %{
     stupid_minded: -800,
     useless: -600,
     not_qualified_for: -400,
@@ -69,8 +69,8 @@ defmodule Noslib.UI do
     elite_b: 5_000_000
   }
 
-  def reputation_icon(reputation) do
-    Enum.find_value(@reputation_icons, :elite_r, fn
+  def reputation(reputation) do
+    Enum.find_value(@reputations, :elite_r, fn
       {icon, limit} -> if reputation < limit, do: icon
     end)
   end

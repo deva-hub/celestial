@@ -11,12 +11,12 @@ defmodule Noslib.Client do
 
   @spec encode_failc(error) :: iodata
   def encode_failc(failc) do
-    Helpers.encode_list(["failc", encode_error(failc.error)])
+    encode_error(failc.error)
   end
 
   @spec encode_info(info) :: iodata
   def encode_info(info) do
-    Helpers.encode_list(["info", info.message])
+    Helpers.encode_string(info.message)
   end
 
   @errors BiMap.new(%{
@@ -47,4 +47,16 @@ defmodule Noslib.Client do
 
   @spec encode_language(atom) :: iodata
   def encode_language(language), do: BiMap.fetch!(@languages, language)
+
+  @name_colors BiMap.new(%{
+                 white: Helpers.encode_int(0),
+                 violet: Helpers.encode_int(2),
+                 invisible: Helpers.encode_int(6)
+               })
+
+  @spec decode_name_color(binary) :: atom
+  def decode_name_color(name_color), do: BiMap.fetch_key!(@name_colors, name_color)
+
+  @spec encode_name_color(atom) :: iodata
+  def encode_name_color(name_color), do: BiMap.fetch!(@name_colors, name_color)
 end

@@ -31,7 +31,7 @@ defmodule CelestialPortal.Crypto do
   @doc """
   Decrypts the given binary
   """
-  @spec decrypt(binary) :: String.t()
+  @spec decrypt(binary) :: binary
   def decrypt(ciphertext) do
     case ciphertext do
       <<_::size(8), payload::binary>> ->

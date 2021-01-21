@@ -11,8 +11,8 @@ defmodule CelestialWorld.HeroEntity do
     )
   end
 
-  def walk(name, axis, speed) do
-    GenServer.cast(name, {:walk, axis, speed})
+  def walk(name, coordinates, speed) do
+    GenServer.cast(name, {:walk, coordinates, speed})
   end
 
   @impl true
@@ -25,59 +25,6 @@ defmodule CelestialWorld.HeroEntity do
 
   @impl true
   def handle_continue(:contact, {socket, hero}) do
-    world = Application.fetch_env!(:celestial_world, :id)
-
-    Phoenix.PubSub.broadcast!(
-      Celestial.PubSub,
-      "worlds:#{world}",
-      {:celestial, :entity_contact, hero.id, hero}
-    )
-
-    Phoenix.PubSub.broadcast!(
-      Celestial.PubSub,
-      "worlds:#{world}",
-      {:celestial, :entity_walk, hero.id,
-       %{
-         x: :rand.uniform(3) + 77,
-         y: :rand.uniform(4) + 11
-       }}
-    )
-
-    {:noreply, {socket, hero}}
-  end
-
-  @impl true
-  def handle_cast({:walk, axis, _speed}, {socket, hero}) do
-    world = Application.fetch_env!(:celestial_world, :id)
-
-    # TODO: Calculate the next position
-    Phoenix.PubSub.broadcast_from!(
-      Celestial.PubSub,
-      self(),
-      "worlds:#{world}",
-      {:celestial, :entity_walk, hero.id, axis}
-    )
-
-    {:noreply, {socket, hero}}
-  end
-
-  @impl true
-  def handle_info({:celestial, :entity_walk, id, axis}, {socket, hero}) do
-    push(
-      socket,
-      "at",
-      %{
-        id: id,
-        map_id: 1,
-        music_id: 0,
-        axis: axis
-      }
-    )
-
-    {:noreply, {socket, hero}}
-  end
-
-  def handle_info({:celestial, :entity_contact, id, hero}, {socket, hero}) do
     # TODO: remove placeholder data
     push(
       socket,
@@ -85,9 +32,9 @@ defmodule CelestialWorld.HeroEntity do
       %{
         name: hero.name,
         group_id: 0,
-        family_id: 0,
+        family_id: -1,
         family_name: "beta",
-        id: id,
+        id: hero.id,
         name_color: :white,
         sex: hero.sex,
         hair_style: hero.hair_style,
@@ -97,8 +44,8 @@ defmodule CelestialWorld.HeroEntity do
         compliment: 0,
         morph: 0,
         invisible?: false,
-        family_level: 1,
-        morph_upgrade?: false,
+        family_level: -1,
+        morph_upgrade: 0,
         arena_winner?: false
       }
     )
@@ -107,7 +54,7 @@ defmodule CelestialWorld.HeroEntity do
       socket,
       "tit",
       %{
-        class: hero.class,
+        title: hero.class |> to_string |> String.upcase(),
         name: hero.name
       }
     )
@@ -135,6 +82,101 @@ defmodule CelestialWorld.HeroEntity do
         hero_xp: hero.xp,
         hero_level: hero.hero_level,
         hero_xp_max: 10_000
+      }
+    )
+
+    world = Application.fetch_env!(:celestial_world, :id)
+
+    coordinates = %{
+      x: :rand.uniform(3) + 77,
+      y: :rand.uniform(4) + 11
+    }
+
+    Phoenix.PubSub.broadcast_from!(
+      Celestial.PubSub,
+      self(),
+      "worlds:#{world}",
+      {:celestial, :entity_contact, hero.id, coordinates, hero}
+    )
+
+    Phoenix.PubSub.broadcast!(
+      Celestial.PubSub,
+      "worlds:#{world}",
+      {:celestial, :entity_move, hero.id, coordinates}
+    )
+
+    {:noreply, {socket, hero}}
+  end
+
+  @impl true
+  def handle_cast({:walk, coordinates, _speed}, {socket, hero}) do
+    world = Application.fetch_env!(:celestial_world, :id)
+
+    # TODO: Calculate the next position
+    Phoenix.PubSub.broadcast_from!(
+      Celestial.PubSub,
+      self(),
+      "worlds:#{world}",
+      {:celestial, :entity_move, hero.id, coordinates}
+    )
+
+    {:noreply, {socket, hero}}
+  end
+
+  @impl true
+  def handle_info({:celestial, :entity_move, id, coordinates}, {socket, hero}) do
+    push(
+      socket,
+      "at",
+      %{
+        id: id,
+        map_id: 1,
+        music_id: 0,
+        coordinates: coordinates
+      }
+    )
+
+    {:noreply, {socket, hero}}
+  end
+
+  def handle_info({:celestial, :entity_contact, id, coordinates, entity}, {socket, hero}) do
+    push(
+      socket,
+      "in",
+      %{
+        type: :hero,
+        name: entity.name,
+        id: id,
+        coordinates: coordinates,
+        direction: :north,
+        name_color: :white,
+        sex: entity.sex,
+        hair_style: entity.hair_style,
+        hair_color: entity.hair_color,
+        class: entity.class,
+        equipments: %{},
+        hp_percent: 100,
+        mp_percent: 100,
+        sitting?: false,
+        group_id: -1,
+        fairy_movement: :neutre,
+        fairy_element: :neutre,
+        fairy_morph: 0,
+        morph: 0,
+        weapon_upgrade: 0,
+        armor_upgrade: 0,
+        family_id: -1,
+        family_name: "beta",
+        reputation: :beginner,
+        invisible?: false,
+        morph_upgrade: 0,
+        faction: :neutre,
+        morph_bonus: 0,
+        level: entity.level,
+        family_level: -1,
+        family_icons: "0|0|0",
+        compliment: 0,
+        size: 10
       }
     )
 
