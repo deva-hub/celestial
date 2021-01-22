@@ -4,7 +4,7 @@ defmodule CelestialPortal.MixProject do
   def project do
     [
       app: :celestial_portal,
-      version: "0.2.0",
+      version: "0.3.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
