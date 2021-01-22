@@ -7,10 +7,12 @@ defmodule CelestialWorld.Application do
 
   def start(_type, _args) do
     children = [
+      # Start the Presence server
+      {CelestialWorld.Presence, []},
       # Start the Entity registry
       {Registry, keys: :unique, name: CelestialWorld.Registry},
       # Start Hero entity supervisor
-      {CelestialWorld.EntitySupervisor, []}
+      {Nostalex.EntitySupervisor, []}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}
     ]

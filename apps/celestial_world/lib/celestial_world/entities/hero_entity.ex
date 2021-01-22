@@ -1,7 +1,7 @@
 defmodule CelestialWorld.HeroEntity do
   use GenServer
 
-  import CelestialWorld.Entity
+  import Nostalex.Entity
   alias Nostalex.Socket
 
   def start_link(%Socket{} = socket, hero) do
@@ -17,9 +17,13 @@ defmodule CelestialWorld.HeroEntity do
 
   @impl true
   def init({socket, hero}) do
-    # TODO: Refactory world ID fetching
-    Phoenix.PubSub.subscribe(Celestial.PubSub, "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}")
-    {:ok, {socket, hero}, {:continue, :contact}}
+    Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
+
+    CelestialWorld.Presence.track(self(), "entities:heros", hero.id, %{
+      online_at: inspect(System.system_time(:second))
+    })
+
+    {:ok, {%{socket | entity: __MODULE__, entity_pid: self()}, hero}, {:continue, :contact}}
   end
 
   @impl true
@@ -100,11 +104,10 @@ defmodule CelestialWorld.HeroEntity do
       }
     )
 
-    Phoenix.PubSub.broadcast_from!(
-      Celestial.PubSub,
-      self(),
-      "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}",
-      {:celestial, :entity_contact, hero.id, coordinates, hero}
+    broadcast_from!(
+      socket,
+      "entity_contact",
+      %{contact: hero, coordinates: coordinates}
     )
 
     {:noreply, {socket, hero}}
@@ -113,29 +116,30 @@ defmodule CelestialWorld.HeroEntity do
   @impl true
   def handle_cast({:walk, coordinates, _speed}, {socket, hero}) do
     # TODO: Calculate the next position
-    Phoenix.PubSub.broadcast_from!(
-      Celestial.PubSub,
-      self(),
-      "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}",
-      {:celestial, :entity_move, hero.id, coordinates}
-    )
-
+    broadcast_from!(socket, "entity_move", %{hero: hero, coordinates: coordinates})
     {:noreply, {socket, hero}}
   end
 
   @impl true
-  def handle_info({:celestial, :entity_move, id, coordinates}, {socket, hero}) do
+  def handle_info(%{event: "presence_diff", payload: payload}, {socket, hero}) do
+    for {entity, coordinates} <- payload.joins, do: push_in(socket, coordinates, entity)
     {:noreply, {socket, hero}}
   end
 
-  def handle_info({:celestial, :entity_contact, id, coordinates, entity}, {socket, hero}) do
+  def handle_info(%{event: "entity_contact", payload: payload}, {socket, hero}) do
+    %{contact: contact, coordinates: coordinates} = payload
+    push_in(socket, coordinates, contact)
+    {:noreply, {socket, hero}}
+  end
+
+  defp push_in(socket, coordinates, entity) do
     push(
       socket,
       "in",
       %{
         type: :hero,
         name: entity.name,
-        id: id,
+        id: entity.id,
         coordinates: coordinates,
         direction: :north,
         name_color: :white,
@@ -168,8 +172,6 @@ defmodule CelestialWorld.HeroEntity do
         size: 10
       }
     )
-
-    {:noreply, {socket, hero}}
   end
 
   def via_tuple(id) do

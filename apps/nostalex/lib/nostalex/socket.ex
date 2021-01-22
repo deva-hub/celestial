@@ -12,6 +12,10 @@ defmodule Nostalex.Socket do
             connect_info: %{},
             key: nil,
             type: nil,
+            pubsub_server: nil,
+            entity: nil,
+            entity_pid: nil,
+            topic: nil,
             transport: nil,
             transport_pid: nil,
             serializer: nil

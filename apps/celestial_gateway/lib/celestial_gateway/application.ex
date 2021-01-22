@@ -16,6 +16,7 @@ defmodule CelestialGateway.Application do
        port: port,
        handler: CelestialGateway.Socket,
        handler_opts: [
+         pubsub_server: Celestial.PubSub,
          serializer: CelestialGateway.Serializer,
          connect_info: [:peer_data]
        ]}

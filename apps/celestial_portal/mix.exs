@@ -34,7 +34,8 @@ defmodule CelestialPortal.MixProject do
       {:celestial, in_umbrella: true},
       {:celestial_world, in_umbrella: true},
       {:nostalex, in_umbrella: true},
-      {:noslib, in_umbrella: true}
+      {:noslib, in_umbrella: true},
+      {:phoenix_pubsub, "~> 2.0"}
     ]
   end
 

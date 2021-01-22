@@ -6,10 +6,6 @@ defmodule CelestialPortal.Application do
   use Application
 
   def start(_type, _args) do
-    name =
-      Application.get_env(:celestial_portal, :name) ||
-        raise ":name not set in :celestial_portal application"
-
     id =
       Application.get_env(:celestial_portal, :world) ||
         raise ":name not set in :celestial_portal application"
@@ -34,7 +30,7 @@ defmodule CelestialPortal.Application do
        [
          id: id,
          channel_id: channel_id,
-         world_name: name,
+         world_name: "Celestial",
          hostname: hostname,
          port: port
        ]},
@@ -44,6 +40,7 @@ defmodule CelestialPortal.Application do
          port: port,
          handler: CelestialPortal.Socket,
          handler_opts: [
+           pubsub_server: Celestial.PubSub,
            serializer: CelestialPortal.Serializer,
            connect_info: [:peer_data]
          ]

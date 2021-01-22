@@ -160,7 +160,7 @@ defmodule Nostalex.Presence do
       end
 
   """
-  @callback track(socket :: Phoenix.Socket.t(), key :: String.t(), meta :: map()) ::
+  @callback track(socket :: Nostalex.Socket.t(), key :: String.t(), meta :: map()) ::
               {:ok, ref :: binary()}
               | {:error, reason :: term()}
 
@@ -176,7 +176,7 @@ defmodule Nostalex.Presence do
   @doc """
   Stop tracking a channel's process.
   """
-  @callback untrack(socket :: Phoenix.Socket.t(), key :: String.t()) :: :ok
+  @callback untrack(socket :: Nostalex.Socket.t(), key :: String.t()) :: :ok
 
   @doc """
   Stop tracking a process.
@@ -190,7 +190,7 @@ defmodule Nostalex.Presence do
   the current map and returns a new one.
   """
   @callback update(
-              socket :: Phoenix.Socket.t(),
+              socket :: Nostalex.Socket.t(),
               key :: String.t(),
               meta :: map() | (map() -> map())
             ) ::
@@ -232,7 +232,7 @@ defmodule Nostalex.Presence do
   a `:phx_ref_prev` key will be present containing the previous
   `:phx_ref` value.
   """
-  @callback list(Phoenix.Socket.t() | topic) :: presences
+  @callback list(Nostalex.Socket.t() | topic) :: presences
 
   @doc """
   Returns the map of presence metadata for a socket/topic-key pair.
@@ -250,7 +250,7 @@ defmodule Nostalex.Presence do
   Like `c:list/2`, the presence metadata is passed to the `fetch`
   callback of your presence module to fetch any additional information.
   """
-  @callback get_by_key(Phoenix.Socket.t() | topic, key :: String.t()) :: presences
+  @callback get_by_key(Nostalex.Socket.t() | topic, key :: String.t()) :: presences
 
   @doc """
   Extend presence information with additional data.
@@ -306,42 +306,36 @@ defmodule Nostalex.Presence do
         }
       end
 
-      # TODO: Remove this on the next Phoenix version as we require v1.6
-      # and this will only be called by outdated child specs.
-      def start_link(opts \\ []) do
-        Nostalex.Presence.start_link(__MODULE__, @task_supervisor, Keyword.merge(@opts, opts))
-      end
-
       # API
 
-      def track(%Phoenix.Socket{} = socket, key, meta) do
-        track(socket.channel_pid, socket.topic, key, meta)
+      def track(%Nostalex.Socket{} = socket, key, meta) do
+        track(socket.entity_pid, socket.topic, key, meta)
       end
 
       def track(pid, topic, key, meta) do
         Phoenix.Tracker.track(__MODULE__, pid, topic, key, meta)
       end
 
-      def untrack(%Phoenix.Socket{} = socket, key) do
-        untrack(socket.channel_pid, socket.topic, key)
+      def untrack(%Nostalex.Socket{} = socket, key) do
+        untrack(socket.entity_pid, socket.topic, key)
       end
 
       def untrack(pid, topic, key) do
         Phoenix.Tracker.untrack(__MODULE__, pid, topic, key)
       end
 
-      def update(%Phoenix.Socket{} = socket, key, meta) do
-        update(socket.channel_pid, socket.topic, key, meta)
+      def update(%Nostalex.Socket{} = socket, key, meta) do
+        update(socket.entity_pid, socket.topic, key, meta)
       end
 
       def update(pid, topic, key, meta) do
         Phoenix.Tracker.update(__MODULE__, pid, topic, key, meta)
       end
 
-      def list(%Phoenix.Socket{topic: topic}), do: list(topic)
+      def list(%Nostalex.Socket{topic: topic}), do: list(topic)
       def list(topic), do: Nostalex.Presence.list(__MODULE__, topic)
 
-      def get_by_key(%Phoenix.Socket{topic: topic}, key), do: get_by_key(topic, key)
+      def get_by_key(%Nostalex.Socket{topic: topic}, key), do: get_by_key(topic, key)
       def get_by_key(topic, key), do: Nostalex.Presence.get_by_key(__MODULE__, topic, key)
 
       def fetchers_pids(), do: Task.Supervisor.children(@task_supervisor)
@@ -368,10 +362,10 @@ defmodule Nostalex.Presence do
 
       Task.Supervisor.start_child(task_supervisor, fn ->
         for {topic, {joins, leaves}} <- diff do
-          Phoenix.Channel.Server.local_broadcast(pubsub_server, topic, "presence_diff", %{
-            joins: module.fetch(topic, Nostalex.Presence.group(joins)),
-            leaves: module.fetch(topic, Nostalex.Presence.group(leaves))
-          })
+          # Phoenix.Channel.Server.local_broadcast(pubsub_server, topic, "presence_diff", %{
+          #   joins: module.fetch(topic, Nostalex.Presence.group(joins)),
+          #   leaves: module.fetch(topic, Nostalex.Presence.group(leaves))
+          # })
         end
       end)
 

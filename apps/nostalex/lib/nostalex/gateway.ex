@@ -14,7 +14,7 @@ defmodule Nostalex.Gateway do
   @callback portals(Socket.t()) :: list(map)
 
   defmacro __using__(opts) do
-    quote do
+    quote location: :keep do
       @behaviour Nostalex.Gateway
       @behaviour Nostalex.Socket.Transport
 

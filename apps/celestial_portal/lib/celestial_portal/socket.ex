@@ -49,7 +49,8 @@ defmodule CelestialPortal.Socket do
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
     hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
-    {:ok, entity_pid} = CelestialWorld.EntitySupervisor.start_hero(socket, hero)
+    topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
+    {:ok, entity_pid} = Nostalex.EntitySupervisor.start_hero(%{socket | topic: topic}, hero)
     {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
   end
 
