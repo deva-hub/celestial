@@ -3,6 +3,7 @@ defmodule CelestialWorld.HeroEntity do
 
   import Nostalex.Entity
   alias Nostalex.Socket
+  alias Nostalex.Socket.Broadcast
 
   def start_link(%Socket{} = socket, hero) do
     GenServer.start_link(__MODULE__, {socket, hero},
@@ -18,17 +19,11 @@ defmodule CelestialWorld.HeroEntity do
   @impl true
   def init({socket, hero}) do
     Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
-
-    CelestialWorld.Presence.track(self(), "entities:heros", hero.id, %{
-      online_at: inspect(System.system_time(:second))
-    })
-
-    {:ok, {%{socket | entity: __MODULE__, entity_pid: self()}, hero}, {:continue, :contact}}
+    {:ok, {%{socket | entity: __MODULE__, entity_pid: self()}, hero}, {:continue, {:init, :entity}}}
   end
 
   @impl true
-  def handle_continue(:contact, {socket, hero}) do
-    # TODO: remove placeholder data
+  def handle_continue({:init, :entity}, {socket, hero}) do
     push(
       socket,
       "c_info",
@@ -104,18 +99,23 @@ defmodule CelestialWorld.HeroEntity do
       }
     )
 
-    broadcast_from!(
-      socket,
-      "entity_contact",
-      %{contact: hero, coordinates: coordinates}
-    )
+    CelestialWorld.Presence.track(self(), socket.topic, hero.id, %{
+      entity: hero,
+      coordinates: coordinates,
+      online_at: inspect(System.system_time(:second))
+    })
 
+    {:noreply, {socket, hero}, {:continue, {:init, :presence}}}
+  end
+
+  def handle_continue({:init, :presence}, {socket, hero}) do
+    presences = CelestialWorld.Presence.list(socket)
+    send(self(), %Broadcast{event: "presence_diff", topic: socket.topic, payload: %{joins: presences}})
     {:noreply, {socket, hero}}
   end
 
   @impl true
   def handle_cast({:walk, coordinates, speed}, {socket, hero}) do
-    # TODO: Calculate the next position
     broadcast_from!(socket, "entity_move", %{entity: hero, coordinates: coordinates, speed: speed})
     {:noreply, {socket, hero}}
   end
@@ -128,56 +128,53 @@ defmodule CelestialWorld.HeroEntity do
 
   @impl true
   def handle_info(%{event: "presence_diff", payload: payload}, {socket, hero}) do
-    for {entity, coordinates} <- payload.joins, do: push_in(socket, coordinates, entity)
-    {:noreply, {socket, hero}}
-  end
+    for {id, join} <- payload.joins do
+      for meta <- join.metas do
+        %{entity: entity, coordinates: coordinates} = meta
 
-  def handle_info(%{event: "entity_contact", payload: payload}, {socket, hero}) do
-    %{contact: contact, coordinates: coordinates} = payload
-    push_in(socket, coordinates, contact)
-    {:noreply, {socket, hero}}
-  end
+        push(
+          socket,
+          "in",
+          %{
+            type: :hero,
+            name: entity.name,
+            id: id,
+            coordinates: coordinates,
+            direction: :north,
+            name_color: :white,
+            sex: entity.sex,
+            hair_style: entity.hair_style,
+            hair_color: entity.hair_color,
+            class: entity.class,
+            equipments: %{},
+            hp_percent: 100,
+            mp_percent: 100,
+            sitting?: false,
+            group_id: -1,
+            fairy_movement: :neutre,
+            fairy_element: :neutre,
+            fairy_morph: 0,
+            morph: 0,
+            weapon_upgrade: 0,
+            armor_upgrade: 0,
+            family_id: -1,
+            family_name: "beta",
+            reputation: :beginner,
+            invisible?: false,
+            morph_upgrade: 0,
+            faction: :neutre,
+            morph_bonus: 0,
+            level: entity.level,
+            family_level: -1,
+            family_icons: "0|0|0",
+            compliment: 0,
+            size: 10
+          }
+        )
+      end
+    end
 
-  defp push_in(socket, coordinates, entity) do
-    push(
-      socket,
-      "in",
-      %{
-        type: :hero,
-        name: entity.name,
-        id: entity.id,
-        coordinates: coordinates,
-        direction: :north,
-        name_color: :white,
-        sex: entity.sex,
-        hair_style: entity.hair_style,
-        hair_color: entity.hair_color,
-        class: entity.class,
-        equipments: %{},
-        hp_percent: 100,
-        mp_percent: 100,
-        sitting?: false,
-        group_id: -1,
-        fairy_movement: :neutre,
-        fairy_element: :neutre,
-        fairy_morph: 0,
-        morph: 0,
-        weapon_upgrade: 0,
-        armor_upgrade: 0,
-        family_id: -1,
-        family_name: "beta",
-        reputation: :beginner,
-        invisible?: false,
-        morph_upgrade: 0,
-        faction: :neutre,
-        morph_bonus: 0,
-        level: entity.level,
-        family_level: -1,
-        family_icons: "0|0|0",
-        compliment: 0,
-        size: 10
-      }
-    )
+    {:noreply, {socket, hero}}
   end
 
   def via_tuple(id) do

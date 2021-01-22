@@ -346,6 +346,8 @@ defmodule Nostalex.Presence do
     @moduledoc false
     use Phoenix.Tracker
 
+    alias Nostalex.Socket.Message
+
     def start_link({module, task_supervisor, opts}) do
       pubsub_server =
         opts[:pubsub_server] || raise "use Nostalex.Presence expects :pubsub_server to be given"
@@ -362,10 +364,13 @@ defmodule Nostalex.Presence do
 
       Task.Supervisor.start_child(task_supervisor, fn ->
         for {topic, {joins, leaves}} <- diff do
-          # Phoenix.Channel.Server.local_broadcast(pubsub_server, topic, "presence_diff", %{
-          #   joins: module.fetch(topic, Nostalex.Presence.group(joins)),
-          #   leaves: module.fetch(topic, Nostalex.Presence.group(leaves))
-          # })
+          Phoenix.PubSub.local_broadcast(pubsub_server, topic, %Message{
+            event: "presence_diff",
+            payload: %{
+              joins: module.fetch(topic, Nostalex.Presence.group(joins)),
+              leaves: module.fetch(topic, Nostalex.Presence.group(leaves))
+            }
+          })
         end
       end)
 
