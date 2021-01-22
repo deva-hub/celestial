@@ -21,7 +21,8 @@ defmodule Nostalex.EntitySupervisor do
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        {:ok, pid}
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+        start_hero(socket, hero)
 
       {:error, reason} ->
         {:error, reason}
