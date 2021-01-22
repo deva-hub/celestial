@@ -44,34 +44,38 @@ defmodule Nostalex.Gateway do
     {:ok, socket}
   end
 
-  def __in__(mod, {payload, opts}, socket) do
-    __in__(mod, socket.serializer.decode!(payload, opts), socket)
+  def __in__(gateway, {payload, opts}, socket) do
+    __in__(gateway, socket.serializer.decode!(payload, opts), socket)
   end
 
-  def __in__(mod, %{event: "NoS0575", payload: payload}, socket) do
+  def __in__(gateway, %{event: "NoS0575", payload: payload}, socket) do
     if Version.match?(payload.version, @version_requirement) do
-      authenticate(mod, payload, socket)
+      authenticate(gateway, payload, socket)
     else
-      {:push, encode_error(socket, :outdated_client), socket}
+      send_error(socket, :outdated_client)
+      {:ok, socket}
     end
   end
 
-  defp authenticate(mod, payload, socket) do
-    case mod.connect(payload, socket) do
+  defp authenticate(gateway, payload, socket) do
+    case gateway.connect(payload, socket) do
       {:ok, socket} ->
-        case {mod.portals(socket), mod.key(socket)} do
+        case {gateway.portals(socket), gateway.key(socket)} do
           {[], _} ->
-            {:push, encode_error(socket, :maintenance), socket}
+            send_error(socket, :maintenance)
 
           {_, nil} ->
-            {:push, encode_error(socket, :session_already_used), socket}
+            send_error(socket, :session_already_used)
 
           {portals, key} ->
-            {:push, encode_nstest(socket, payload.username, key, portals), socket}
+            send_nstest(socket, payload.username, key, portals)
         end
 
+        {:ok, socket}
+
       :error ->
-        {:push, encode_error(socket, :unvalid_credentials), socket}
+        send_error(socket, :unvalid_credentials)
+        {:ok, socket}
     end
   end
 
@@ -92,22 +96,17 @@ defmodule Nostalex.Gateway do
     :ok
   end
 
-  defp encode_nstest(socket, username, key, portals) do
-    message = %Message{
-      event: "NsTeST",
-      payload: %{key: key, username: username, portals: portals}
-    }
-
-    encode_reply(socket, message)
+  defp send_nstest(socket, username, key, portals) do
+    send_message(socket, "NsTeST", %{username: username, key: key, portals: portals})
   end
 
-  defp encode_error(socket, reason) do
-    message = %Message{event: "failc", payload: %{error: reason}}
-    encode_reply(socket, message)
+  defp send_error(socket, reason) do
+    send_message(socket, "failc", %{error: reason})
   end
 
-  defp encode_reply(socket, data) do
-    {:socket_push, opcode, payload} = socket.serializer.encode!(data)
-    {opcode, payload}
+  defp send_message(socket, event, payload) do
+    message = %Message{event: event, payload: payload}
+    send(socket.transport_pid, socket.serializer.encode!(message))
+    :ok
   end
 end

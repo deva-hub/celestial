@@ -32,7 +32,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{id: id}, %{key: nil} = socket) do
-    {:ok, socket |> assign(:last_message_id, id) |> put_key(0)}
+    {:ok, %{assign(socket, :last_message_id, id) | key: 0}}
   end
 
   def handle_in(%{payload: [_, key, id, username]}, %{assigns: %{current_identity: nil}} = socket) do
@@ -67,20 +67,31 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
-    with {:ok, identity} <- get_identity_by_username_and_password(socket.assigns.current_identity.username, payload.password),
-         hero when is_struct(hero) <- Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot),
-         {:ok, _} <- Galaxy.delete_hero(hero) do
-      push_heroes(self(), Galaxy.list_heroes(socket.assigns.current_identity), socket.serializer)
+    %{password: password, slot: slot} = payload
+    %{current_identity: current_identity} = socket.assigns
+
+    if identity = Accounts.get_identity_by_username_and_password(current_identity.username, password) do
+      case Galaxy.get_hero_by_slot!(current_identity, slot) |> Galaxy.delete_hero() do
+        {:ok, _} ->
+          :ok
+
+        {:error, _} ->
+          push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
+      end
+
+      push_heroes(self(), Galaxy.list_heroes(current_identity), socket.serializer)
+
       {:ok, assign(socket, :current_identity, identity)}
     else
-      {:error, _} ->
-        push(self(), "failc", %{error: :unvalid_credentials}, socket.serializer)
-        {:ok, socket}
+      push(self(), "failc", %{error: :unvalid_credentials}, socket.serializer)
+      {:ok, socket}
     end
   end
 
   def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    HeroEntity.walk(socket.assigns.entity_pid, payload.coordinates, payload.speed)
+    %{coordinates: coordinates, speed: speed} = payload
+    %{entity_pid: entity_pid} = socket.assigns
+    HeroEntity.walk(entity_pid, coordinates, speed)
     {:ok, assign(socket, :last_message_id, id)}
   end
 
@@ -117,7 +128,7 @@ defmodule CelestialPortal.Socket do
   defp push_heroes(pid, heroes, serializer) do
     push(pid, "clist_start", %{length: length(heroes)}, serializer)
 
-    Enum.each(heroes, fn hero ->
+    for hero <- heroes do
       push(
         pid,
         "clist",
@@ -136,22 +147,10 @@ defmodule CelestialPortal.Socket do
         },
         serializer
       )
-    end)
+    end
 
     push(pid, "clist_end", %{}, serializer)
 
     :ok
-  end
-
-  defp put_key(socket, key) do
-    %{socket | key: key}
-  end
-
-  defp get_identity_by_username_and_password(username, password) do
-    if identity = Accounts.get_identity_by_username_and_password(username, password) do
-      {:ok, identity}
-    else
-      :error
-    end
   end
 end
