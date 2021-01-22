@@ -18,7 +18,7 @@ defmodule CelestialGateway.Socket do
   @impl true
   def key(socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-    Accounts.generate_identity_otk(address, socket.assigns.current_identity)
+    Accounts.generate_identity_key(address, socket.assigns.current_identity)
   end
 
   @impl true

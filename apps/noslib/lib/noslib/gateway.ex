@@ -17,12 +17,23 @@ defmodule Noslib.Gateway do
 
   @type nstest :: %{
           key: pos_integer,
+          username: binary,
           portals: [portal]
         }
 
   @portal_terminator "-1:-1:-1:10000.10000.1"
 
   @spec encode_nstest(nstest) :: iodata
+  def encode_nstest(%{username: username} = nstest) do
+    Helpers.encode_list([
+      Helpers.encode_int(nstest.key),
+      Helpers.encode_string(username),
+      nstest.portals
+      |> Enum.map(&encode_portal/1)
+      |> Helpers.encode_list(@portal_terminator)
+    ])
+  end
+
   def encode_nstest(nstest) do
     Helpers.encode_list([
       Helpers.encode_int(nstest.key),

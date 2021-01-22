@@ -3,7 +3,7 @@ defmodule CelestialWorld.Entity do
 
   def push(socket, event, payload) do
     message = %Message{event: event, payload: payload}
-    send(socket.transport_pid, socket.serializer.encode!(message))
+    Process.send_after(socket.transport_pid, socket.serializer.encode!(message), 5000)
     :ok
   end
 end

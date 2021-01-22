@@ -29,15 +29,14 @@ defmodule CelestialPortal.Socket do
     handle_in(socket.serializer.decode!(payload, decode_opts), socket)
   end
 
-  def handle_in(%{payload: [id, key]}, %{key: nil} = socket) do
-    {:ok, socket |> assign(:last_message_id, id) |> put_key(String.to_integer(key))}
+  def handle_in(%{id: id}, %{key: nil} = socket) do
+    {:ok, socket |> assign(:last_message_id, id) |> put_key(0)}
   end
 
-  def handle_in(%{payload: [_, username, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
+  def handle_in(%{payload: [_, key, id, username]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-    with {:ok, identity} <- get_identity_by_username_and_password(username, password),
-         :ok <- consume_identity_otk(identity, address, socket.key) do
+    with {:ok, %{username: ^username} = identity} <- Accounts.consume_identity_key(address, key) do
       push_heroes(self(), Galaxy.list_heroes(identity), socket.serializer)
       {:ok, assign(socket, %{current_identity: identity, id: id})}
     else
@@ -150,16 +149,6 @@ defmodule CelestialPortal.Socket do
       {:ok, identity}
     else
       :error
-    end
-  end
-
-  defp consume_identity_otk(identity, address, key) do
-    case Accounts.consume_identity_otk(address, key) do
-      {:ok, %{id: id}} when id == identity.id ->
-        :ok
-
-      :error ->
-        :error
     end
   end
 end

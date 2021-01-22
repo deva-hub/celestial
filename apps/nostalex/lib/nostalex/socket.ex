@@ -11,6 +11,7 @@ defmodule Nostalex.Socket do
   defstruct assigns: %{},
             connect_info: %{},
             key: nil,
+            type: nil,
             transport: nil,
             transport_pid: nil,
             serializer: nil

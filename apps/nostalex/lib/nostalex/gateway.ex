@@ -67,7 +67,7 @@ defmodule Nostalex.Gateway do
             {:push, encode_error(socket, :session_already_used), socket}
 
           {portals, key} ->
-            {:push, encode_nstest(socket, key, portals), socket}
+            {:push, encode_nstest(socket, payload.username, key, portals), socket}
         end
 
       :error ->
@@ -92,8 +92,12 @@ defmodule Nostalex.Gateway do
     :ok
   end
 
-  defp encode_nstest(socket, key, portals) do
-    message = %Message{event: "NsTeST", payload: %{key: key, portals: portals}}
+  defp encode_nstest(socket, username, key, portals) do
+    message = %Message{
+      event: "NsTeST",
+      payload: %{key: key, username: username, portals: portals}
+    }
+
     encode_reply(socket, message)
   end
 

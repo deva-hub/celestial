@@ -92,17 +92,22 @@ defmodule CelestialWorld.HeroEntity do
       y: :rand.uniform(4) + 11
     }
 
+    push(
+      socket,
+      "at",
+      %{
+        id: hero.id,
+        map_id: 1,
+        music_id: 0,
+        coordinates: coordinates
+      }
+    )
+
     Phoenix.PubSub.broadcast_from!(
       Celestial.PubSub,
       self(),
       "worlds:#{world}",
       {:celestial, :entity_contact, hero.id, coordinates, hero}
-    )
-
-    Phoenix.PubSub.broadcast!(
-      Celestial.PubSub,
-      "worlds:#{world}",
-      {:celestial, :entity_move, hero.id, coordinates}
     )
 
     {:noreply, {socket, hero}}
@@ -125,17 +130,6 @@ defmodule CelestialWorld.HeroEntity do
 
   @impl true
   def handle_info({:celestial, :entity_move, id, coordinates}, {socket, hero}) do
-    push(
-      socket,
-      "at",
-      %{
-        id: id,
-        map_id: 1,
-        music_id: 0,
-        coordinates: coordinates
-      }
-    )
-
     {:noreply, {socket, hero}}
   end
 

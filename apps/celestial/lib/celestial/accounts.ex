@@ -142,19 +142,19 @@ defmodule Celestial.Accounts do
   @doc """
   Generates a one time key from a given address.
   """
-  def generate_identity_otk(address, identity) do
-    {key, identity_token} = IdentityToken.build_otk(address, identity)
+  def generate_identity_key(address, identity) do
+    {key, identity_token} = IdentityToken.build_key(address, identity)
     Repo.insert!(identity_token)
     key
   end
 
   @doc """
-  Gets the identity with the given signed key.
+  Gets the identity with the given key.
   """
-  def consume_identity_otk(address, key) do
-    with {:ok, query} <- IdentityToken.verify_otk_query(address, key),
+  def consume_identity_key(address, key) do
+    with {:ok, query} <- IdentityToken.verify_key_query(address, key),
          identity when is_struct(identity) <- Repo.one(query),
-         {n, nil} when n > 0 <- Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["otk"])) do
+         {n, nil} when n > 0 <- Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["key"])) do
       {:ok, identity}
     else
       _ ->

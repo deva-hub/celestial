@@ -23,7 +23,7 @@ defmodule Celestial.MixProject do
   def application do
     [
       mod: {Celestial.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :crypto, :runtime_tools]
     ]
   end
 

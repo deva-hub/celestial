@@ -124,7 +124,6 @@ defmodule Noslib.Geolocation do
       Helpers.encode_int(0),
       Helpers.encode_int(0)
     ])
-    |> IO.inspect(limit: :infinity)
   end
 
   def decode_walk([pos_x, pos_y, checksum, speed]) do
