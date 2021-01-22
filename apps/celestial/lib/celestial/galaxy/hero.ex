@@ -63,6 +63,7 @@ defmodule Celestial.Galaxy.Hero do
     hero
     |> cast(attrs, [:name, :slot, :class, :sex, :hair_color, :hair_style])
     |> validate_required([:name, :slot, :class, :sex, :hair_color, :hair_style])
+    |> validate_number(:slot, greater_than: 0, less_than_or_equal_to: 4)
     |> validate_length(:name, min: 4, max: 14)
   end
 
