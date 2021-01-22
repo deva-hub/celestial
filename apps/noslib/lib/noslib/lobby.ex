@@ -2,7 +2,7 @@ defmodule Noslib.Lobby do
   @moduledoc """
   Responses from the world server to select a hero.
   """
-  alias Noslib.{Hero, Helpers}
+  alias Noslib.{Entity, Helpers}
 
   @type equipments :: %{
           hat_id: pos_integer | nil,
@@ -51,9 +51,9 @@ defmodule Noslib.Lobby do
     %{
       slot: String.to_integer(slot),
       name: name,
-      sex: Hero.decode_sex(sex),
-      hair_style: Hero.decode_hair_style(hair_style),
-      hair_color: Hero.decode_hair_color(hair_color)
+      sex: Entity.decode_sex(sex),
+      hair_style: Entity.decode_hair_style(hair_style),
+      hair_color: Entity.decode_hair_color(hair_color)
     }
   end
 
@@ -78,15 +78,15 @@ defmodule Noslib.Lobby do
       Helpers.encode_int(clist.slot),
       clist.name,
       Helpers.encode_int(0),
-      Hero.encode_sex(clist.sex),
-      Hero.encode_hair_style(clist.hair_style),
-      Hero.encode_hair_color(clist.hair_color),
+      Entity.encode_sex(clist.sex),
+      Entity.encode_hair_style(clist.hair_style),
+      Entity.encode_hair_color(clist.hair_color),
       Helpers.encode_int(0),
-      Hero.encode_class(clist.class),
+      Entity.encode_class(clist.class),
       Helpers.encode_int(clist.level),
       Helpers.encode_int(clist.hero_level),
-      Hero.encode_equipments(%{}),
-      Hero.encode_equipments(clist.equipments),
+      Entity.encode_equipments(%{}),
+      Entity.encode_equipments(clist.equipments),
       Helpers.encode_int(clist.job_level),
       Helpers.encode_int("1"),
       Helpers.encode_int("1"),

@@ -78,7 +78,6 @@ defmodule Noslib.Gateway do
     }
   end
 
-  @spec decode_nos0575([binary]) :: map
   def decode_nos0575([_, username, password, _, version, _, checksum]) do
     %{
       username: username,

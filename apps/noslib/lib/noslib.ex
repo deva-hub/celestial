@@ -3,7 +3,7 @@ defmodule Noslib do
   This module provides functions to work with the NostaleSE Noslib.
   """
 
-  alias Noslib.{Client, Lobby, Gateway, Hero, Geolocation, Helpers}
+  alias Noslib.{Client, Lobby, Gateway, Hero, Entity, Helpers}
 
   def decode(payload) when is_binary(payload) do
     payload |> String.split() |> decode()
@@ -30,7 +30,7 @@ defmodule Noslib do
   end
 
   def decode([id, "walk" | payload]) do
-    [String.to_integer(id), "walk", Geolocation.decode_walk(payload)]
+    [String.to_integer(id), "walk", Entity.decode_walk(payload)]
   end
 
   def decode(payload) do
@@ -38,7 +38,7 @@ defmodule Noslib do
   end
 
   def encode(["in", payload]) do
-    Helpers.encode_list(["in", Geolocation.encode_in(payload)])
+    Helpers.encode_list(["in", Entity.encode_in(payload)])
   end
 
   def encode(["clist_start", payload]) do
@@ -78,10 +78,10 @@ defmodule Noslib do
   end
 
   def encode(["at", payload]) do
-    Helpers.encode_list(["at", Geolocation.encode_at(payload)])
+    Helpers.encode_list(["at", Hero.encode_at(payload)])
   end
 
   def encode(["mv", payload]) do
-    Helpers.encode_list(["mv", Geolocation.encode_mv(payload)])
+    Helpers.encode_list(["mv", Entity.encode_mv(payload)])
   end
 end

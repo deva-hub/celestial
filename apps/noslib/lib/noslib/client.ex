@@ -5,11 +5,11 @@ defmodule Noslib.Client do
 
   alias Noslib.Helpers
 
-  @type error :: %{error: atom}
+  @type failc :: %{error: atom}
 
   @type info :: %{message: binary}
 
-  @spec encode_failc(error) :: iodata
+  @spec encode_failc(failc) :: iodata
   def encode_failc(failc) do
     encode_error(failc.error)
   end
@@ -32,10 +32,14 @@ defmodule Noslib.Client do
           })
 
   @spec decode_error(binary) :: atom
-  def decode_error(error), do: BiMap.fetch_key!(@errors, error)
+  def decode_error(error) do
+    BiMap.fetch_key!(@errors, error)
+  end
 
   @spec encode_error(atom) :: iodata
-  def encode_error(error), do: BiMap.fetch!(@errors, error)
+  def encode_error(error) do
+    BiMap.fetch!(@errors, error)
+  end
 
   @languages BiMap.new(%{
                kr: Helpers.encode_int(0),
@@ -43,10 +47,14 @@ defmodule Noslib.Client do
              })
 
   @spec decode_language(binary) :: atom
-  def decode_language(language), do: BiMap.fetch_key!(@languages, language)
+  def decode_language(language) do
+    BiMap.fetch_key!(@languages, language)
+  end
 
   @spec encode_language(atom) :: iodata
-  def encode_language(language), do: BiMap.fetch!(@languages, language)
+  def encode_language(language) do
+    BiMap.fetch!(@languages, language)
+  end
 
   @name_colors BiMap.new(%{
                  white: Helpers.encode_int(0),
@@ -55,8 +63,12 @@ defmodule Noslib.Client do
                })
 
   @spec decode_name_color(binary) :: atom
-  def decode_name_color(name_color), do: BiMap.fetch_key!(@name_colors, name_color)
+  def decode_name_color(name_color) do
+    BiMap.fetch_key!(@name_colors, name_color)
+  end
 
   @spec encode_name_color(atom) :: iodata
-  def encode_name_color(name_color), do: BiMap.fetch!(@name_colors, name_color)
+  def encode_name_color(name_color) do
+    BiMap.fetch!(@name_colors, name_color)
+  end
 end

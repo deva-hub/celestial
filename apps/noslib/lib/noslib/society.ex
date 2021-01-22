@@ -45,10 +45,14 @@ defmodule Noslib.Society do
                })
 
   @spec decode_reputation(binary) :: atom
-  def decode_reputation(reputation), do: BiMap.fetch_key!(@reputations, reputation)
+  def decode_reputation(reputation) do
+    BiMap.fetch_key!(@reputations, reputation)
+  end
 
   @spec encode_reputation(atom) :: iodata
-  def encode_reputation(reputation), do: BiMap.fetch!(@reputations, reputation)
+  def encode_reputation(reputation) do
+    BiMap.fetch!(@reputations, reputation)
+  end
 
   @dignities BiMap.new(%{
                basic: Helpers.encode_int(1),
@@ -60,10 +64,14 @@ defmodule Noslib.Society do
              })
 
   @spec decode_dignity(binary) :: atom
-  def decode_dignity(dignity), do: BiMap.fetch_key!(@dignities, dignity)
+  def decode_dignity(dignity) do
+    BiMap.fetch_key!(@dignities, dignity)
+  end
 
   @spec encode_dignity(atom) :: iodata
-  def encode_dignity(dignity), do: BiMap.fetch!(@dignities, dignity)
+  def encode_dignity(dignity) do
+    BiMap.fetch!(@dignities, dignity)
+  end
 
   @factions BiMap.new(%{
               neutre: Helpers.encode_int(0),
@@ -72,10 +80,14 @@ defmodule Noslib.Society do
             })
 
   @spec decode_faction(binary) :: atom
-  def decode_faction(faction), do: BiMap.fetch_key!(@factions, faction)
+  def decode_faction(faction) do
+    BiMap.fetch_key!(@factions, faction)
+  end
 
   @spec encode_faction(atom) :: iodata
-  def encode_faction(faction), do: BiMap.fetch!(@factions, faction)
+  def encode_faction(faction) do
+    BiMap.fetch!(@factions, faction)
+  end
 
   @minilands BiMap.new(%{
                open: Helpers.encode_int(0),
@@ -84,8 +96,12 @@ defmodule Noslib.Society do
              })
 
   @spec decode_miniland(binary) :: atom
-  def decode_miniland(miniland), do: BiMap.fetch_key!(@minilands, miniland)
+  def decode_miniland(miniland) do
+    BiMap.fetch_key!(@minilands, miniland)
+  end
 
   @spec encode_miniland(atom) :: iodata
-  def encode_miniland(miniland), do: BiMap.fetch!(@minilands, miniland)
+  def encode_miniland(miniland) do
+    BiMap.fetch!(@minilands, miniland)
+  end
 end
