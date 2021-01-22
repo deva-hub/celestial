@@ -114,9 +114,15 @@ defmodule CelestialWorld.HeroEntity do
   end
 
   @impl true
-  def handle_cast({:walk, coordinates, _speed}, {socket, hero}) do
+  def handle_cast({:walk, coordinates, speed}, {socket, hero}) do
     # TODO: Calculate the next position
-    broadcast_from!(socket, "entity_move", %{hero: hero, coordinates: coordinates})
+    broadcast_from!(socket, "entity_move", %{entity: hero, coordinates: coordinates, speed: speed})
+    {:noreply, {socket, hero}}
+  end
+
+  def handle_info(%{event: "entity_move", payload: payload}, {socket, hero}) do
+    %{entity: entity, coordinates: coordinates, speed: speed} = payload
+    push(socket, "mv", %{entity: %{id: entity.id, type: :hero}, coordinates: coordinates, speed: speed})
     {:noreply, {socket, hero}}
   end
 

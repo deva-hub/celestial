@@ -80,4 +80,8 @@ defmodule Noslib do
   def encode(["at", payload]) do
     Helpers.encode_list(["at", Geolocation.encode_at(payload)])
   end
+
+  def encode(["mv", payload]) do
+    Helpers.encode_list(["mv", Geolocation.encode_mv(payload)])
+  end
 end

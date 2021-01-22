@@ -136,4 +136,26 @@ defmodule Noslib.Geolocation do
       checksum: checksum
     }
   end
+
+  @type mv :: %{
+          entity: %{
+            type: atom,
+            id: pos_integer
+          },
+          coordinates: %{
+            x: integer,
+            y: integer
+          },
+          speed: non_neg_integer
+        }
+
+  def encode_mv(mv) do
+    Helpers.encode_list([
+      Entity.encode_type(mv.entity.type),
+      Helpers.encode_int(mv.entity.id),
+      Helpers.encode_int(mv.coordinates.x),
+      Helpers.encode_int(mv.coordinates.y),
+      Helpers.encode_int(mv.speed)
+    ])
+  end
 end
