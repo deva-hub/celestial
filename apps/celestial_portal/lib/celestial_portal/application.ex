@@ -7,16 +7,16 @@ defmodule CelestialPortal.Application do
 
   def start(_type, _args) do
     name =
-      Application.get_env(:celestial_world, :name) ||
-        raise ":name not set in :celestial_world application"
+      Application.get_env(:celestial_portal, :name) ||
+        raise ":name not set in :celestial_portal application"
 
     id =
-      Application.get_env(:celestial_world, :id) ||
-        raise ":name not set in :celestial_world application"
+      Application.get_env(:celestial_portal, :world) ||
+        raise ":name not set in :celestial_portal application"
 
     channel_id =
-      Application.get_env(:celestial_world, :channel_id) ||
-        raise ":name not set in :celestial_world application"
+      Application.get_env(:celestial_portal, :channel) ||
+        raise ":name not set in :celestial_portal application"
 
     port =
       Application.get_env(:celestial_portal, :port) ||
@@ -30,7 +30,7 @@ defmodule CelestialPortal.Application do
       # Start the Presence server
       {CelestialPortal.Presence, []},
       # Start the Channel manager
-      {CelestialPortal.Manager,
+      {CelestialPortal.Oracle,
        [
          id: id,
          channel_id: channel_id,

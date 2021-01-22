@@ -6,6 +6,10 @@ config :celestial, Celestial.Repo,
   password: System.get_env("POSTGRES_PASSWORD", "celestial"),
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
+# Configure Nostale channel
+world = System.get_env("CELESTIAL_WORLD", "1") |> String.to_integer()
+channel = System.get_env("CELESTIAL_CHANNEL", "1") |> String.to_integer()
+
 # Configure Celestial portal host
 hostname =
   case System.get_env("CELESTIAL_PORTAL_HOST", "0.0.0.0")
@@ -31,15 +35,11 @@ port =
       port |> String.to_integer()
   end
 
-
 config :celestial_portal,
+  world: world,
+  channel: channel,
   hostname: hostname,
   port: port
-
-config :celestial_world,
-  id: System.get_env("CELESTIAL_WORLD_ID", "1") |> String.to_integer(),
-  channel_id: System.get_env("CELESTIAL_CHANNEL_ID", "1") |> String.to_integer(),
-  name: System.get_env("CELESTIAL_WORLD_NAME", "Celestial")
 
 # Configure Celestial gateway port
 config :celestial_gateway,

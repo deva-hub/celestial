@@ -18,8 +18,7 @@ defmodule CelestialWorld.HeroEntity do
   @impl true
   def init({socket, hero}) do
     # TODO: Refactory world ID fetching
-    world = Application.fetch_env!(:celestial_world, :id)
-    Phoenix.PubSub.subscribe(Celestial.PubSub, "worlds:#{world}")
+    Phoenix.PubSub.subscribe(Celestial.PubSub, "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}")
     {:ok, {socket, hero}, {:continue, :contact}}
   end
 
@@ -85,8 +84,6 @@ defmodule CelestialWorld.HeroEntity do
       }
     )
 
-    world = Application.fetch_env!(:celestial_world, :id)
-
     coordinates = %{
       x: :rand.uniform(3) + 77,
       y: :rand.uniform(4) + 11
@@ -106,7 +103,7 @@ defmodule CelestialWorld.HeroEntity do
     Phoenix.PubSub.broadcast_from!(
       Celestial.PubSub,
       self(),
-      "worlds:#{world}",
+      "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}",
       {:celestial, :entity_contact, hero.id, coordinates, hero}
     )
 
@@ -115,13 +112,11 @@ defmodule CelestialWorld.HeroEntity do
 
   @impl true
   def handle_cast({:walk, coordinates, _speed}, {socket, hero}) do
-    world = Application.fetch_env!(:celestial_world, :id)
-
     # TODO: Calculate the next position
     Phoenix.PubSub.broadcast_from!(
       Celestial.PubSub,
       self(),
-      "worlds:#{world}",
+      "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}",
       {:celestial, :entity_move, hero.id, coordinates}
     )
 

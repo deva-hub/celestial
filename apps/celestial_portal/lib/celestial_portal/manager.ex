@@ -1,4 +1,4 @@
-defmodule CelestialPortal.Manager do
+defmodule CelestialPortal.Oracle do
   use GenServer
 
   alias CelestialPortal.Presence

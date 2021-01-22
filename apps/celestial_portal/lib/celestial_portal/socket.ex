@@ -13,7 +13,9 @@ defmodule CelestialPortal.Socket do
     state = %{
       current_identity: nil,
       entity_pid: nil,
-      last_message_id: nil
+      last_message_id: nil,
+      world_id: Application.fetch_env!(:celestial_portal, :world),
+      channel_id: Application.fetch_env!(:celestial_portal, :channel)
     }
 
     {:ok, assign(socket, state)}
