@@ -16,7 +16,7 @@ defmodule Celestial.WorldTest do
       job_xp: 42,
       level: 42,
       name: "some name",
-      slot: 42,
+      index: 42,
       xp: 42
     }
     @update_attrs %{
@@ -29,10 +29,10 @@ defmodule Celestial.WorldTest do
       job_xp: 43,
       level: 43,
       name: "some updated name",
-      slot: 43,
+      index: 43,
       xp: 43
     }
-    @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, slot: nil, xp: nil}
+    @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, index: nil, xp: nil}
 
     def hero_fixture(attrs \\ %{}) do
       {:ok, hero} =
@@ -64,7 +64,6 @@ defmodule Celestial.WorldTest do
       assert hero.job_xp == 42
       assert hero.level == 42
       assert hero.name == "some name"
-      assert hero.slot == 42
       assert hero.xp == 42
     end
 
@@ -84,7 +83,6 @@ defmodule Celestial.WorldTest do
       assert hero.job_xp == 43
       assert hero.level == 43
       assert hero.name == "some updated name"
-      assert hero.slot == 43
       assert hero.xp == 43
     end
 

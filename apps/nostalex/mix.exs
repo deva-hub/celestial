@@ -4,7 +4,7 @@ defmodule Nostalex.MixProject do
   def project do
     [
       app: :nostalex,
-      version: "0.3.0",
+      version: "0.4.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

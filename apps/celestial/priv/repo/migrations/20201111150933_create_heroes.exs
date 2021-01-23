@@ -4,7 +4,7 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
   def change do
     create table(:heroes) do
       add :name, :string
-      add :slot, :integer
+      add :index, :integer
       add :class, :string
       add :sex, :string
       add :hair_color, :string
@@ -15,11 +15,18 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
       add :xp, :integer
       add :job_xp, :integer
       add :hero_xp, :integer
-      add :identity_id, references(:identities, on_delete: :nothing)
-
       timestamps()
     end
 
-    create index(:heroes, [:identity_id])
+    create table(:slots) do
+      add :index, :integer
+      add :hero_id, references(:heroes)
+      add :identity_id, references(:identities)
+      timestamps()
+    end
+
+    create index(:slots, [:hero_id, :identity_id], unique: true)
+    create unique_index(:slots, [:index, :identity_id])
+    create unique_index(:slots, [:index, :hero_id])
   end
 end

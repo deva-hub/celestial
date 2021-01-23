@@ -6,7 +6,7 @@ defmodule Noslib.Entity do
           type: atom,
           name: binary,
           id: non_neg_integer,
-          coordinates: %{
+          positions: %{
             x: integer,
             y: integer
           },
@@ -46,7 +46,7 @@ defmodule Noslib.Entity do
             type: atom,
             id: pos_integer
           },
-          coordinates: %{
+          positions: %{
             x: integer,
             y: integer
           },
@@ -205,8 +205,8 @@ defmodule Noslib.Entity do
       Helpers.encode_string(in_.name),
       Helpers.encode_string(""),
       Helpers.encode_int(in_.id),
-      Helpers.encode_int(in_.coordinates.x),
-      Helpers.encode_int(in_.coordinates.y),
+      Helpers.encode_int(in_.positions.x),
+      Helpers.encode_int(in_.positions.y),
       encode_direction(in_.direction),
       Client.encode_name_color(in_.name_color),
       encode_sex(in_.sex),
@@ -261,7 +261,7 @@ defmodule Noslib.Entity do
   @spec decode_walk([binary]) :: map
   def decode_walk([pos_x, pos_y, checksum, speed]) do
     %{
-      coordinates: %{
+      positions: %{
         x: String.to_integer(pos_x),
         y: String.to_integer(pos_y)
       },
@@ -275,8 +275,8 @@ defmodule Noslib.Entity do
     Helpers.encode_list([
       encode_type(mv.entity.type),
       Helpers.encode_int(mv.entity.id),
-      Helpers.encode_int(mv.coordinates.x),
-      Helpers.encode_int(mv.coordinates.y),
+      Helpers.encode_int(mv.positions.x),
+      Helpers.encode_int(mv.positions.y),
       Helpers.encode_int(mv.speed)
     ])
   end

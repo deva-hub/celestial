@@ -48,7 +48,7 @@ defmodule Noslib.Hero do
   @type at :: %{
           id: pos_integer,
           map_id: pos_integer,
-          coordinates: %{
+          positions: %{
             x: pos_integer,
             y: pos_integer
           },
@@ -118,8 +118,8 @@ defmodule Noslib.Hero do
     Helpers.encode_list([
       Helpers.encode_int(at.id),
       Helpers.encode_int(at.map_id),
-      Helpers.encode_int(at.coordinates.x),
-      Helpers.encode_int(at.coordinates.y),
+      Helpers.encode_int(at.positions.x),
+      Helpers.encode_int(at.positions.y),
       "2",
       Helpers.encode_int("0"),
       Helpers.encode_int(at.music_id),

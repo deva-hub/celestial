@@ -14,7 +14,6 @@ defmodule CelestialWeb.HeroView do
     %{
       id: hero.id,
       name: hero.name,
-      slot: hero.slot,
       class: hero.class,
       hair_color: hero.hair_color,
       hair_style: hero.hair_style,

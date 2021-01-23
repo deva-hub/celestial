@@ -2,7 +2,6 @@ defmodule Celestial.Galaxy.Hero do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query
 
   schema "heroes" do
     field :class, Ecto.Enum,
@@ -50,10 +49,9 @@ defmodule Celestial.Galaxy.Hero do
     field :job_xp, :integer, default: 0
     field :level, :integer, default: 1
     field :name, :string
-    field :slot, :integer
     field :xp, :integer, default: 0
-
-    belongs_to :identity, Celestial.Accounts.Identity
+    has_one :slot, Celestial.Galaxy.Slot
+    has_one :position, Celestial.Galaxy.Position
 
     timestamps()
   end
@@ -61,22 +59,16 @@ defmodule Celestial.Galaxy.Hero do
   @doc false
   def create_changeset(hero, attrs) do
     hero
-    |> cast(attrs, [:name, :slot, :class, :sex, :hair_color, :hair_style])
-    |> validate_required([:name, :slot, :class, :sex, :hair_color, :hair_style])
-    |> validate_number(:slot, greater_than: 0, less_than_or_equal_to: 4)
+    |> cast(attrs, [:name, :class, :sex, :hair_color, :hair_style])
+    |> validate_required([:name, :class, :sex, :hair_color, :hair_style])
     |> validate_length(:name, min: 4, max: 14)
+    |> cast_assoc(:slot, with: &Celestial.Galaxy.Slot.changeset/2)
+    |> cast_assoc(:position, with: &Celestial.Galaxy.Position.changeset/2)
   end
 
   @doc false
   def update_changeset(hero, attrs) do
     hero
-    |> cast(attrs, [:name, :slot, :class, :sex, :hair_color, :hair_style, :level, :job_level, :hero_level, :xp, :job_xp, :hero_xp])
-  end
-
-  @doc """
-  Gets all heroes for the given identity.
-  """
-  def identity_query(identity) do
-    from h in Celestial.Galaxy.Hero, where: h.identity_id == ^identity.id
+    |> cast(attrs, [:name, :index, :class, :sex, :hair_color, :hair_style, :level, :job_level, :hero_level, :xp, :job_xp, :hero_xp])
   end
 end

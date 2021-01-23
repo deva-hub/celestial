@@ -4,9 +4,17 @@ defmodule Celestial.Repo.Migrations.CreateWorlds do
   def change do
     create table(:worlds) do
       add :name, :string
-
       timestamps()
     end
 
+    create table(:positions) do
+      add :x, :integer
+      add :y, :integer
+      add :hero_id, references(:heroes)
+      add :world_id, references(:worlds)
+      timestamps()
+    end
+
+    create index(:positions, [:hero_id, :world_id], unique: true)
   end
 end

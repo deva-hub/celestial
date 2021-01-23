@@ -12,8 +12,8 @@ defmodule CelestialWorld.HeroEntity do
     )
   end
 
-  def walk(name, coordinates, speed) do
-    GenServer.cast(name, {:walk, coordinates, speed})
+  def walk(name, positions, speed) do
+    GenServer.cast(name, {:walk, positions, speed})
   end
 
   @impl true
@@ -83,7 +83,7 @@ defmodule CelestialWorld.HeroEntity do
       }
     )
 
-    coordinates = %{
+    positions = %{
       x: :rand.uniform(3) + 77,
       y: :rand.uniform(4) + 11
     }
@@ -95,13 +95,13 @@ defmodule CelestialWorld.HeroEntity do
         id: hero.id,
         map_id: 1,
         music_id: 0,
-        coordinates: coordinates
+        positions: positions
       }
     )
 
     CelestialWorld.Presence.track(self(), socket.topic, hero.id, %{
       entity: hero,
-      coordinates: coordinates,
+      positions: positions,
       online_at: inspect(System.system_time(:second))
     })
 
@@ -115,14 +115,14 @@ defmodule CelestialWorld.HeroEntity do
   end
 
   @impl true
-  def handle_cast({:walk, coordinates, speed}, {socket, hero}) do
-    broadcast_from!(socket, "entity_move", %{entity: hero, coordinates: coordinates, speed: speed})
+  def handle_cast({:walk, positions, speed}, {socket, hero}) do
+    broadcast_from!(socket, "entity_move", %{entity: hero, positions: positions, speed: speed})
     {:noreply, {socket, hero}}
   end
 
   def handle_info(%{event: "entity_move", payload: payload}, {socket, hero}) do
-    %{entity: entity, coordinates: coordinates, speed: speed} = payload
-    push(socket, "mv", %{entity: %{id: entity.id, type: :hero}, coordinates: coordinates, speed: speed})
+    %{entity: entity, positions: positions, speed: speed} = payload
+    push(socket, "mv", %{entity: %{id: entity.id, type: :hero}, positions: positions, speed: speed})
     {:noreply, {socket, hero}}
   end
 
@@ -130,7 +130,7 @@ defmodule CelestialWorld.HeroEntity do
   def handle_info(%{event: "presence_diff", payload: payload}, {socket, hero}) do
     for {id, join} <- payload.joins do
       for meta <- join.metas do
-        %{entity: entity, coordinates: coordinates} = meta
+        %{entity: entity, positions: positions} = meta
 
         push(
           socket,
@@ -139,7 +139,7 @@ defmodule CelestialWorld.HeroEntity do
             type: :hero,
             name: entity.name,
             id: id,
-            coordinates: coordinates,
+            positions: positions,
             direction: :north,
             name_color: :white,
             sex: entity.sex,

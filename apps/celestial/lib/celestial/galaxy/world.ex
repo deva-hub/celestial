@@ -4,6 +4,7 @@ defmodule Celestial.Galaxy.World do
 
   schema "worlds" do
     field :name, :string
+    has_many :positions, Celestial.Galaxy.Position
 
     timestamps()
   end

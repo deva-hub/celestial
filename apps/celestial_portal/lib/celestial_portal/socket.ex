@@ -39,7 +39,7 @@ defmodule CelestialPortal.Socket do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
     with {:ok, %{username: ^username} = identity} <- Accounts.consume_identity_key(address, key) do
-      push_heroes(self(), Galaxy.list_heroes(identity), socket.serializer)
+      push_slots(self(), Galaxy.list_slots(identity), socket.serializer)
       {:ok, assign(socket, %{current_identity: identity, id: id})}
     else
       :error ->
@@ -48,16 +48,31 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
-    hero = Galaxy.get_hero_by_slot!(socket.assigns.current_identity, payload.slot)
+    %{current_identity: current_identity} = socket.assigns
+    %{index: index} = payload
+    slot = Galaxy.get_slot_by_index!(current_identity, index)
     topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
-    {:ok, entity_pid} = Nostalex.EntitySupervisor.start_hero(%{socket | topic: topic}, hero)
+    {:ok, entity_pid} = Nostalex.EntitySupervisor.start_hero(%{socket | topic: topic}, slot.hero)
     {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
   end
 
   def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
-    case Galaxy.create_hero(socket.assigns.current_identity, payload) do
+    %{current_identity: current_identity} = socket.assigns
+
+    attrs = %{
+      name: payload.name,
+      sex: payload.sex,
+      hair_style: payload.hair_style,
+      hair_color: payload.hair_color,
+      slot: %{
+        index: payload.index,
+        identity_id: current_identity.id
+      }
+    }
+
+    case Galaxy.create_hero(attrs) do
       {:ok, _} ->
-        push_heroes(self(), Galaxy.list_heroes(socket.assigns.current_identity), socket.serializer)
+        push_slots(self(), Galaxy.list_slots(current_identity), socket.serializer)
 
       {:error, _} ->
         push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
@@ -67,11 +82,11 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
-    %{password: password, slot: slot} = payload
+    %{password: password, index: index} = payload
     %{current_identity: current_identity} = socket.assigns
 
     if identity = Accounts.get_identity_by_username_and_password(current_identity.username, password) do
-      case Galaxy.get_hero_by_slot!(current_identity, slot) |> Galaxy.delete_hero() do
+      case Galaxy.get_slot_by_index!(current_identity, index) |> Galaxy.delete_hero() do
         {:ok, _} ->
           :ok
 
@@ -79,7 +94,7 @@ defmodule CelestialPortal.Socket do
           push(self(), "failc", %{error: :unexpected_error}, socket.serializer)
       end
 
-      push_heroes(self(), Galaxy.list_heroes(current_identity), socket.serializer)
+      push_slots(self(), Galaxy.list_slots(current_identity), socket.serializer)
 
       {:ok, assign(socket, :current_identity, identity)}
     else
@@ -89,9 +104,9 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    %{coordinates: coordinates, speed: speed} = payload
+    %{positions: positions, speed: speed} = payload
     %{entity_pid: entity_pid} = socket.assigns
-    HeroEntity.walk(entity_pid, coordinates, speed)
+    HeroEntity.walk(entity_pid, positions, speed)
     {:ok, assign(socket, :last_message_id, id)}
   end
 
@@ -125,23 +140,23 @@ defmodule CelestialPortal.Socket do
   end
 
   # TODO: remove placeholder data
-  defp push_heroes(pid, heroes, serializer) do
-    push(pid, "clist_start", %{length: length(heroes)}, serializer)
+  defp push_slots(pid, slots, serializer) do
+    push(pid, "clist_start", %{length: length(slots)}, serializer)
 
-    for hero <- heroes do
+    for slot <- slots do
       push(
         pid,
         "clist",
         %{
-          slot: hero.slot,
-          name: hero.name,
-          sex: hero.sex,
-          hair_style: hero.hair_style,
-          hair_color: hero.hair_color,
-          class: hero.class,
-          level: hero.level,
-          hero_level: hero.hero_level,
-          job_level: hero.job_level,
+          index: slot.index,
+          name: slot.hero.name,
+          sex: slot.hero.sex,
+          hair_style: slot.hero.hair_style,
+          hair_color: slot.hero.hair_color,
+          class: slot.hero.class,
+          level: slot.hero.level,
+          hero_level: slot.hero.hero_level,
+          job_level: slot.hero.job_level,
           pets: [],
           equipments: %{}
         },

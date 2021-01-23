@@ -22,7 +22,7 @@ defmodule Noslib.Lobby do
         }
 
   @type clist :: %{
-          slot: pos_integer,
+          index: pos_integer,
           name: bitstring,
           sex: atom,
           hair_style: atom,
@@ -47,9 +47,9 @@ defmodule Noslib.Lobby do
           level: pos_integer
         }
 
-  def decode_char_new([name, slot, sex, hair_style, hair_color]) do
+  def decode_char_new([name, index, sex, hair_style, hair_color]) do
     %{
-      slot: String.to_integer(slot),
+      index: String.to_integer(index),
       name: name,
       sex: Entity.decode_sex(sex),
       hair_style: Entity.decode_hair_style(hair_style),
@@ -57,12 +57,12 @@ defmodule Noslib.Lobby do
     }
   end
 
-  def decode_select([slot]) do
-    %{slot: String.to_integer(slot)}
+  def decode_select([index]) do
+    %{index: String.to_integer(index)}
   end
 
-  def decode_char_del([slot, password]) do
-    %{slot: String.to_integer(slot), password: password}
+  def decode_char_del([index, password]) do
+    %{index: String.to_integer(index), password: password}
   end
 
   @pets_terminator "-1"
@@ -75,7 +75,7 @@ defmodule Noslib.Lobby do
   @spec encode_clist(clist) :: iodata
   def encode_clist(clist) do
     Helpers.encode_list([
-      Helpers.encode_int(clist.slot),
+      Helpers.encode_int(clist.index),
       clist.name,
       Helpers.encode_int(0),
       Entity.encode_sex(clist.sex),

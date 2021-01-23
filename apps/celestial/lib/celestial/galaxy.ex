@@ -6,7 +6,38 @@ defmodule Celestial.Galaxy do
   import Ecto.Query, warn: false
   alias Celestial.Repo
 
-  alias Celestial.Galaxy.Hero
+  alias Celestial.Galaxy.{Slot, Hero}
+
+  @doc """
+  Returns the list of slots.
+
+  ## Examples
+
+      iex> list_slots()
+      [%Hero{}, ...]
+
+  """
+  def list_slots(identity) do
+    Repo.all(Slot.identity_query(identity))
+  end
+
+  @doc """
+  Gets a single hero by slot.
+
+  Raises `Ecto.NoResultsError` if the Hero does not exist.
+
+  ## Examples
+
+      iex> get_slot_by_index!(%Identity{}, 123)
+      %Hero{}
+
+      iex> get_slot_by_index!(%Identity{}, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_slot_by_index!(identity, slot_index) do
+    Repo.one!(Slot.identity_and_index_query(identity, slot_index))
+  end
 
   @doc """
   Returns the list of heroes.
@@ -19,10 +50,6 @@ defmodule Celestial.Galaxy do
   """
   def list_heroes do
     Repo.all(Hero)
-  end
-
-  def list_heroes(identity) do
-    Repo.all(Hero.identity_query(identity))
   end
 
   @doc """
@@ -39,28 +66,12 @@ defmodule Celestial.Galaxy do
       ** (Ecto.NoResultsError)
 
   """
-  def get_hero!(id), do: Repo.get!(Hero, id)
+  def get_hero!(id) do
+    Repo.get!(Hero, id)
+  end
 
   def get_hero!(identity, id) do
     Repo.get_by!(Hero, identity_id: identity.id, id: id)
-  end
-
-  @doc """
-  Gets a single hero by slot.
-
-  Raises `Ecto.NoResultsError` if the Hero does not exist.
-
-  ## Examples
-
-      iex> get_hero_by_slot!(%Identity{}, 123)
-      %Hero{}
-
-      iex> get_hero_by_slot!(%Identity{}, 456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_hero_by_slot!(identity, slot) do
-    Repo.get_by!(Hero, identity_id: identity.id, slot: slot)
   end
 
   @doc """
@@ -68,15 +79,15 @@ defmodule Celestial.Galaxy do
 
   ## Examples
 
-      iex> create_hero(%Identity{}, %{field: value})
+      iex> create_hero(%{field: value})
       {:ok, %Hero{}}
 
-      iex> create_hero(%Identity{}, %{field: bad_value})
+      iex> create_hero(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_hero(identity, attrs \\ %{}) do
-    %Hero{identity_id: identity.id}
+  def create_hero(attrs \\ %{}) do
+    %Hero{}
     |> Hero.create_changeset(attrs)
     |> Repo.insert()
   end
