@@ -6,10 +6,8 @@ defmodule Noslib.Entity do
           type: atom,
           name: binary,
           id: non_neg_integer,
-          positions: %{
-            x: integer,
-            y: integer
-          },
+          coordinate_x: integer,
+          coordinate_y: integer,
           direction: atom,
           name_color: atom,
           sex: atom,
@@ -42,14 +40,10 @@ defmodule Noslib.Entity do
         }
 
   @type mv :: %{
-          entity: %{
-            type: atom,
-            id: pos_integer
-          },
-          positions: %{
-            x: integer,
-            y: integer
-          },
+          entity_type: atom,
+          entity_id: pos_integer,
+          coordinate_x: integer,
+          coordinate_y: integer,
           speed: non_neg_integer
         }
 
@@ -205,8 +199,8 @@ defmodule Noslib.Entity do
       Helpers.encode_string(in_.name),
       Helpers.encode_string(""),
       Helpers.encode_int(in_.id),
-      Helpers.encode_int(in_.positions.x),
-      Helpers.encode_int(in_.positions.y),
+      Helpers.encode_int(in_.coordinate_x),
+      Helpers.encode_int(in_.coordinate_y),
       encode_direction(in_.direction),
       Client.encode_name_color(in_.name_color),
       encode_sex(in_.sex),
@@ -261,10 +255,8 @@ defmodule Noslib.Entity do
   @spec decode_walk([binary]) :: map
   def decode_walk([pos_x, pos_y, checksum, speed]) do
     %{
-      positions: %{
-        x: String.to_integer(pos_x),
-        y: String.to_integer(pos_y)
-      },
+      coordinate_x: String.to_integer(pos_x),
+      coordinate_y: String.to_integer(pos_y),
       speed: String.to_integer(speed),
       checksum: checksum
     }
@@ -273,10 +265,10 @@ defmodule Noslib.Entity do
   @spec encode_mv(mv) :: iodata
   def encode_mv(mv) do
     Helpers.encode_list([
-      encode_type(mv.entity.type),
-      Helpers.encode_int(mv.entity.id),
-      Helpers.encode_int(mv.positions.x),
-      Helpers.encode_int(mv.positions.y),
+      encode_type(mv.entity_type),
+      Helpers.encode_int(mv.entity_id),
+      Helpers.encode_int(mv.coordinate_x),
+      Helpers.encode_int(mv.coordinate_y),
       Helpers.encode_int(mv.speed)
     ])
   end

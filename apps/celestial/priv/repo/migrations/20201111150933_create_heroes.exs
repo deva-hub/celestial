@@ -25,7 +25,7 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
       timestamps()
     end
 
-    create index(:slots, [:hero_id, :identity_id], unique: true)
+    create index(:slots, [:hero_id, :identity_id])
     create unique_index(:slots, [:index, :identity_id])
     create unique_index(:slots, [:index, :hero_id])
   end

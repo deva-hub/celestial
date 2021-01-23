@@ -38,9 +38,11 @@ defmodule Celestial.Galaxy.Slot do
   end
 
   @doc """
-  Gets the heroe for the given identity and slot index.
+  Gets the heroe for the given identity and index.
   """
-  def identity_and_index_query(identity, slot_index) do
-    from s in identity_query(identity), where: s.index == ^slot_index
+  def identity_and_index_query(identity, index) do
+    from s in identity_query(identity),
+      preload: [hero: :position],
+      where: s.index == ^index and s.identity_id == ^identity.id
   end
 end

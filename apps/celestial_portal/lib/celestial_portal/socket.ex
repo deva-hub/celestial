@@ -48,9 +48,7 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "select", payload: payload, id: id}, socket) do
-    %{current_identity: current_identity} = socket.assigns
-    %{index: index} = payload
-    slot = Galaxy.get_slot_by_index!(current_identity, index)
+    slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, payload.index)
     topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
     {:ok, entity_pid} = Nostalex.EntitySupervisor.start_hero(%{socket | topic: topic}, slot.hero)
     {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
@@ -60,17 +58,21 @@ defmodule CelestialPortal.Socket do
     %{current_identity: current_identity} = socket.assigns
 
     attrs = %{
-      name: payload.name,
-      sex: payload.sex,
-      hair_style: payload.hair_style,
-      hair_color: payload.hair_color,
-      slot: %{
-        index: payload.index,
-        identity_id: current_identity.id
+      index: payload.index,
+      identity_id: current_identity.id,
+      hero: %{
+        name: payload.name,
+        sex: payload.sex,
+        hair_style: payload.hair_style,
+        hair_color: payload.hair_color,
+        position: %{
+          coordinate_x: :rand.uniform(3) + 77,
+          coordinate_y: :rand.uniform(4) + 11
+        }
       }
     }
 
-    case Galaxy.create_hero(attrs) do
+    case Galaxy.create_slot(attrs) do
       {:ok, _} ->
         push_slots(self(), Galaxy.list_slots(current_identity), socket.serializer)
 
@@ -86,7 +88,7 @@ defmodule CelestialPortal.Socket do
     %{current_identity: current_identity} = socket.assigns
 
     if identity = Accounts.get_identity_by_username_and_password(current_identity.username, password) do
-      case Galaxy.get_slot_by_index!(current_identity, index) |> Galaxy.delete_hero() do
+      case Galaxy.get_slot_by_index!(current_identity, index) |> Galaxy.delete_slot() do
         {:ok, _} ->
           :ok
 
@@ -104,9 +106,13 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    %{positions: positions, speed: speed} = payload
-    %{entity_pid: entity_pid} = socket.assigns
-    HeroEntity.walk(entity_pid, positions, speed)
+    position = %{
+      coordinate_x: payload.coordinate_x,
+      coordinate_y: payload.coordinate_y
+    }
+
+    HeroEntity.walk(socket.assigns.entity_pid, position, payload.speed)
+
     {:ok, assign(socket, :last_message_id, id)}
   end
 

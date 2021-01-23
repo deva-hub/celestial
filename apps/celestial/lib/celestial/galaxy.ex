@@ -40,6 +40,40 @@ defmodule Celestial.Galaxy do
   end
 
   @doc """
+  Creates a slot.
+
+  ## Examples
+
+      iex> create_slot(%{field: value})
+      {:ok, %Slot{}}
+
+      iex> create_slot(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_slot(attrs \\ %{}) do
+    %Slot{}
+    |> Slot.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Deletes a slot.
+
+  ## Examples
+
+      iex> delete_slot(slot)
+      {:ok, %Slot{}}
+
+      iex> delete_slot(slot)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_slot(%Slot{} = slot) do
+    Repo.delete(slot)
+  end
+
+  @doc """
   Returns the list of heroes.
 
   ## Examples
