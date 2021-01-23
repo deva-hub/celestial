@@ -6,7 +6,6 @@ defmodule CelestialPortal.Socket do
   import Nostalex.Socket
   alias Nostalex.Socket.Message
   alias Celestial.{Accounts, Galaxy}
-  alias CelestialWorld.HeroEntity
 
   @impl true
   def init(socket) do
@@ -47,14 +46,14 @@ defmodule CelestialPortal.Socket do
     end
   end
 
-  def handle_in(%{event: "select", payload: payload, id: id}, socket) do
+  def handle_in(%Message{event: "select", payload: payload, id: id}, socket) do
     slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, payload.index)
     topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
     {:ok, entity_pid} = Nostalex.EntitySupervisor.start_hero(%{socket | topic: topic}, slot.hero)
-    {:ok, assign(socket, %{last_message_id: id, entity_pid: entity_pid})}
+    {:ok, assign(%{socket | entity_pid: entity_pid}, %{last_message_id: id})}
   end
 
-  def handle_in(%{event: "Char_NEW", payload: payload}, socket) do
+  def handle_in(%Message{event: "Char_NEW", payload: payload}, socket) do
     %{current_identity: current_identity} = socket.assigns
 
     attrs = %{
@@ -83,7 +82,7 @@ defmodule CelestialPortal.Socket do
     {:ok, socket}
   end
 
-  def handle_in(%{event: "Char_DEL", payload: payload}, socket) do
+  def handle_in(%Message{event: "Char_DEL", payload: payload}, socket) do
     %{password: password, index: index} = payload
     %{current_identity: current_identity} = socket.assigns
 
@@ -105,24 +104,18 @@ defmodule CelestialPortal.Socket do
     end
   end
 
-  def handle_in(%{event: "walk", id: id, payload: payload}, socket) do
-    position = %{
-      coordinate_x: payload.coordinate_x,
-      coordinate_y: payload.coordinate_y
-    }
-
-    HeroEntity.walk(socket.assigns.entity_pid, position, payload.speed)
-
+  def handle_in(%Message{event: "0", id: id}, socket) do
     {:ok, assign(socket, :last_message_id, id)}
   end
 
-  def handle_in(%{event: "0", id: id}, socket) do
+  def handle_in(%Message{id: id, event: "walk"} = message, socket) do
+    send(socket.entity_pid, message)
     {:ok, assign(socket, :last_message_id, id)}
   end
 
-  def handle_in(data, socket) do
-    Logger.debug("GARBAGE id=\"#{data.id}\" event=\"#{data.event}\"\n#{inspect(data.payload)}")
-    {:ok, socket}
+  def handle_in(%Message{id: id} = message, socket) do
+    Logger.debug("GARBAGE id=\"#{message.id}\" event=\"#{message.event}\"\n#{inspect(message.payload)}")
+    {:ok, assign(socket, :last_message_id, id)}
   end
 
   @impl true
@@ -136,12 +129,6 @@ defmodule CelestialPortal.Socket do
 
   @impl true
   def terminate(_, _) do
-    :ok
-  end
-
-  defp push(pid, event, payload, serializer) do
-    message = %Message{event: event, payload: payload}
-    send(pid, serializer.encode!(message))
     :ok
   end
 
@@ -172,6 +159,12 @@ defmodule CelestialPortal.Socket do
 
     push(pid, "clist_end", %{}, serializer)
 
+    :ok
+  end
+
+  defp push(pid, event, payload, serializer) do
+    message = %Message{event: event, payload: payload}
+    send(pid, serializer.encode!(message))
     :ok
   end
 end

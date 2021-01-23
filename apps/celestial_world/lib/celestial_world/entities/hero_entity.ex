@@ -3,7 +3,7 @@ defmodule CelestialWorld.HeroEntity do
 
   import Nostalex.Entity
   alias Nostalex.Socket
-  alias Nostalex.Socket.Broadcast
+  alias Nostalex.Socket.{Message, Broadcast}
 
   def start_link(%Socket{} = socket, hero) do
     GenServer.start_link(__MODULE__, {socket, hero},
@@ -12,14 +12,17 @@ defmodule CelestialWorld.HeroEntity do
     )
   end
 
-  def walk(name, position, speed) do
-    GenServer.cast(name, {:walk, position, speed})
-  end
-
   @impl true
   def init({socket, hero}) do
     Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
-    {:ok, {%{socket | entity: __MODULE__, entity_pid: self()}, hero}, {:continue, {:init, :entity}}}
+
+    socket = %{
+      socket
+      | entity: __MODULE__,
+        entity_pid: self()
+    }
+
+    {:ok, {socket, hero}, {:continue, {:init, :entity}}}
   end
 
   @impl true
@@ -75,47 +78,44 @@ defmodule CelestialWorld.HeroEntity do
       coordinate_y: hero.position.coordinate_y
     })
 
-    CelestialWorld.Presence.track(self(), socket.topic, hero.id, %{
-      entity: hero,
-      online_at: inspect(System.system_time(:second))
-    })
-
     {:noreply, {socket, hero}, {:continue, {:init, :presence}}}
   end
 
   def handle_continue({:init, :presence}, {socket, hero}) do
     presences = CelestialWorld.Presence.list(socket)
 
-    send(self(), %Broadcast{
+    send(self(), %Message{
       event: "presence_diff",
-      topic: socket.topic,
       payload: %{joins: presences}
+    })
+
+    CelestialWorld.Presence.track(self(), socket.topic, hero.id, %{
+      entity: hero,
+      online_at: inspect(System.system_time(:second))
     })
 
     {:noreply, {socket, hero}}
   end
 
   @impl true
-  def handle_cast({:walk, position, speed}, {socket, hero}) do
-    # TODO: update position in changeset
-    broadcast_from!(socket, "entity_move", %{
+  def handle_info(%Message{event: "walk", payload: payload}, {socket, hero}) do
+    broadcast_from!(socket, "mv", %{
       entity_type: :hero,
       entity_id: hero.id,
-      coordinate_x: position.coordinate_x,
-      coordinate_y: position.coordinate_y,
-      speed: speed
+      coordinate_x: payload.coordinate_x,
+      coordinate_y: payload.coordinate_y,
+      speed: payload.speed
     })
 
     {:noreply, {socket, hero}}
   end
 
-  def handle_info(%{event: "entity_move", payload: payload}, {socket, hero}) do
+  def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, hero}) do
     push(socket, "mv", payload)
     {:noreply, {socket, hero}}
   end
 
-  @impl true
-  def handle_info(%{event: "presence_diff", payload: payload}, {socket, hero}) do
+  def handle_info(%Message{event: "presence_diff", payload: payload}, {socket, hero}) do
     for {id, join} <- payload.joins do
       for meta <- join.metas do
         %{entity: entity} = meta
