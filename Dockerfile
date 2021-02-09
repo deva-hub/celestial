@@ -47,7 +47,7 @@ FROM alpine:3.11.3
 
 # Install Erlang Runtime dependencies
 RUN --mount=type=cache,id=apk,sharing=locked,target=/var/cache/apk \
-  apk add --no-cache openssl ncurses-libs
+  apk add openssl ncurses-libs
 
 WORKDIR /celestial
 
