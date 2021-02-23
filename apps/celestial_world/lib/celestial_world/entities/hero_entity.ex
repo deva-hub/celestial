@@ -15,13 +15,7 @@ defmodule CelestialWorld.HeroEntity do
   @impl true
   def init({socket, hero}) do
     Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
-
-    socket = %{
-      socket
-      | entity: __MODULE__,
-        entity_pid: self()
-    }
-
+    socket = %{socket | entity: __MODULE__, entity_pid: self()}
     {:ok, {socket, hero}, {:continue, {:init, :entity}}}
   end
 

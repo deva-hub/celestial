@@ -34,13 +34,14 @@ defmodule CelestialPortal.Socket do
     {:ok, %{assign(socket, :last_message_id, id) | key: 0}}
   end
 
-  def handle_in(%{payload: [_, key, id, username]}, %{assigns: %{current_identity: nil}} = socket) do
+  def handle_in(%Message{payload: [_, key, id, username]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-    with {:ok, %{username: ^username} = identity} <- Accounts.consume_identity_key(address, key) do
-      push_slots(self(), Galaxy.list_slots(identity), socket.serializer)
-      {:ok, assign(socket, %{current_identity: identity, id: id})}
-    else
+    case Accounts.consume_identity_key(address, key) do
+      {:ok, %{username: ^username} = identity} ->
+        push_slots(self(), Galaxy.list_slots(identity), socket.serializer)
+        {:ok, assign(socket, %{current_identity: identity, id: id})}
+
       :error ->
         {:stop, :normal, socket}
     end
