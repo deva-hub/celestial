@@ -5,7 +5,7 @@ defmodule Celestial.Galaxy.Pet do
 
   schema "pets" do
     has_one :skin, Celestial.Galaxy.PetSkin
-    belongs_to :hero, Celestial.Galaxy.Hero
+    belongs_to :character, Celestial.Galaxy.Character
 
     timestamps()
   end

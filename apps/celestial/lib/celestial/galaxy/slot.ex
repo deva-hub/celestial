@@ -6,7 +6,7 @@ defmodule Celestial.Galaxy.Slot do
 
   schema "slots" do
     field :index, :integer
-    belongs_to :hero, Celestial.Galaxy.Hero
+    belongs_to :character, Celestial.Galaxy.Character
     belongs_to :identity, Celestial.Accounts.Identity
 
     timestamps()
@@ -18,30 +18,30 @@ defmodule Celestial.Galaxy.Slot do
     |> cast(attrs, [:index])
     |> validate_required([:index])
     |> validate_number(:index, greater_than_or_equal_to: 0, less_than_or_equal_to: 4)
-    |> cast_assoc(:hero, with: &Celestial.Galaxy.Hero.create_changeset/2)
-    |> assoc_constraint(:hero)
+    |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
+    |> assoc_constraint(:character)
     |> unique_constraint([:index, :identity_id])
-    |> unique_constraint([:index, :hero_id])
-    |> unique_constraint([:hero_id, :identity_id])
+    |> unique_constraint([:index, :character_id])
+    |> unique_constraint([:character_id, :identity_id])
   end
 
   @doc """
-  Gets all heroes for the given identity.
+  Gets all characters for the given identity.
   """
   def identity_query(identity) do
     from(s in Celestial.Galaxy.Slot,
-      join: h in assoc(s, :hero),
-      preload: [hero: {h, [:position, :equipment, :pets]}],
+      join: h in assoc(s, :character),
+      preload: [character: {h, [:position, :equipment, :pets]}],
       where: s.identity_id == ^identity.id
     )
   end
 
   @doc """
-  Gets the heroe for the given identity and index.
+  Gets the character for the given identity and index.
   """
   def identity_and_index_query(identity, index) do
     from(s in identity_query(identity),
-      preload: [hero: [:position, :equipment, :pets]],
+      preload: [character: [:position, :equipment, :pets]],
       where: s.index == ^index and s.identity_id == ^identity.id
     )
   end

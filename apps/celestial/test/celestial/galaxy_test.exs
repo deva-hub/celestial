@@ -3,8 +3,8 @@ defmodule Celestial.WorldTest do
 
   alias Celestial.Galaxy
 
-  describe "heroes" do
-    alias Celestial.Galaxy.Hero
+  describe "characters" do
+    alias Celestial.Galaxy.Character
 
     @valid_attrs %{
       class: "some class",
@@ -34,73 +34,73 @@ defmodule Celestial.WorldTest do
     }
     @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, index: nil, xp: nil}
 
-    def hero_fixture(attrs \\ %{}) do
-      {:ok, hero} =
+    def character_fixture(attrs \\ %{}) do
+      {:ok, character} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Galaxy.create_hero()
+        |> Galaxy.create_character()
 
-      hero
+      character
     end
 
-    test "list_heroes/0 returns all heroes" do
-      hero = hero_fixture()
-      assert Galaxy.list_heroes() == [hero]
+    test "list_characters/0 returns all characters" do
+      character = character_fixture()
+      assert Galaxy.list_characters() == [character]
     end
 
-    test "get_hero!/1 returns the hero with given id" do
-      hero = hero_fixture()
-      assert Galaxy.get_hero!(hero.id) == hero
+    test "get_character!/1 returns the character with given id" do
+      character = character_fixture()
+      assert Galaxy.get_character!(character.id) == character
     end
 
-    test "create_hero/1 with valid data creates a hero" do
-      assert {:ok, %Hero{} = hero} = Galaxy.create_hero(@valid_attrs)
-      assert hero.class == "some class"
-      assert hero.hair_color == "some hair_color"
-      assert hero.hair_style == "some hair_style"
-      assert hero.hero_level == 42
-      assert hero.hero_xp == 42
-      assert hero.job_level == 42
-      assert hero.job_xp == 42
-      assert hero.level == 42
-      assert hero.name == "some name"
-      assert hero.xp == 42
+    test "create_character/1 with valid data creates a character" do
+      assert {:ok, %Character{} = character} = Galaxy.create_character(@valid_attrs)
+      assert character.class == "some class"
+      assert character.hair_color == "some hair_color"
+      assert character.hair_style == "some hair_style"
+      assert character.hero_level == 42
+      assert character.hero_xp == 42
+      assert character.job_level == 42
+      assert character.job_xp == 42
+      assert character.level == 42
+      assert character.name == "some name"
+      assert character.xp == 42
     end
 
-    test "create_hero/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Galaxy.create_hero(@invalid_attrs)
+    test "create_character/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Galaxy.create_character(@invalid_attrs)
     end
 
-    test "update_hero/2 with valid data updates the hero" do
-      hero = hero_fixture()
-      assert {:ok, %Hero{} = hero} = Galaxy.update_hero(hero, @update_attrs)
-      assert hero.class == "some updated class"
-      assert hero.hair_color == "some updated hair_color"
-      assert hero.hair_style == "some updated hair_style"
-      assert hero.hero_level == 43
-      assert hero.hero_xp == 43
-      assert hero.job_level == 43
-      assert hero.job_xp == 43
-      assert hero.level == 43
-      assert hero.name == "some updated name"
-      assert hero.xp == 43
+    test "update_character/2 with valid data updates the character" do
+      character = character_fixture()
+      assert {:ok, %Character{} = character} = Galaxy.update_character(character, @update_attrs)
+      assert character.class == "some updated class"
+      assert character.hair_color == "some updated hair_color"
+      assert character.hair_style == "some updated hair_style"
+      assert character.hero_level == 43
+      assert character.hero_xp == 43
+      assert character.job_level == 43
+      assert character.job_xp == 43
+      assert character.level == 43
+      assert character.name == "some updated name"
+      assert character.xp == 43
     end
 
-    test "update_hero/2 with invalid data returns error changeset" do
-      hero = hero_fixture()
-      assert {:error, %Ecto.Changeset{}} = Galaxy.update_hero(hero, @invalid_attrs)
-      assert hero == Galaxy.get_hero!(hero.id)
+    test "update_character/2 with invalid data returns error changeset" do
+      character = character_fixture()
+      assert {:error, %Ecto.Changeset{}} = Galaxy.update_character(character, @invalid_attrs)
+      assert character == Galaxy.get_character!(character.id)
     end
 
-    test "delete_hero/1 deletes the hero" do
-      hero = hero_fixture()
-      assert {:ok, %Hero{}} = Galaxy.delete_hero(hero)
-      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_hero!(hero.id) end
+    test "delete_character/1 deletes the character" do
+      character = character_fixture()
+      assert {:ok, %Character{}} = Galaxy.delete_character(character)
+      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_character!(character.id) end
     end
 
-    test "change_hero/1 returns a hero changeset" do
-      hero = hero_fixture()
-      assert %Ecto.Changeset{} = Galaxy.change_hero(hero)
+    test "change_character/1 returns a character changeset" do
+      character = character_fixture()
+      assert %Ecto.Changeset{} = Galaxy.change_character(character)
     end
   end
 

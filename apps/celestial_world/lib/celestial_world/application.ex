@@ -11,7 +11,7 @@ defmodule CelestialWorld.Application do
       {CelestialWorld.Presence, []},
       # Start the Entity registry
       {Registry, keys: :unique, name: CelestialWorld.Registry},
-      # Start Hero entity supervisor
+      # Start Character entity supervisor
       {Nostalex.EntitySupervisor, []}
       # Start a worker by calling: CelestialWorld.Worker.start_link(arg)
       # {CelestialWorld.Worker, arg}

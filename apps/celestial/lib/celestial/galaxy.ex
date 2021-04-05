@@ -6,7 +6,7 @@ defmodule Celestial.Galaxy do
   import Ecto.Query, warn: false
   alias Celestial.Repo
 
-  alias Celestial.Galaxy.{Slot, Hero}
+  alias Celestial.Galaxy.{Slot, Character}
 
   @doc """
   Returns the list of slots.
@@ -14,7 +14,7 @@ defmodule Celestial.Galaxy do
   ## Examples
 
       iex> list_slots()
-      [%Hero{}, ...]
+      [%Character{}, ...]
 
   """
   def list_slots(identity) do
@@ -22,14 +22,14 @@ defmodule Celestial.Galaxy do
   end
 
   @doc """
-  Gets a single hero by slot.
+  Gets a single character by slot.
 
-  Raises `Ecto.NoResultsError` if the Hero does not exist.
+  Raises `Ecto.NoResultsError` if the Character does not exist.
 
   ## Examples
 
       iex> get_slot_by_index!(%Identity{}, 123)
-      %Hero{}
+      %Character{}
 
       iex> get_slot_by_index!(%Identity{}, 456)
       ** (Ecto.NoResultsError)
@@ -75,90 +75,90 @@ defmodule Celestial.Galaxy do
   end
 
   @doc """
-  Returns the list of heroes.
+  Returns the list of characters.
 
   ## Examples
 
-      iex> list_heroes()
-      [%Hero{}, ...]
+      iex> list_characters()
+      [%Character{}, ...]
 
   """
-  def list_heroes do
-    Repo.all(Hero)
+  def list_characters do
+    Repo.all(Character)
   end
 
   @doc """
-  Gets a single hero.
+  Gets a single character.
 
-  Raises `Ecto.NoResultsError` if the Hero does not exist.
+  Raises `Ecto.NoResultsError` if the Character does not exist.
 
   ## Examples
 
-      iex> get_hero!(123)
-      %Hero{}
+      iex> get_character!(123)
+      %Character{}
 
-      iex> get_hero!(456)
+      iex> get_character!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_hero!(id) do
-    Repo.get!(Hero, id)
+  def get_character!(id) do
+    Repo.get!(Character, id)
   end
 
-  def get_hero!(identity, id) do
-    Repo.get_by!(Hero, identity_id: identity.id, id: id)
+  def get_character!(identity, id) do
+    Repo.get_by!(Character, identity_id: identity.id, id: id)
   end
 
   @doc """
-  Creates a hero.
+  Creates a character.
 
   ## Examples
 
-      iex> create_hero(%{field: value})
-      {:ok, %Hero{}}
+      iex> create_character(%{field: value})
+      {:ok, %Character{}}
 
-      iex> create_hero(%{field: bad_value})
+      iex> create_character(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_hero(attrs \\ %{}) do
-    %Hero{}
-    |> Hero.create_changeset(attrs)
+  def create_character(attrs \\ %{}) do
+    %Character{}
+    |> Character.create_changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a hero.
+  Updates a character.
 
   ## Examples
 
-      iex> update_hero(hero, %{field: new_value})
-      {:ok, %Hero{}}
+      iex> update_character(character, %{field: new_value})
+      {:ok, %Character{}}
 
-      iex> update_hero(hero, %{field: bad_value})
+      iex> update_character(character, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_hero(%Hero{} = hero, attrs) do
-    hero
-    |> Hero.update_changeset(attrs)
+  def update_character(%Character{} = character, attrs) do
+    character
+    |> Character.update_changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a hero.
+  Deletes a character.
 
   ## Examples
 
-      iex> delete_hero(hero)
-      {:ok, %Hero{}}
+      iex> delete_character(character)
+      {:ok, %Character{}}
 
-      iex> delete_hero(hero)
+      iex> delete_character(character)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_hero(%Hero{} = hero) do
-    Repo.delete(hero)
+  def delete_character(%Character{} = character) do
+    Repo.delete(character)
   end
 
   alias Celestial.Galaxy.World

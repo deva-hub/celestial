@@ -1,28 +1,28 @@
-defmodule CelestialWorld.HeroEntity do
+defmodule CelestialWorld.CharacterEntity do
   use GenServer
 
   import Nostalex.Entity
   alias Nostalex.Socket
   alias Nostalex.Socket.{Message, Broadcast}
 
-  def start_link(%Socket{} = socket, hero) do
-    GenServer.start_link(__MODULE__, {socket, hero},
-      name: via_tuple(hero.id),
+  def start_link(%Socket{} = socket, character) do
+    GenServer.start_link(__MODULE__, {socket, character},
+      name: via_tuple(character.id),
       hibernate_after: :timer.minutes(5)
     )
   end
 
   @impl true
-  def init({socket, hero}) do
+  def init({socket, character}) do
     Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
     socket = %{socket | entity: __MODULE__, entity_pid: self()}
-    {:ok, {socket, hero}, {:continue, {:init, :entity}}}
+    {:ok, {socket, character}, {:continue, {:init, :entity}}}
   end
 
   @impl true
-  def handle_continue({:init, :entity}, {socket, hero}) do
+  def handle_continue({:init, :entity}, {socket, character}) do
     push(socket, "c_info", %{
-      entity: hero.id,
+      entity: character.id,
       group_id: 0,
       family_id: -1,
       family_name: "beta",
@@ -37,8 +37,8 @@ defmodule CelestialWorld.HeroEntity do
     })
 
     push(socket, "tit", %{
-      title: hero.class |> to_string |> String.upcase(),
-      name: hero.name
+      title: character.class |> to_string |> String.upcase(),
+      name: character.name
     })
 
     push(socket, "fd", %{
@@ -47,22 +47,22 @@ defmodule CelestialWorld.HeroEntity do
     })
 
     push(socket, "lev", %{
-      entity: hero,
+      entity: character,
       reputation: :beginner,
       cp: 1
     })
 
     push(socket, "at", %{
-      id: hero.id,
+      id: character.id,
       map_id: 1,
       ambiance_id: 0,
-      position: hero.position
+      position: character.position
     })
 
-    {:noreply, {socket, hero}, {:continue, {:init, :presence}}}
+    {:noreply, {socket, character}, {:continue, {:init, :presence}}}
   end
 
-  def handle_continue({:init, :presence}, {socket, hero}) do
+  def handle_continue({:init, :presence}, {socket, character}) do
     presences = CelestialWorld.Presence.list(socket)
 
     send(self(), %Message{
@@ -70,36 +70,36 @@ defmodule CelestialWorld.HeroEntity do
       payload: %{joins: presences}
     })
 
-    CelestialWorld.Presence.track(self(), socket.topic, hero.id, %{
-      entity: hero,
+    CelestialWorld.Presence.track(self(), socket.topic, character.id, %{
+      entity: character,
       online_at: inspect(System.system_time(:second))
     })
 
-    {:noreply, {socket, hero}}
+    {:noreply, {socket, character}}
   end
 
   @impl true
-  def handle_info(%Message{event: "walk", payload: payload}, {socket, hero}) do
+  def handle_info(%Message{event: "walk", payload: payload}, {socket, character}) do
     broadcast_from!(socket, "mv", %{
-      entity_type: :hero,
-      entity_id: hero.id,
+      entity_type: :character,
+      entity_id: character.id,
       position: payload.position,
       speed: payload.speed
     })
 
-    {:noreply, {socket, hero}}
+    {:noreply, {socket, character}}
   end
 
-  def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, hero}) do
+  def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, character}) do
     push(socket, "mv", payload)
-    {:noreply, {socket, hero}}
+    {:noreply, {socket, character}}
   end
 
-  def handle_info(%Message{event: "presence_diff", payload: payload}, {socket, hero}) do
+  def handle_info(%Message{event: "presence_diff", payload: payload}, {socket, character}) do
     for {id, join} <- payload.joins do
       for %{entity: entity} <- join.metas do
         push(socket, "in", %{
-          type: :hero,
+          type: :character,
           id: id,
           direction: :north,
           name_color: :white,
@@ -129,7 +129,7 @@ defmodule CelestialWorld.HeroEntity do
       end
     end
 
-    {:noreply, {socket, hero}}
+    {:noreply, {socket, character}}
   end
 
   def via_tuple(id) do

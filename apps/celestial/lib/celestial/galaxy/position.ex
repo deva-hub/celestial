@@ -6,7 +6,7 @@ defmodule Celestial.Galaxy.Position do
   schema "positions" do
     field :coordinate_x, :integer
     field :coordinate_y, :integer
-    belongs_to :hero, Celestial.Galaxy.Hero
+    belongs_to :character, Celestial.Galaxy.Character
     belongs_to :world, Celestial.Galaxy.World
 
     timestamps()
@@ -15,11 +15,11 @@ defmodule Celestial.Galaxy.Position do
   @doc false
   def changeset(position, attrs) do
     position
-    |> cast(attrs, [:coordinate_x, :coordinate_y, :hero_id, :world_id])
+    |> cast(attrs, [:coordinate_x, :coordinate_y, :character_id, :world_id])
     |> validate_required([:coordinate_x, :coordinate_y])
-    |> unique_constraint([:hero_id, :world_id])
-    |> cast_assoc(:hero, with: &Celestial.Galaxy.Hero.create_changeset/2)
-    |> assoc_constraint(:hero)
+    |> unique_constraint([:character_id, :world_id])
+    |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
+    |> assoc_constraint(:character)
     |> cast_assoc(:world, with: &Celestial.Galaxy.World.changeset/2)
     |> assoc_constraint(:world)
   end

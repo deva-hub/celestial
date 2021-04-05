@@ -31,7 +31,7 @@ defmodule CelestialWeb.Router do
     pipe_through [:api]
 
     resources "/identities", IdentityController, except: [:new, :edit]
-    resources "/heroes", HeroController, except: [:new, :edit]
+    resources "/characters", CharacterController, except: [:new, :edit]
     resources "/worlds", WorldController, except: [:new, :edit]
   end
 end

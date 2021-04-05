@@ -1,5 +1,6 @@
 defmodule Noslib.Society do
   @moduledoc false
+
   import Noslib.Packet
 
   # TODO: Refactor reputation based on number

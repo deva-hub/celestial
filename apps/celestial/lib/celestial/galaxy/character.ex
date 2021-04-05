@@ -1,9 +1,9 @@
-defmodule Celestial.Galaxy.Hero do
+defmodule Celestial.Galaxy.Character do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "heroes" do
+  schema "characters" do
     field :class, Ecto.Enum,
       values: [
         :adventurer,
@@ -62,15 +62,15 @@ defmodule Celestial.Galaxy.Hero do
 
     has_one :slot, Celestial.Galaxy.Slot
     has_one :position, Celestial.Galaxy.Position
-    has_one :equipment, Celestial.Galaxy.HeroEquipment
+    has_one :equipment, Celestial.Galaxy.CharacterEquipment
     has_many :pets, Celestial.Galaxy.Pet
 
     timestamps()
   end
 
   @doc false
-  def create_changeset(hero, attrs) do
-    hero
+  def create_changeset(character, attrs) do
+    character
     |> cast(attrs, [:name, :index, :class, :sex, :hair_color, :hair_style])
     |> validate_required([:name, :index, :class, :sex, :hair_color, :hair_style])
     |> validate_length(:name, min: 4, max: 14)
@@ -96,8 +96,8 @@ defmodule Celestial.Galaxy.Hero do
   end
 
   @doc false
-  def update_changeset(hero, attrs) do
-    hero
+  def update_changeset(character, attrs) do
+    character
     |> cast(attrs, [:name, :index, :class, :sex, :hair_color, :hair_style, :level, :job_level, :hero_level, :xp, :job_xp, :hero_xp])
   end
 end

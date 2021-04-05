@@ -1,6 +1,6 @@
 defmodule Noslib.Lobby do
   @moduledoc """
-  Responses from the world server to select a hero.
+  Responses from the world server to select a character.
   """
 
   alias Noslib.Entity
@@ -9,7 +9,7 @@ defmodule Noslib.Lobby do
   def decode_char_new([name, index, sex, hair_style, hair_color]) do
     %{
       index: String.to_integer(index),
-      hero: %{
+      character: %{
         name: name,
         sex: Entity.decode_sex(sex),
         hair_style: Entity.decode_hair_style(hair_style),
@@ -35,20 +35,20 @@ defmodule Noslib.Lobby do
   def encode_clist(clist) do
     encode_list([
       encode_int(clist.index),
-      clist.hero.name,
+      clist.character.name,
       encode_int(0),
-      Entity.encode_sex(clist.hero.sex),
-      Entity.encode_hair_style(clist.hero.hair_style),
-      Entity.encode_hair_color(clist.hero.hair_color),
+      Entity.encode_sex(clist.character.sex),
+      Entity.encode_hair_style(clist.character.hair_style),
+      Entity.encode_hair_color(clist.character.hair_color),
       encode_int(0),
-      Entity.encode_class(clist.hero.class),
-      encode_int(clist.hero.level),
-      encode_int(clist.hero.hero_level),
-      Entity.encode_equipments(clist.hero.equipment),
-      encode_int(clist.hero.job_level),
+      Entity.encode_class(clist.character.class),
+      encode_int(clist.character.level),
+      encode_int(clist.character.hero_level),
+      Entity.encode_equipments(clist.character.equipment),
+      encode_int(clist.character.job_level),
       encode_int("1"),
       encode_int("1"),
-      clist.hero.pets
+      clist.character.pets
       |> Enum.map(&encode_pet/1)
       |> encode_list(@pets_terminator),
       encode_int("0")

@@ -1,8 +1,8 @@
-defmodule CelestialWeb.HeroControllerTest do
+defmodule CelestialWeb.CharacterControllerTest do
   use CelestialWeb.ConnCase
 
   alias Celestial.Galaxy
-  alias Celestial.Galaxy.Hero
+  alias Celestial.Galaxy.Character
 
   @create_attrs %{
     class: "some class",
@@ -32,9 +32,9 @@ defmodule CelestialWeb.HeroControllerTest do
   }
   @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, index: nil, xp: nil}
 
-  def fixture(:hero) do
-    {:ok, hero} = Galaxy.create_hero(@create_attrs)
-    hero
+  def fixture(:character) do
+    {:ok, character} = Galaxy.create_character(@create_attrs)
+    character
   end
 
   setup %{conn: conn} do
@@ -42,18 +42,18 @@ defmodule CelestialWeb.HeroControllerTest do
   end
 
   describe "index" do
-    test "lists all heroes", %{conn: conn} do
-      conn = get(conn, Routes.hero_path(conn, :index))
+    test "lists all characters", %{conn: conn} do
+      conn = get(conn, Routes.character_path(conn, :index))
       assert json_response(conn, 200)["data"] == []
     end
   end
 
-  describe "create hero" do
-    test "renders hero when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.hero_path(conn, :create), hero: @create_attrs)
+  describe "create character" do
+    test "renders character when data is valid", %{conn: conn} do
+      conn = post(conn, Routes.character_path(conn, :create), character: @create_attrs)
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
-      conn = get(conn, Routes.hero_path(conn, :show, id))
+      conn = get(conn, Routes.character_path(conn, :show, id))
 
       assert %{
                "id" => id,
@@ -72,19 +72,19 @@ defmodule CelestialWeb.HeroControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.hero_path(conn, :create), hero: @invalid_attrs)
+      conn = post(conn, Routes.character_path(conn, :create), character: @invalid_attrs)
       assert json_response(conn, 422)["errors"] != %{}
     end
   end
 
-  describe "update hero" do
-    setup [:create_hero]
+  describe "update character" do
+    setup [:create_character]
 
-    test "renders hero when data is valid", %{conn: conn, hero: %Hero{id: id} = hero} do
-      conn = put(conn, Routes.hero_path(conn, :update, hero), hero: @update_attrs)
+    test "renders character when data is valid", %{conn: conn, character: %Character{id: id} = character} do
+      conn = put(conn, Routes.character_path(conn, :update, character), character: @update_attrs)
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
-      conn = get(conn, Routes.hero_path(conn, :show, id))
+      conn = get(conn, Routes.character_path(conn, :show, id))
 
       assert %{
                "id" => id,
@@ -102,27 +102,27 @@ defmodule CelestialWeb.HeroControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors when data is invalid", %{conn: conn, hero: hero} do
-      conn = put(conn, Routes.hero_path(conn, :update, hero), hero: @invalid_attrs)
+    test "renders errors when data is invalid", %{conn: conn, character: character} do
+      conn = put(conn, Routes.character_path(conn, :update, character), character: @invalid_attrs)
       assert json_response(conn, 422)["errors"] != %{}
     end
   end
 
-  describe "delete hero" do
-    setup [:create_hero]
+  describe "delete character" do
+    setup [:create_character]
 
-    test "deletes chosen hero", %{conn: conn, hero: hero} do
-      conn = delete(conn, Routes.hero_path(conn, :delete, hero))
+    test "deletes chosen character", %{conn: conn, character: character} do
+      conn = delete(conn, Routes.character_path(conn, :delete, character))
       assert response(conn, 204)
 
       assert_error_sent 404, fn ->
-        get(conn, Routes.hero_path(conn, :show, hero))
+        get(conn, Routes.character_path(conn, :show, character))
       end
     end
   end
 
-  defp create_hero(_) do
-    hero = fixture(:hero)
-    %{hero: hero}
+  defp create_character(_) do
+    character = fixture(:character)
+    %{character: character}
   end
 end

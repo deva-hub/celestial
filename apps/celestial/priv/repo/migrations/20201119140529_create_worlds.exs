@@ -10,11 +10,11 @@ defmodule Celestial.Repo.Migrations.CreateWorlds do
     create table(:positions) do
       add :coordinate_x, :integer
       add :coordinate_y, :integer
-      add :hero_id, references(:heroes)
+      add :character_id, references(:characters)
       add :world_id, references(:worlds)
       timestamps()
     end
 
-    create index(:positions, [:hero_id, :world_id])
+    create index(:positions, [:character_id, :world_id])
   end
 end

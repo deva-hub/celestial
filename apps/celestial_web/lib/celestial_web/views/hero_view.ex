@@ -1,28 +1,28 @@
-defmodule CelestialWeb.HeroView do
+defmodule CelestialWeb.CharacterView do
   use CelestialWeb, :view
-  alias CelestialWeb.HeroView
+  alias CelestialWeb.CharacterView
 
-  def render("index.json", %{heroes: heroes}) do
-    %{data: render_many(heroes, HeroView, "hero.json")}
+  def render("index.json", %{characters: characters}) do
+    %{data: render_many(characters, CharacterView, "character.json")}
   end
 
-  def render("show.json", %{hero: hero}) do
-    %{data: render_one(hero, HeroView, "hero.json")}
+  def render("show.json", %{character: character}) do
+    %{data: render_one(character, CharacterView, "character.json")}
   end
 
-  def render("hero.json", %{hero: hero}) do
+  def render("character.json", %{character: character}) do
     %{
-      id: hero.id,
-      name: hero.name,
-      class: hero.class,
-      hair_color: hero.hair_color,
-      hair_style: hero.hair_style,
-      level: hero.level,
-      job_level: hero.job_level,
-      hero_level: hero.hero_level,
-      xp: hero.xp,
-      job_xp: hero.job_xp,
-      hero_xp: hero.hero_xp
+      id: character.id,
+      name: character.name,
+      class: character.class,
+      hair_color: character.hair_color,
+      hair_style: character.hair_style,
+      level: character.level,
+      job_level: character.job_level,
+      hero_level: character.hero_level,
+      xp: character.xp,
+      job_xp: character.job_xp,
+      hero_xp: character.hero_xp
     }
   end
 end

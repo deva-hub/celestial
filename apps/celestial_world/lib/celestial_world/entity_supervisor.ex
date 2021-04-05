@@ -10,10 +10,10 @@ defmodule Nostalex.EntitySupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_hero(socket, hero) do
+  def start_character(socket, character) do
     spec = %{
-      id: CelestialWorld.HeroEntity,
-      start: {CelestialWorld.HeroEntity, :start_link, [socket, hero]}
+      id: CelestialWorld.CharacterEntity,
+      start: {CelestialWorld.CharacterEntity, :start_link, [socket, character]}
     }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
@@ -22,7 +22,7 @@ defmodule Nostalex.EntitySupervisor do
 
       {:error, {:already_started, pid}} ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
-        start_hero(socket, hero)
+        start_character(socket, character)
 
       {:error, reason} ->
         {:error, reason}

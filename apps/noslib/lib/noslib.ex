@@ -3,7 +3,7 @@ defmodule Noslib do
   This module provides functions to work with the NostaleSE Noslib.
   """
 
-  alias Noslib.{Client, Lobby, Gateway, Hero, Entity}
+  alias Noslib.{Client, Lobby, Gateway, Character, Entity}
   import Noslib.Packet
 
   def decode(payload) when is_binary(payload) do
@@ -55,7 +55,7 @@ defmodule Noslib do
   end
 
   def encode(["c_info", payload]) do
-    encode_list(["c_info", Hero.encode_c_info(payload)])
+    encode_list(["c_info", Entity.encode_c_info(payload)])
   end
 
   def encode(["failc", payload]) do
@@ -63,15 +63,15 @@ defmodule Noslib do
   end
 
   def encode(["fd", payload]) do
-    encode_list(["fd", Hero.encode_fd(payload)])
+    encode_list(["fd", Entity.encode_fd(payload)])
   end
 
   def encode(["tit", payload]) do
-    encode_list(["tit", Hero.encode_tit(payload)])
+    encode_list(["tit", Entity.encode_tit(payload)])
   end
 
   def encode(["lev", payload]) do
-    encode_list(["lev", Hero.encode_lev(payload)])
+    encode_list(["lev", Entity.encode_lev(payload)])
   end
 
   def encode(["NsTeST", payload]) do
@@ -79,7 +79,7 @@ defmodule Noslib do
   end
 
   def encode(["at", payload]) do
-    encode_list(["at", Hero.encode_at(payload)])
+    encode_list(["at", Entity.encode_at(payload)])
   end
 
   def encode(["mv", payload]) do
