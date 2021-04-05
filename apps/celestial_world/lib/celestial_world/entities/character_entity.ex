@@ -54,8 +54,8 @@ defmodule CelestialWorld.CharacterEntity do
 
     push(socket, "at", %{
       id: character.id,
-      map_id: 1,
-      ambiance_id: 0,
+      map: %{id: 1},
+      ambiance: %{id: 0},
       position: character.position
     })
 
@@ -82,7 +82,7 @@ defmodule CelestialWorld.CharacterEntity do
   def handle_info(%Message{event: "walk", payload: payload}, {socket, character}) do
     broadcast_from!(socket, "mv", %{
       entity_type: :character,
-      entity_id: character.id,
+      entity: character,
       position: payload.position,
       speed: payload.speed
     })

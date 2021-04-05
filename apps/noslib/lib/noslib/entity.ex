@@ -61,12 +61,12 @@ defmodule Noslib.Entity do
   def encode_at(at) do
     encode_list([
       encode_int(at.id),
-      encode_int(at.map_id),
+      encode_int(at.map),
       encode_int(at.position.coordinate_x),
       encode_int(at.position.coordinate_y),
       "2",
       encode_int("0"),
-      encode_int(at.ambiance_id),
+      encode_int(at.ambiance),
       "-1"
     ])
   end
@@ -273,7 +273,7 @@ defmodule Noslib.Entity do
   def encode_mv(mv) do
     encode_list([
       encode_type(mv.entity_type),
-      encode_int(mv.entity_id),
+      encode_int(mv.entity.id),
       encode_int(mv.position.coordinate_x),
       encode_int(mv.position.coordinate_y),
       encode_int(mv.speed)
