@@ -44,12 +44,10 @@ defmodule Noslib.Society do
                  legendary_hero: encode_int(32)
                })
 
-  @spec decode_reputation(binary) :: atom
   def decode_reputation(reputation) do
     BiMap.fetch_key!(@reputations, reputation)
   end
 
-  @spec encode_reputation(atom) :: iodata
   def encode_reputation(reputation) do
     BiMap.fetch!(@reputations, reputation)
   end
@@ -63,12 +61,10 @@ defmodule Noslib.Society do
                stupid_minded: encode_int(6)
              })
 
-  @spec decode_dignity(binary) :: atom
   def decode_dignity(dignity) do
     BiMap.fetch_key!(@dignities, dignity)
   end
 
-  @spec encode_dignity(atom) :: iodata
   def encode_dignity(dignity) do
     BiMap.fetch!(@dignities, dignity)
   end
@@ -79,12 +75,10 @@ defmodule Noslib.Society do
               demon: encode_int(2)
             })
 
-  @spec decode_faction(binary) :: atom
   def decode_faction(faction) do
     BiMap.fetch_key!(@factions, faction)
   end
 
-  @spec encode_faction(atom) :: iodata
   def encode_faction(faction) do
     BiMap.fetch!(@factions, faction)
   end
@@ -95,12 +89,10 @@ defmodule Noslib.Society do
                lock: encode_int(2)
              })
 
-  @spec decode_miniland(binary) :: atom
   def decode_miniland(miniland) do
     BiMap.fetch_key!(@minilands, miniland)
   end
 
-  @spec encode_miniland(atom) :: iodata
   def encode_miniland(miniland) do
     BiMap.fetch!(@minilands, miniland)
   end

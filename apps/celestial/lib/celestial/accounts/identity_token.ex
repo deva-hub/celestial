@@ -46,13 +46,10 @@ defmodule Celestial.Accounts.IdentityToken do
   def verify_key_query(address, token) do
     hashed_token = :crypto.hash(@hash_algorithm, token |> to_string())
 
-    query =
-      from token in token_and_context_query(hashed_token, "key"),
-        join: identity in assoc(token, :identity),
-        where: token.inserted_at > ago(@key_validity_in_minute, "minute") and token.sent_to == ^address,
-        select: identity
-
-    {:ok, query}
+    from token in token_and_context_query(hashed_token, "key"),
+      join: identity in assoc(token, :identity),
+      where: token.inserted_at > ago(@key_validity_in_minute, "minute") and token.sent_to == ^address,
+      select: identity
   end
 
   @doc """

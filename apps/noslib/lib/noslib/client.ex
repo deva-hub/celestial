@@ -5,16 +5,10 @@ defmodule Noslib.Client do
 
   import Noslib.Packet
 
-  @type failc :: %{error: atom}
-
-  @type info :: %{message: binary}
-
-  @spec encode_failc(failc) :: iodata
   def encode_failc(failc) do
     encode_error(failc.error)
   end
 
-  @spec encode_info(info) :: iodata
   def encode_info(info) do
     encode_string(info.message)
   end
@@ -31,12 +25,10 @@ defmodule Noslib.Client do
             bad_case: encode_int(9)
           })
 
-  @spec decode_error(binary) :: atom
   def decode_error(error) do
     BiMap.fetch_key!(@errors, error)
   end
 
-  @spec encode_error(atom) :: iodata
   def encode_error(error) do
     BiMap.fetch!(@errors, error)
   end
@@ -46,12 +38,10 @@ defmodule Noslib.Client do
                en: encode_int(1)
              })
 
-  @spec decode_language(binary) :: atom
   def decode_language(language) do
     BiMap.fetch_key!(@languages, language)
   end
 
-  @spec encode_language(atom) :: iodata
   def encode_language(language) do
     BiMap.fetch!(@languages, language)
   end
@@ -62,12 +52,10 @@ defmodule Noslib.Client do
                  invisible: encode_int(6)
                })
 
-  @spec decode_name_color(binary) :: atom
   def decode_name_color(name_color) do
     BiMap.fetch_key!(@name_colors, name_color)
   end
 
-  @spec encode_name_color(atom) :: iodata
   def encode_name_color(name_color) do
     BiMap.fetch!(@name_colors, name_color)
   end

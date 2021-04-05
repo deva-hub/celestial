@@ -4,58 +4,6 @@ defmodule Noslib.Hero do
   alias Noslib.{Entity, HUD, Society}
   import Noslib.Packet
 
-  @type c_info :: %{
-          name: binary,
-          group_id: pos_integer,
-          family_id: pos_integer,
-          family_name: binary,
-          id: pos_integer,
-          name_color: atom,
-          sex: atom,
-          hair_style: atom,
-          hair_color: atom,
-          class: atom,
-          reputation: atom,
-          compliment: pos_integer,
-          morph: pos_integer,
-          invisible?: boolean,
-          family_level: pos_integer,
-          morph_upgrade: non_neg_integer,
-          arena_winner?: boolean
-        }
-
-  @type tit :: %{
-          title: binary,
-          name: binary
-        }
-
-  @type fd :: %{
-          reputation: atom,
-          dignity: atom
-        }
-
-  @type lev :: %{
-          level: pos_integer,
-          job_level: pos_integer,
-          job_xp: pos_integer,
-          xp_max: pos_integer,
-          job_xp_max: pos_integer,
-          reputation: atom,
-          cp: pos_integer,
-          hero_xp: pos_integer,
-          hero_level: pos_integer,
-          hero_xp_max: pos_integer
-        }
-
-  @type at :: %{
-          id: pos_integer,
-          map_id: pos_integer,
-          coordinate_x: pos_integer,
-          coordinate_y: pos_integer,
-          music_id: pos_integer
-        }
-
-  @spec encode_c_info(c_info) :: iodata
   def encode_c_info(c_info) do
     encode_list([
       encode_string(c_info.name),
@@ -79,7 +27,6 @@ defmodule Noslib.Hero do
     ])
   end
 
-  @spec encode_tit(tit) :: iodata
   def encode_tit(tit) do
     encode_list([
       encode_string(tit.title),
@@ -87,7 +34,6 @@ defmodule Noslib.Hero do
     ])
   end
 
-  @spec encode_fd(fd) :: iodata
   def encode_fd(fd) do
     encode_list([
       Society.encode_reputation(fd.reputation),
@@ -97,7 +43,6 @@ defmodule Noslib.Hero do
     ])
   end
 
-  @spec encode_lev(lev) :: iodata
   def encode_lev(lev) do
     encode_list([
       encode_int(lev.level),
@@ -113,13 +58,12 @@ defmodule Noslib.Hero do
     ])
   end
 
-  @spec encode_at(at) :: iodata
   def encode_at(at) do
     encode_list([
       encode_int(at.id),
       encode_int(at.map_id),
-      encode_int(at.coordinate_x),
-      encode_int(at.coordinate_y),
+      encode_int(at.position.coordinate_x),
+      encode_int(at.position.coordinate_y),
       "2",
       encode_int("0"),
       encode_int(at.music_id),

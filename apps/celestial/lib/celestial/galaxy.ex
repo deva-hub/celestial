@@ -51,8 +51,9 @@ defmodule Celestial.Galaxy do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_slot(attrs \\ %{}) do
-    %Slot{}
+  def create_slot(identity, attrs \\ %{}) do
+    identity
+    |> Ecto.build_assoc(:slot)
     |> Slot.changeset(attrs)
     |> Repo.insert()
   end

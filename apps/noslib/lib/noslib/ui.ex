@@ -12,12 +12,10 @@ defmodule Noslib.HUD do
                  invisible: encode_int(6)
                })
 
-  @spec decode_name_color(binary) :: atom
   def decode_name_color(name_color) do
     BiMap.fetch_key!(@name_colors, name_color)
   end
 
-  @spec encode_name_color(atom) :: iodata
   def encode_name_color(name_color) do
     BiMap.fetch!(@name_colors, name_color)
   end
@@ -30,14 +28,12 @@ defmodule Noslib.HUD do
     useless: -801
   }
 
-  @spec dignity_icon(atom) :: integer
   def dignity_icon(dignity) do
     Enum.find_value(@dignity_icons, :stupid_minded, fn
       {icon, limit} -> if dignity < limit, do: icon
     end)
   end
 
-  @spec encode_dignity_icon(atom) :: iodata
   def encode_dignity_icon(dignity_icon) do
     BiMap.fetch!(@dignity_icons, dignity_icon)
   end

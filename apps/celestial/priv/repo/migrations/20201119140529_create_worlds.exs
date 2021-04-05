@@ -15,6 +15,6 @@ defmodule Celestial.Repo.Migrations.CreateWorlds do
       timestamps()
     end
 
-    create index(:positions, [:hero_id, :world_id], unique: true)
+    create index(:positions, [:hero_id, :world_id])
   end
 end

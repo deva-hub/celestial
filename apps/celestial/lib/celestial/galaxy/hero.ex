@@ -43,6 +43,9 @@ defmodule Celestial.Galaxy.Hero do
         :shave
       ]
 
+    field :health_points, :integer, default: 100
+    field :mana_points, :integer, default: 20
+
     field :hero_level, :integer, default: 1
     field :hero_xp, :integer, default: 0
     field :job_level, :integer, default: 1
@@ -52,6 +55,8 @@ defmodule Celestial.Galaxy.Hero do
     field :xp, :integer, default: 0
     has_one :slot, Celestial.Galaxy.Slot
     has_one :position, Celestial.Galaxy.Position
+    has_one :equipment, Celestial.Galaxy.HeroEquipment
+    has_many :pets, Celestial.Galaxy.Pet
 
     timestamps()
   end
@@ -62,8 +67,25 @@ defmodule Celestial.Galaxy.Hero do
     |> cast(attrs, [:name, :class, :sex, :hair_color, :hair_style])
     |> validate_required([:name, :class, :sex, :hair_color, :hair_style])
     |> validate_length(:name, min: 4, max: 14)
+    |> put_position()
+    |> put_equipment()
     |> cast_assoc(:slot, with: &Celestial.Galaxy.Slot.changeset/2)
     |> cast_assoc(:position, with: &Celestial.Galaxy.Position.changeset/2)
+  end
+
+  @doc false
+  defp put_position(%Ecto.Changeset{valid?: true} = changeset) do
+    change(changeset,
+      position: %{
+        coordinate_x: :rand.uniform(3) + 77,
+        coordinate_y: :rand.uniform(4) + 11
+      }
+    )
+  end
+
+  @doc false
+  defp put_equipment(%Ecto.Changeset{valid?: true} = changeset) do
+    change(changeset, equipment: %{})
   end
 
   @doc false

@@ -5,6 +5,8 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
     create table(:heroes) do
       add :name, :string
       add :index, :integer
+      add :health_points, :integer
+      add :mana_points, :integer
       add :class, :string
       add :sex, :string
       add :hair_color, :string
@@ -17,6 +19,51 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
       add :hero_xp, :integer
       timestamps()
     end
+
+    create table(:heroes_items) do
+      timestamps()
+    end
+
+    create table(:heroes_equipments) do
+      add :hat_id, references(:heroes_items)
+      add :armor_id, references(:heroes_items)
+      add :weapon_skin_id, references(:heroes_items)
+      add :main_weapon_id, references(:heroes_items)
+      add :secondary_weapon_id, references(:heroes_items)
+      add :mask_id, references(:heroes_items)
+      add :fairy_id, references(:heroes_items)
+      add :costume_suit_id, references(:heroes_items)
+      add :costume_hat_id, references(:heroes_items)
+      add :hero_id, references(:heroes)
+      timestamps()
+    end
+
+    create index(:heroes_equipments, [
+      :hat_id,
+      :armor_id,
+      :weapon_skin_id,
+      :main_weapon_id,
+      :secondary_weapon_id,
+      :mask_id,
+      :fairy_id,
+      :costume_suit_id,
+      :costume_hat_id,
+      :hero_id
+    ])
+
+    create table(:pets) do
+      add :hero_id, references(:heroes)
+      timestamps()
+    end
+
+    create index(:pets, [:hero_id])
+
+    create table(:pets_skins) do
+      add :pet_id, references(:pets)
+      timestamps()
+    end
+
+    create index(:pets_skins, [:pet_id])
 
     create table(:slots) do
       add :index, :integer

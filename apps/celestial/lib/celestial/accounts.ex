@@ -149,16 +149,20 @@ defmodule Celestial.Accounts do
   end
 
   @doc """
-  Gets the identity with the given key.
+  Gets the identity with the given key and password.
   """
-  def consume_identity_key(address, key) do
-    with {:ok, query} <- IdentityToken.verify_key_query(address, key),
-         identity when is_struct(identity) <- Repo.one(query),
-         {n, nil} when n > 0 <- Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["key"])) do
-      {:ok, identity}
-    else
-      _ ->
+  def consume_identity_key(address, key, password) do
+    case Repo.one(IdentityToken.verify_key_query(address, key)) do
+      nil ->
         :error
+
+      identity ->
+        if Identity.valid_password?(identity, password) do
+          Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["key"]))
+          {:ok, identity}
+        else
+          :error
+        end
     end
   end
 end

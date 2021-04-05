@@ -30,15 +30,16 @@ defmodule CelestialPortal.Socket do
     handle_in(socket.serializer.decode!(payload, decode_opts), socket)
   end
 
-  def handle_in(%{id: id}, %{key: nil} = socket) do
+  def handle_in(%Message{id: id}, %{key: nil} = socket) do
     {:ok, %{assign(socket, :last_message_id, id) | key: 0}}
   end
 
-  def handle_in(%Message{payload: [_, key, id, username]}, %{assigns: %{current_identity: nil}} = socket) do
+  def handle_in(%Message{payload: [_, key, id, password]}, %{assigns: %{current_identity: nil}} = socket) do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+    password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
 
-    case Accounts.consume_identity_key(address, key) do
-      {:ok, %{username: ^username} = identity} ->
+    case Accounts.consume_identity_key(address, key, password_hash) do
+      {:ok, identity} ->
         push_slots(self(), Galaxy.list_slots(identity), socket.serializer)
         {:ok, assign(socket, %{current_identity: identity, id: id})}
 
@@ -57,22 +58,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%Message{event: "Char_NEW", payload: payload}, socket) do
     %{current_identity: current_identity} = socket.assigns
 
-    attrs = %{
-      index: payload.index,
-      identity_id: current_identity.id,
-      hero: %{
-        name: payload.name,
-        sex: payload.sex,
-        hair_style: payload.hair_style,
-        hair_color: payload.hair_color,
-        position: %{
-          coordinate_x: :rand.uniform(3) + 77,
-          coordinate_y: :rand.uniform(4) + 11
-        }
-      }
-    }
-
-    case Galaxy.create_slot(attrs) do
+    case Galaxy.create_slot(current_identity, payload) do
       {:ok, _} ->
         push_slots(self(), Galaxy.list_slots(current_identity), socket.serializer)
 
@@ -84,11 +70,10 @@ defmodule CelestialPortal.Socket do
   end
 
   def handle_in(%Message{event: "Char_DEL", payload: payload}, socket) do
-    %{password: password, index: index} = payload
     %{current_identity: current_identity} = socket.assigns
 
-    if identity = Accounts.get_identity_by_username_and_password(current_identity.username, password) do
-      case Galaxy.get_slot_by_index!(current_identity, index) |> Galaxy.delete_slot() do
+    if identity = Accounts.get_identity_by_username_and_password(current_identity.username, payload.password) do
+      case Galaxy.get_slot_by_index!(current_identity, payload.index) |> Galaxy.delete_slot() do
         {:ok, _} ->
           :ok
 
@@ -133,33 +118,10 @@ defmodule CelestialPortal.Socket do
     :ok
   end
 
-  # TODO: remove placeholder data
   defp push_slots(pid, slots, serializer) do
     push(pid, "clist_start", %{length: length(slots)}, serializer)
-
-    for slot <- slots do
-      push(
-        pid,
-        "clist",
-        %{
-          index: slot.index,
-          name: slot.hero.name,
-          sex: slot.hero.sex,
-          hair_style: slot.hero.hair_style,
-          hair_color: slot.hero.hair_color,
-          class: slot.hero.class,
-          level: slot.hero.level,
-          hero_level: slot.hero.hero_level,
-          job_level: slot.hero.job_level,
-          pets: [],
-          equipments: %{}
-        },
-        serializer
-      )
-    end
-
+    for slot <- slots, do: push(pid, "clist", slot, serializer)
     push(pid, "clist_end", %{}, serializer)
-
     :ok
   end
 
