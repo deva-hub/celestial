@@ -15,8 +15,11 @@ defmodule Celestial.Repo.Migrations.CreateHeroes do
       add :job_level, :integer
       add :hero_level, :integer
       add :xp, :integer
+      add :xp_max, :integer
       add :job_xp, :integer
+      add :job_xp_max, :integer
       add :hero_xp, :integer
+      add :hero_xp_max, :integer
       timestamps()
     end
 

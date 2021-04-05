@@ -22,16 +22,11 @@ defmodule CelestialWorld.HeroEntity do
   @impl true
   def handle_continue({:init, :entity}, {socket, hero}) do
     push(socket, "c_info", %{
-      name: hero.name,
+      entity: hero.id,
       group_id: 0,
       family_id: -1,
       family_name: "beta",
-      id: hero.id,
       name_color: :white,
-      sex: hero.sex,
-      hair_style: hero.hair_style,
-      hair_color: hero.hair_color,
-      class: hero.class,
       reputation: :beginner,
       compliment: 0,
       morph: 0,
@@ -52,16 +47,9 @@ defmodule CelestialWorld.HeroEntity do
     })
 
     push(socket, "lev", %{
-      level: hero.level,
-      job_level: hero.job_level,
-      job_xp: hero.job_xp,
-      xp_max: 10_000,
-      job_xp_max: 10_000,
+      entity: hero,
       reputation: :beginner,
-      cp: 1,
-      hero_xp: hero.xp,
-      hero_level: hero.hero_level,
-      hero_xp_max: 10_000
+      cp: 1
     })
 
     push(socket, "at", %{

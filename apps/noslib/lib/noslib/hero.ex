@@ -6,17 +6,17 @@ defmodule Noslib.Hero do
 
   def encode_c_info(c_info) do
     encode_list([
-      encode_string(c_info.name),
+      encode_string(c_info.entity.name),
       encode_string(""),
       encode_int(c_info.group_id),
       encode_int(c_info.family_id),
       encode_string(c_info.family_name),
-      encode_int(c_info.id),
+      encode_int(c_info.entity.id),
       HUD.encode_name_color(c_info.name_color),
-      Entity.encode_sex(c_info.sex),
-      Entity.encode_hair_style(c_info.hair_style),
-      Entity.encode_hair_color(c_info.hair_color),
-      Entity.encode_class(c_info.class),
+      Entity.encode_sex(c_info.entity.sex),
+      Entity.encode_hair_style(c_info.entity.hair_style),
+      Entity.encode_hair_color(c_info.entity.hair_color),
+      Entity.encode_class(c_info.entity.class),
       Society.encode_reputation(c_info.reputation),
       encode_int(c_info.compliment),
       encode_int(c_info.morph),
@@ -45,16 +45,16 @@ defmodule Noslib.Hero do
 
   def encode_lev(lev) do
     encode_list([
-      encode_int(lev.level),
-      encode_int(lev.job_level),
-      encode_int(lev.job_xp),
-      encode_int(lev.xp_max),
-      encode_int(lev.job_xp_max),
+      encode_int(lev.entity.level),
+      encode_int(lev.entity.job_level),
+      encode_int(lev.entity.job_xp),
+      encode_int(lev.entity.xp_max),
+      encode_int(lev.entity.job_xp_max),
       Society.encode_reputation(lev.reputation),
       encode_int(lev.cp),
-      encode_int(lev.hero_xp),
-      encode_int(lev.hero_level),
-      encode_int(lev.hero_xp_max)
+      encode_int(lev.entity.hero_xp),
+      encode_int(lev.entity.hero_level),
+      encode_int(lev.entity.hero_xp_max)
     ])
   end
 

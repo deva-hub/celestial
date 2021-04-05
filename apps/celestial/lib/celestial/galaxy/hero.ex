@@ -46,13 +46,20 @@ defmodule Celestial.Galaxy.Hero do
     field :health_points, :integer, default: 100
     field :mana_points, :integer, default: 20
 
-    field :hero_level, :integer, default: 1
-    field :hero_xp, :integer, default: 0
-    field :job_level, :integer, default: 1
-    field :job_xp, :integer, default: 0
-    field :level, :integer, default: 1
     field :name, :string
+
+    field :hero_xp, :integer, default: 0
+    field :hero_xp_max, :integer, default: 1_000
+    field :hero_level, :integer, default: 1
+
+    field :job_xp, :integer, default: 0
+    field :job_xp_max, :integer, default: 1_000
+    field :job_level, :integer, default: 1
+
     field :xp, :integer, default: 0
+    field :xp_max, :integer, default: 1_000
+    field :level, :integer, default: 1
+
     has_one :slot, Celestial.Galaxy.Slot
     has_one :position, Celestial.Galaxy.Position
     has_one :equipment, Celestial.Galaxy.HeroEquipment
