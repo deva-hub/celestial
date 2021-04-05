@@ -48,7 +48,7 @@ defmodule Nostalex.Entity do
 
   def push(socket, event, payload) do
     message = %Message{event: event, payload: payload}
-    Process.send_after(socket.transport_pid, socket.serializer.encode!(message), 5000)
+    send(socket.transport_pid, socket.serializer.encode!(message))
     :ok
   end
 end
