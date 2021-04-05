@@ -3,7 +3,7 @@ defmodule Noslib do
   This module provides functions to work with the NostaleSE Noslib.
   """
 
-  alias Noslib.{Client, Lobby, Gateway, Character, Entity}
+  alias Noslib.{Client, Lobby, Gateway, Entity}
   import Noslib.Packet
 
   def decode(payload) when is_binary(payload) do

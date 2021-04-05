@@ -22,7 +22,7 @@ defmodule CelestialWorld.CharacterEntity do
   @impl true
   def handle_continue({:init, :entity}, {socket, character}) do
     push(socket, "c_info", %{
-      entity: character.id,
+      entity: character,
       group_id: 0,
       family_id: -1,
       family_name: "beta",

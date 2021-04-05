@@ -4,7 +4,6 @@ defmodule Celestial.Repo.Migrations.CreateCharacters do
   def change do
     create table(:characters) do
       add :name, :string
-      add :index, :integer
       add :health_points, :integer
       add :mana_points, :integer
       add :class, :string
