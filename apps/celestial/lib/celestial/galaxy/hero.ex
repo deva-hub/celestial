@@ -64,8 +64,8 @@ defmodule Celestial.Galaxy.Hero do
   @doc false
   def create_changeset(hero, attrs) do
     hero
-    |> cast(attrs, [:name, :class, :sex, :hair_color, :hair_style])
-    |> validate_required([:name, :class, :sex, :hair_color, :hair_style])
+    |> cast(attrs, [:name, :index, :class, :sex, :hair_color, :hair_style])
+    |> validate_required([:name, :index, :class, :sex, :hair_color, :hair_style])
     |> validate_length(:name, min: 4, max: 14)
     |> put_position()
     |> put_equipment()
