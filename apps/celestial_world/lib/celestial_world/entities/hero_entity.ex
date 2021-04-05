@@ -55,7 +55,7 @@ defmodule CelestialWorld.HeroEntity do
     push(socket, "at", %{
       id: hero.id,
       map_id: 1,
-      music_id: 0,
+      ambiance_id: 0,
       position: hero.position
     })
 

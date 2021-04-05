@@ -66,7 +66,7 @@ defmodule Noslib.Hero do
       encode_int(at.position.coordinate_y),
       "2",
       encode_int("0"),
-      encode_int(at.music_id),
+      encode_int(at.ambiance_id),
       "-1"
     ])
   end
