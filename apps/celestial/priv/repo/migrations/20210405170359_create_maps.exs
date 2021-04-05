@@ -1,4 +1,4 @@
-defmodule Celestial.Repo.Migrations.CreateMap do
+defmodule Celestial.Repo.Migrations.CreateMaps do
   use Ecto.Migration
 
   def change do
