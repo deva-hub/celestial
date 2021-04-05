@@ -17,8 +17,8 @@ defmodule Noslib.Entity do
       Entity.encode_hair_style(c_info.entity.hair_style),
       Entity.encode_hair_color(c_info.entity.hair_color),
       Entity.encode_class(c_info.entity.class),
-      Society.encode_reputation(c_info.reputation),
-      encode_int(c_info.compliment),
+      Society.encode_reputation(c_info.entity.reputation),
+      encode_int(c_info.entity.compliment),
       encode_int(c_info.morph),
       encode_bool(c_info.invisible?),
       encode_int(c_info.family_level),
@@ -36,10 +36,10 @@ defmodule Noslib.Entity do
 
   def encode_fd(fd) do
     encode_list([
-      Society.encode_reputation(fd.reputation),
-      encode_int(HUD.dignity_icon(fd.reputation)),
-      Society.encode_dignity(fd.dignity),
-      encode_int(HUD.reputation(fd.dignity))
+      Society.encode_reputation(fd.entity.reputation),
+      encode_int(HUD.dignity_icon(fd.entity.reputation)),
+      Society.encode_dignity(fd.entity.dignity),
+      encode_int(HUD.reputation(fd.entity.dignity))
     ])
   end
 
@@ -50,7 +50,7 @@ defmodule Noslib.Entity do
       encode_int(lev.entity.job_xp),
       encode_int(lev.entity.xp_max),
       encode_int(lev.entity.job_xp_max),
-      Society.encode_reputation(lev.reputation),
+      Society.encode_reputation(lev.entity.reputation),
       encode_int(lev.cp),
       encode_int(lev.entity.hero_xp),
       encode_int(lev.entity.hero_level),
@@ -229,15 +229,15 @@ defmodule Noslib.Entity do
       encode_int(in_.armor_upgrade),
       encode_int(in_.family_id),
       encode_string(in_.family_name),
-      Society.encode_reputation(in_.reputation),
+      Society.encode_reputation(in_.entity.reputation),
       encode_bool(in_.invisible?),
       encode_int(in_.morph_upgrade),
-      Society.encode_faction(in_.faction),
+      Society.encode_faction(in_.entity.faction),
       encode_int(in_.morph_bonus),
       encode_int(in_.entity.level),
       encode_int(in_.family_level),
       encode_string(in_.family_icons),
-      encode_int(in_.compliment),
+      encode_int(in_.entity.compliment),
       encode_int(in_.size),
       encode_int(0),
       encode_int(0),

@@ -43,6 +43,17 @@ defmodule Celestial.Galaxy.Character do
         :shave
       ]
 
+    field :faction, Ecto.Enum,
+      values: [
+        :neutre,
+        :angel,
+        :demon
+      ]
+
+    field :reputation, :integer, default: :beginner
+    field :dignity, :integer, default: :basic
+    field :compliment, :integer, default: 0
+
     field :health_points, :integer, default: 100
     field :mana_points, :integer, default: 20
 
@@ -71,8 +82,8 @@ defmodule Celestial.Galaxy.Character do
   @doc false
   def create_changeset(character, attrs) do
     character
-    |> cast(attrs, [:name, :class, :sex, :hair_color, :hair_style])
-    |> validate_required([:name, :class, :sex, :hair_color, :hair_style])
+    |> cast(attrs, [:name, :faction, :class, :sex, :hair_color, :hair_style])
+    |> validate_required([:name, :faction, :class, :sex, :hair_color, :hair_style])
     |> validate_length(:name, min: 4, max: 14)
     |> put_position()
     |> put_equipment()
@@ -98,6 +109,6 @@ defmodule Celestial.Galaxy.Character do
   @doc false
   def update_changeset(character, attrs) do
     character
-    |> cast(attrs, [:name, :class, :sex, :hair_color, :hair_style, :level, :job_level, :hero_level, :xp, :job_xp, :hero_xp])
+    |> cast(attrs, [:name, :faction, :class, :sex, :hair_color, :hair_style, :level, :job_level, :hero_level, :xp, :job_xp, :hero_xp])
   end
 end

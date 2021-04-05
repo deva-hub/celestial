@@ -16,21 +16,20 @@ defmodule CelestialWorld.CharacterEntity do
   def init({socket, character}) do
     Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
     socket = %{socket | entity: __MODULE__, entity_pid: self()}
-    {:ok, {socket, character}, {:continue, {:init, :entity}}}
+    state = %{sitting?: false, invisible?: false}
+    {:ok, {socket, character, state}, {:continue, {:init, :entity}}}
   end
 
   @impl true
-  def handle_continue({:init, :entity}, {socket, character}) do
+  def handle_continue({:init, :entity}, {socket, character, state}) do
     push(socket, "c_info", %{
       entity: character,
       group_id: 0,
       family_id: -1,
       family_name: "beta",
       name_color: :white,
-      reputation: :beginner,
-      compliment: 0,
       morph: 0,
-      invisible?: false,
+      invisible?: state.invisible?,
       family_level: -1,
       morph_upgrade: 0,
       arena_winner?: false
@@ -41,16 +40,9 @@ defmodule CelestialWorld.CharacterEntity do
       name: character.name
     })
 
-    push(socket, "fd", %{
-      reputation: :beginner,
-      dignity: :basic
-    })
+    push(socket, "fd", %{entity: character})
 
-    push(socket, "lev", %{
-      entity: character,
-      reputation: :beginner,
-      cp: 1
-    })
+    push(socket, "lev", %{entity: character, cp: 1})
 
     push(socket, "at", %{
       id: character.id,
@@ -59,10 +51,10 @@ defmodule CelestialWorld.CharacterEntity do
       position: character.position
     })
 
-    {:noreply, {socket, character}, {:continue, {:init, :presence}}}
+    {:noreply, {socket, character, state}, {:continue, {:init, :presence}}}
   end
 
-  def handle_continue({:init, :presence}, {socket, character}) do
+  def handle_continue({:init, :presence}, {socket, character, state}) do
     presences = CelestialWorld.Presence.list(socket)
 
     send(self(), %Message{
@@ -75,11 +67,11 @@ defmodule CelestialWorld.CharacterEntity do
       online_at: inspect(System.system_time(:second))
     })
 
-    {:noreply, {socket, character}}
+    {:noreply, {socket, character, state}}
   end
 
   @impl true
-  def handle_info(%Message{event: "walk", payload: payload}, {socket, character}) do
+  def handle_info(%Message{event: "walk", payload: payload}, {socket, character, state}) do
     broadcast_from!(socket, "mv", %{
       entity_type: :character,
       entity: character,
@@ -87,15 +79,15 @@ defmodule CelestialWorld.CharacterEntity do
       speed: payload.speed
     })
 
-    {:noreply, {socket, character}}
+    {:noreply, {socket, character, state}}
   end
 
   def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, character}) do
     push(socket, "mv", payload)
-    {:noreply, {socket, character}}
+    {:noreply, {socket, character, state}}
   end
 
-  def handle_info(%Message{event: "presence_diff", payload: payload}, {socket, character}) do
+  def handle_info(%Message{event: "presence_diff", payload: payload}, {socket, character, state}) do
     for {id, join} <- payload.joins do
       for %{entity: entity} <- join.metas do
         push(socket, "in", %{
@@ -106,7 +98,7 @@ defmodule CelestialWorld.CharacterEntity do
           entity: entity,
           hp_percent: 100,
           mp_percent: 100,
-          sitting?: false,
+          sitting?: state.sitting?,
           group_id: -1,
           fairy_movement: :neutre,
           fairy_element: :neutre,
@@ -116,20 +108,17 @@ defmodule CelestialWorld.CharacterEntity do
           armor_upgrade: 0,
           family_id: -1,
           family_name: "beta",
-          reputation: :beginner,
-          invisible?: false,
+          invisible?: state.invisible?,
           morph_upgrade: 0,
-          faction: :neutre,
           morph_bonus: 0,
           family_level: -1,
           family_icons: "0|0|0",
-          compliment: 0,
           size: 10
         })
       end
     end
 
-    {:noreply, {socket, character}}
+    {:noreply, {socket, character, state}}
   end
 
   def via_tuple(id) do

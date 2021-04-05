@@ -10,6 +10,10 @@ defmodule Celestial.Repo.Migrations.CreateCharacters do
       add :sex, :string
       add :hair_color, :string
       add :hair_style, :string
+      add :faction, :string
+      add :reputation, :integer
+      add :dignity, :integer
+      add :compliment, :integer
       add :level, :integer
       add :job_level, :integer
       add :hero_level, :integer
