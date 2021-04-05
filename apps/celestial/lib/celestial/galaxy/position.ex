@@ -4,6 +4,15 @@ defmodule Celestial.Galaxy.Position do
   import Ecto.Changeset
 
   schema "positions" do
+    field :direction, Ecto.Enum,
+      values: [
+        :north,
+        :south,
+        :east,
+        :west
+      ],
+      default: :south
+
     field :coordinate_x, :integer
     field :coordinate_y, :integer
     belongs_to :character, Celestial.Galaxy.Character
@@ -15,8 +24,8 @@ defmodule Celestial.Galaxy.Position do
   @doc false
   def changeset(position, attrs) do
     position
-    |> cast(attrs, [:coordinate_x, :coordinate_y, :character_id, :world_id])
-    |> validate_required([:coordinate_x, :coordinate_y])
+    |> cast(attrs, [:direction, :coordinate_x, :coordinate_y, :character_id, :world_id])
+    |> validate_required([:direction, :coordinate_x, :coordinate_y])
     |> unique_constraint([:character_id, :world_id])
     |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
     |> assoc_constraint(:character)

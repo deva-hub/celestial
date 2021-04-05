@@ -8,6 +8,7 @@ defmodule Celestial.Repo.Migrations.CreateWorlds do
     end
 
     create table(:positions) do
+      add :direction, :string
       add :coordinate_x, :integer
       add :coordinate_y, :integer
       add :character_id, references(:characters)

@@ -93,7 +93,6 @@ defmodule CelestialWorld.CharacterEntity do
         push(socket, "in", %{
           type: :character,
           id: id,
-          direction: :north,
           name_color: :white,
           entity: entity,
           hp_percent: 100,

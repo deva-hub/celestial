@@ -208,7 +208,7 @@ defmodule Noslib.Entity do
       encode_int(in_.id),
       encode_int(in_.entity.position.coordinate_x),
       encode_int(in_.entity.position.coordinate_y),
-      encode_direction(in_.direction),
+      encode_direction(in_.entity.position.direction),
       Client.encode_name_color(in_.name_color),
       encode_sex(in_.entity.sex),
       encode_hair_style(in_.entity.hair_style),
