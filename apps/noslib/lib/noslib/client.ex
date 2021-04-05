@@ -3,7 +3,7 @@ defmodule Noslib.Client do
   Client specific response.
   """
 
-  alias Noslib.Helpers
+  import Noslib.Packet
 
   @type failc :: %{error: atom}
 
@@ -16,19 +16,19 @@ defmodule Noslib.Client do
 
   @spec encode_info(info) :: iodata
   def encode_info(info) do
-    Helpers.encode_string(info.message)
+    encode_string(info.message)
   end
 
   @errors BiMap.new(%{
-            outdated_client: Helpers.encode_int(1),
-            unexpected_error: Helpers.encode_int(2),
-            maintenance: Helpers.encode_int(3),
-            session_already_used: Helpers.encode_int(4),
-            unvalid_credentials: Helpers.encode_int(5),
-            cant_authenticate: Helpers.encode_int(6),
-            citizen_blacklisted: Helpers.encode_int(7),
-            country_blacklisted: Helpers.encode_int(8),
-            bad_case: Helpers.encode_int(9)
+            outdated_client: encode_int(1),
+            unexpected_error: encode_int(2),
+            maintenance: encode_int(3),
+            session_already_used: encode_int(4),
+            unvalid_credentials: encode_int(5),
+            cant_authenticate: encode_int(6),
+            citizen_blacklisted: encode_int(7),
+            country_blacklisted: encode_int(8),
+            bad_case: encode_int(9)
           })
 
   @spec decode_error(binary) :: atom
@@ -42,8 +42,8 @@ defmodule Noslib.Client do
   end
 
   @languages BiMap.new(%{
-               kr: Helpers.encode_int(0),
-               en: Helpers.encode_int(1)
+               kr: encode_int(0),
+               en: encode_int(1)
              })
 
   @spec decode_language(binary) :: atom
@@ -57,9 +57,9 @@ defmodule Noslib.Client do
   end
 
   @name_colors BiMap.new(%{
-                 white: Helpers.encode_int(0),
-                 violet: Helpers.encode_int(2),
-                 invisible: Helpers.encode_int(6)
+                 white: encode_int(0),
+                 violet: encode_int(2),
+                 invisible: encode_int(6)
                })
 
   @spec decode_name_color(binary) :: atom

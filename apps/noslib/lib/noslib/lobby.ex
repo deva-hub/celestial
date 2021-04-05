@@ -2,7 +2,9 @@ defmodule Noslib.Lobby do
   @moduledoc """
   Responses from the world server to select a hero.
   """
-  alias Noslib.{Entity, Helpers}
+
+  alias Noslib.Entity
+  import Noslib.Packet
 
   @type equipments :: %{
           hat_id: pos_integer | nil,
@@ -69,38 +71,38 @@ defmodule Noslib.Lobby do
 
   @spec encode_clist_start(clists_start) :: iodata
   def encode_clist_start(clists_start) do
-    Helpers.encode_list([clists_start.length])
+    encode_list([clists_start.length])
   end
 
   @spec encode_clist(clist) :: iodata
   def encode_clist(clist) do
-    Helpers.encode_list([
-      Helpers.encode_int(clist.index),
+    encode_list([
+      encode_int(clist.index),
       clist.name,
-      Helpers.encode_int(0),
+      encode_int(0),
       Entity.encode_sex(clist.sex),
       Entity.encode_hair_style(clist.hair_style),
       Entity.encode_hair_color(clist.hair_color),
-      Helpers.encode_int(0),
+      encode_int(0),
       Entity.encode_class(clist.class),
-      Helpers.encode_int(clist.level),
-      Helpers.encode_int(clist.hero_level),
+      encode_int(clist.level),
+      encode_int(clist.hero_level),
       Entity.encode_equipments(%{}),
       Entity.encode_equipments(clist.equipments),
-      Helpers.encode_int(clist.job_level),
-      Helpers.encode_int("1"),
-      Helpers.encode_int("1"),
+      encode_int(clist.job_level),
+      encode_int("1"),
+      encode_int("1"),
       clist.pets
       |> Enum.map(&encode_pet/1)
-      |> Helpers.encode_list(@pets_terminator),
-      Helpers.encode_int("0")
+      |> encode_list(@pets_terminator),
+      encode_int("0")
     ])
   end
 
   defp encode_pet(pet) do
-    Helpers.encode_struct([
-      Helpers.encode_int(pet.skin_id),
-      Helpers.encode_int(pet.id)
+    encode_struct([
+      encode_int(pet.skin_id),
+      encode_int(pet.id)
     ])
   end
 end

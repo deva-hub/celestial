@@ -1,5 +1,6 @@
-defmodule Noslib.Helpers do
+defmodule Noslib.Packet do
   @moduledoc false
+
   def encode_list(list, terminator) do
     [terminator]
     |> Enum.concat(Enum.reverse(list))

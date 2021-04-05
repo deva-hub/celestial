@@ -1,6 +1,8 @@
 defmodule Noslib.Hero do
   @moduledoc false
-  alias Noslib.{Helpers, Entity, HUD, Society}
+
+  alias Noslib.{Entity, HUD, Society}
+  import Noslib.Packet
 
   @type c_info :: %{
           name: binary,
@@ -55,72 +57,72 @@ defmodule Noslib.Hero do
 
   @spec encode_c_info(c_info) :: iodata
   def encode_c_info(c_info) do
-    Helpers.encode_list([
-      Helpers.encode_string(c_info.name),
-      Helpers.encode_string(""),
-      Helpers.encode_int(c_info.group_id),
-      Helpers.encode_int(c_info.family_id),
-      Helpers.encode_string(c_info.family_name),
-      Helpers.encode_int(c_info.id),
+    encode_list([
+      encode_string(c_info.name),
+      encode_string(""),
+      encode_int(c_info.group_id),
+      encode_int(c_info.family_id),
+      encode_string(c_info.family_name),
+      encode_int(c_info.id),
       HUD.encode_name_color(c_info.name_color),
       Entity.encode_sex(c_info.sex),
       Entity.encode_hair_style(c_info.hair_style),
       Entity.encode_hair_color(c_info.hair_color),
       Entity.encode_class(c_info.class),
       Society.encode_reputation(c_info.reputation),
-      Helpers.encode_int(c_info.compliment),
-      Helpers.encode_int(c_info.morph),
-      Helpers.encode_bool(c_info.invisible?),
-      Helpers.encode_int(c_info.family_level),
-      Helpers.encode_int(c_info.morph_upgrade),
-      Helpers.encode_bool(c_info.arena_winner?)
+      encode_int(c_info.compliment),
+      encode_int(c_info.morph),
+      encode_bool(c_info.invisible?),
+      encode_int(c_info.family_level),
+      encode_int(c_info.morph_upgrade),
+      encode_bool(c_info.arena_winner?)
     ])
   end
 
   @spec encode_tit(tit) :: iodata
   def encode_tit(tit) do
-    Helpers.encode_list([
-      Helpers.encode_string(tit.title),
-      Helpers.encode_string(tit.name)
+    encode_list([
+      encode_string(tit.title),
+      encode_string(tit.name)
     ])
   end
 
   @spec encode_fd(fd) :: iodata
   def encode_fd(fd) do
-    Helpers.encode_list([
+    encode_list([
       Society.encode_reputation(fd.reputation),
-      Helpers.encode_int(HUD.dignity_icon(fd.reputation)),
+      encode_int(HUD.dignity_icon(fd.reputation)),
       Society.encode_dignity(fd.dignity),
-      Helpers.encode_int(HUD.reputation(fd.dignity))
+      encode_int(HUD.reputation(fd.dignity))
     ])
   end
 
   @spec encode_lev(lev) :: iodata
   def encode_lev(lev) do
-    Helpers.encode_list([
-      Helpers.encode_int(lev.level),
-      Helpers.encode_int(lev.job_level),
-      Helpers.encode_int(lev.job_xp),
-      Helpers.encode_int(lev.xp_max),
-      Helpers.encode_int(lev.job_xp_max),
+    encode_list([
+      encode_int(lev.level),
+      encode_int(lev.job_level),
+      encode_int(lev.job_xp),
+      encode_int(lev.xp_max),
+      encode_int(lev.job_xp_max),
       Society.encode_reputation(lev.reputation),
-      Helpers.encode_int(lev.cp),
-      Helpers.encode_int(lev.hero_xp),
-      Helpers.encode_int(lev.hero_level),
-      Helpers.encode_int(lev.hero_xp_max)
+      encode_int(lev.cp),
+      encode_int(lev.hero_xp),
+      encode_int(lev.hero_level),
+      encode_int(lev.hero_xp_max)
     ])
   end
 
   @spec encode_at(at) :: iodata
   def encode_at(at) do
-    Helpers.encode_list([
-      Helpers.encode_int(at.id),
-      Helpers.encode_int(at.map_id),
-      Helpers.encode_int(at.coordinate_x),
-      Helpers.encode_int(at.coordinate_y),
+    encode_list([
+      encode_int(at.id),
+      encode_int(at.map_id),
+      encode_int(at.coordinate_x),
+      encode_int(at.coordinate_y),
       "2",
-      Helpers.encode_int("0"),
-      Helpers.encode_int(at.music_id),
+      encode_int("0"),
+      encode_int(at.music_id),
       "-1"
     ])
   end

@@ -1,15 +1,15 @@
 defmodule Noslib.HUD do
   @moduledoc false
-  alias Noslib.Helpers
+  import Noslib.Packet
 
   @name_colors BiMap.new(%{
-                 white: Helpers.encode_int(0),
-                 # ???: Helpers.encode_int(1),
-                 purple: Helpers.encode_int(2),
-                 # ???: Helpers.encode_int(3),
-                 # ???: Helpers.encode_int(4),
-                 # ???: Helpers.encode_int(5),
-                 invisible: Helpers.encode_int(6)
+                 white: encode_int(0),
+                 # ???: encode_int(1),
+                 purple: encode_int(2),
+                 # ???: encode_int(3),
+                 # ???: encode_int(4),
+                 # ???: encode_int(5),
+                 invisible: encode_int(6)
                })
 
   @spec decode_name_color(binary) :: atom

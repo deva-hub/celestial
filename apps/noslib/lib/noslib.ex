@@ -3,7 +3,7 @@ defmodule Noslib do
   This module provides functions to work with the NostaleSE Noslib.
   """
 
-  alias Noslib.{Client, Lobby, Gateway, Hero, Entity, Helpers}
+  alias Noslib.{Client, Lobby, Gateway, Hero, Entity, Packet}
 
   def decode(payload) when is_binary(payload) do
     payload |> String.split() |> decode()
@@ -38,50 +38,50 @@ defmodule Noslib do
   end
 
   def encode(["in", payload]) do
-    Helpers.encode_list(["in", Entity.encode_in(payload)])
+    encode_list(["in", Entity.encode_in(payload)])
   end
 
   def encode(["clist_start", payload]) do
-    Helpers.encode_list(["clist_start", Lobby.encode_clist_start(payload)])
+    encode_list(["clist_start", Lobby.encode_clist_start(payload)])
   end
 
   def encode(["clist_end", _]) do
-    Helpers.encode_list(["clist_end"])
+    encode_list(["clist_end"])
   end
 
   def encode(["clist", payload]) do
-    Helpers.encode_list(["clist", Lobby.encode_clist(payload)])
+    encode_list(["clist", Lobby.encode_clist(payload)])
   end
 
   def encode(["c_info", payload]) do
-    Helpers.encode_list(["c_info", Hero.encode_c_info(payload)])
+    encode_list(["c_info", Hero.encode_c_info(payload)])
   end
 
   def encode(["failc", payload]) do
-    Helpers.encode_list(["failc", Client.encode_failc(payload)])
+    encode_list(["failc", Client.encode_failc(payload)])
   end
 
   def encode(["fd", payload]) do
-    Helpers.encode_list(["fd", Hero.encode_fd(payload)])
+    encode_list(["fd", Hero.encode_fd(payload)])
   end
 
   def encode(["tit", payload]) do
-    Helpers.encode_list(["tit", Hero.encode_tit(payload)])
+    encode_list(["tit", Hero.encode_tit(payload)])
   end
 
   def encode(["lev", payload]) do
-    Helpers.encode_list(["lev", Hero.encode_lev(payload)])
+    encode_list(["lev", Hero.encode_lev(payload)])
   end
 
   def encode(["NsTeST", payload]) do
-    Helpers.encode_list(["NsTeST", Gateway.encode_nstest(payload)])
+    encode_list(["NsTeST", Gateway.encode_nstest(payload)])
   end
 
   def encode(["at", payload]) do
-    Helpers.encode_list(["at", Hero.encode_at(payload)])
+    encode_list(["at", Hero.encode_at(payload)])
   end
 
   def encode(["mv", payload]) do
-    Helpers.encode_list(["mv", Entity.encode_mv(payload)])
+    encode_list(["mv", Entity.encode_mv(payload)])
   end
 end

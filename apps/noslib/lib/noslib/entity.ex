@@ -1,6 +1,8 @@
 defmodule Noslib.Entity do
   @moduledoc false
-  alias Noslib.{Client, Society, Helpers}
+
+  alias Noslib.{Client, Society}
+  import Noslib.Packet
 
   @type in_ :: %{
           type: atom,
@@ -48,11 +50,11 @@ defmodule Noslib.Entity do
         }
 
   @types BiMap.new(%{
-           hero: Helpers.encode_int(1),
-           npc: Helpers.encode_int(2),
-           monster: Helpers.encode_int(3),
-           map_object: Helpers.encode_int(9),
-           portal: Helpers.encode_int(1000)
+           hero: encode_int(1),
+           npc: encode_int(2),
+           monster: encode_int(3),
+           map_object: encode_int(9),
+           portal: encode_int(1000)
          })
 
   @spec decode_type(binary) :: atom
@@ -66,11 +68,11 @@ defmodule Noslib.Entity do
   end
 
   @fairy_elements BiMap.new(%{
-                    neutre: Helpers.encode_int(1),
-                    fire: Helpers.encode_int(2),
-                    water: Helpers.encode_int(3),
-                    light: Helpers.encode_int(4),
-                    darkness: Helpers.encode_int(4)
+                    neutre: encode_int(1),
+                    fire: encode_int(2),
+                    water: encode_int(3),
+                    light: encode_int(4),
+                    darkness: encode_int(4)
                   })
 
   @spec decode_fairy_element(binary) :: atom
@@ -84,8 +86,8 @@ defmodule Noslib.Entity do
   end
 
   @fairy_movements BiMap.new(%{
-                     neutre: Helpers.encode_int(0),
-                     god: Helpers.encode_int(1)
+                     neutre: encode_int(0),
+                     god: encode_int(1)
                    })
 
   @spec decode_fairy_movement(binary) :: atom
@@ -98,14 +100,14 @@ defmodule Noslib.Entity do
   end
 
   @directions BiMap.new(%{
-                north: Helpers.encode_int(1),
-                east: Helpers.encode_int(2),
-                south: Helpers.encode_int(3),
-                west: Helpers.encode_int(4),
-                north_east: Helpers.encode_int(5),
-                south_east: Helpers.encode_int(6),
-                south_west: Helpers.encode_int(7),
-                north_west: Helpers.encode_int(8)
+                north: encode_int(1),
+                east: encode_int(2),
+                south: encode_int(3),
+                west: encode_int(4),
+                north_east: encode_int(5),
+                south_east: encode_int(6),
+                south_west: encode_int(7),
+                north_west: encode_int(8)
               })
 
   @spec decode_direction(binary) :: atom
@@ -119,8 +121,8 @@ defmodule Noslib.Entity do
   end
 
   @sexs BiMap.new(%{
-          male: Helpers.encode_int(0),
-          female: Helpers.encode_int(1)
+          male: encode_int(0),
+          female: encode_int(1)
         })
 
   @spec decode_sex(binary) :: atom
@@ -134,11 +136,11 @@ defmodule Noslib.Entity do
   end
 
   @hair_styles BiMap.new(%{
-                 a: Helpers.encode_int(0),
-                 b: Helpers.encode_int(1),
-                 c: Helpers.encode_int(2),
-                 d: Helpers.encode_int(3),
-                 shave: Helpers.encode_int(4)
+                 a: encode_int(0),
+                 b: encode_int(1),
+                 c: encode_int(2),
+                 d: encode_int(3),
+                 shave: encode_int(4)
                })
 
   @spec decode_hair_style(binary) :: atom
@@ -152,16 +154,16 @@ defmodule Noslib.Entity do
   end
 
   @hair_colors BiMap.new(%{
-                 mauve_taupe: Helpers.encode_int(0),
-                 cerise: Helpers.encode_int(1),
-                 san_marino: Helpers.encode_int(2),
-                 affair: Helpers.encode_int(3),
-                 dixie: Helpers.encode_int(4),
-                 raven: Helpers.encode_int(5),
-                 killarney: Helpers.encode_int(6),
-                 nutmeg: Helpers.encode_int(7),
-                 saddle: Helpers.encode_int(8),
-                 red: Helpers.encode_int(9)
+                 mauve_taupe: encode_int(0),
+                 cerise: encode_int(1),
+                 san_marino: encode_int(2),
+                 affair: encode_int(3),
+                 dixie: encode_int(4),
+                 raven: encode_int(5),
+                 killarney: encode_int(6),
+                 nutmeg: encode_int(7),
+                 saddle: encode_int(8),
+                 red: encode_int(9)
                })
 
   @spec decode_hair_color(binary) :: atom
@@ -175,11 +177,11 @@ defmodule Noslib.Entity do
   end
 
   @classes BiMap.new(%{
-             adventurer: Helpers.encode_int(0),
-             sorcerer: Helpers.encode_int(1),
-             archer: Helpers.encode_int(2),
-             swordsman: Helpers.encode_int(3),
-             martial_artist: Helpers.encode_int(4)
+             adventurer: encode_int(0),
+             sorcerer: encode_int(1),
+             archer: encode_int(2),
+             swordsman: encode_int(3),
+             martial_artist: encode_int(4)
            })
 
   @spec decode_class(binary) :: atom
@@ -194,13 +196,13 @@ defmodule Noslib.Entity do
 
   @spec encode_in(in_) :: iodata
   def encode_in(in_) do
-    Helpers.encode_list([
+    encode_list([
       encode_type(in_.type),
-      Helpers.encode_string(in_.name),
-      Helpers.encode_string(""),
-      Helpers.encode_int(in_.id),
-      Helpers.encode_int(in_.coordinate_x),
-      Helpers.encode_int(in_.coordinate_y),
+      encode_string(in_.name),
+      encode_string(""),
+      encode_int(in_.id),
+      encode_int(in_.coordinate_x),
+      encode_int(in_.coordinate_y),
       encode_direction(in_.direction),
       Client.encode_name_color(in_.name_color),
       encode_sex(in_.sex),
@@ -208,47 +210,47 @@ defmodule Noslib.Entity do
       encode_hair_color(in_.hair_color),
       encode_class(in_.class),
       encode_equipments(in_.equipments),
-      Helpers.encode_int(in_.hp_percent),
-      Helpers.encode_int(in_.mp_percent),
-      Helpers.encode_bool(in_.sitting?),
-      Helpers.encode_int(in_.group_id),
+      encode_int(in_.hp_percent),
+      encode_int(in_.mp_percent),
+      encode_bool(in_.sitting?),
+      encode_int(in_.group_id),
       encode_fairy_movement(in_.fairy_movement),
       encode_fairy_element(in_.fairy_element),
-      Helpers.encode_int(0),
-      Helpers.encode_int(in_.fairy_morph),
-      Helpers.encode_int(0),
-      Helpers.encode_int(in_.morph),
-      Helpers.encode_int(in_.weapon_upgrade),
-      Helpers.encode_int(in_.armor_upgrade),
-      Helpers.encode_int(in_.family_id),
-      Helpers.encode_string(in_.family_name),
+      encode_int(0),
+      encode_int(in_.fairy_morph),
+      encode_int(0),
+      encode_int(in_.morph),
+      encode_int(in_.weapon_upgrade),
+      encode_int(in_.armor_upgrade),
+      encode_int(in_.family_id),
+      encode_string(in_.family_name),
       Society.encode_reputation(in_.reputation),
-      Helpers.encode_bool(in_.invisible?),
-      Helpers.encode_int(in_.morph_upgrade),
+      encode_bool(in_.invisible?),
+      encode_int(in_.morph_upgrade),
       Society.encode_faction(in_.faction),
-      Helpers.encode_int(in_.morph_bonus),
-      Helpers.encode_int(in_.level),
-      Helpers.encode_int(in_.family_level),
-      Helpers.encode_string(in_.family_icons),
-      Helpers.encode_int(in_.compliment),
-      Helpers.encode_int(in_.size),
-      Helpers.encode_int(0),
-      Helpers.encode_int(0),
-      Helpers.encode_int(0)
+      encode_int(in_.morph_bonus),
+      encode_int(in_.level),
+      encode_int(in_.family_level),
+      encode_string(in_.family_icons),
+      encode_int(in_.compliment),
+      encode_int(in_.size),
+      encode_int(0),
+      encode_int(0),
+      encode_int(0)
     ])
   end
 
   def encode_equipments(equipments) do
-    Helpers.encode_struct([
-      Map.get(equipments, :hat, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :armor, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :weapon_skin, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :main_weapon, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :secondary_weapon, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :mask, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :fairy, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :costume_suit, -1) |> Helpers.encode_int(),
-      Map.get(equipments, :costume_hat, -1) |> Helpers.encode_int()
+    encode_struct([
+      Map.get(equipments, :hat, -1) |> encode_int(),
+      Map.get(equipments, :armor, -1) |> encode_int(),
+      Map.get(equipments, :weapon_skin, -1) |> encode_int(),
+      Map.get(equipments, :main_weapon, -1) |> encode_int(),
+      Map.get(equipments, :secondary_weapon, -1) |> encode_int(),
+      Map.get(equipments, :mask, -1) |> encode_int(),
+      Map.get(equipments, :fairy, -1) |> encode_int(),
+      Map.get(equipments, :costume_suit, -1) |> encode_int(),
+      Map.get(equipments, :costume_hat, -1) |> encode_int()
     ])
   end
 
@@ -264,12 +266,12 @@ defmodule Noslib.Entity do
 
   @spec encode_mv(mv) :: iodata
   def encode_mv(mv) do
-    Helpers.encode_list([
+    encode_list([
       encode_type(mv.entity_type),
-      Helpers.encode_int(mv.entity_id),
-      Helpers.encode_int(mv.coordinate_x),
-      Helpers.encode_int(mv.coordinate_y),
-      Helpers.encode_int(mv.speed)
+      encode_int(mv.entity_id),
+      encode_int(mv.coordinate_x),
+      encode_int(mv.coordinate_y),
+      encode_int(mv.speed)
     ])
   end
 end

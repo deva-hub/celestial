@@ -3,7 +3,7 @@ defmodule Noslib.Gateway do
   Authentification response serializer.
   """
 
-  alias Noslib.Helpers
+  import Noslib.Packet
 
   @type portal :: %{
           id: pos_integer,
@@ -25,33 +25,33 @@ defmodule Noslib.Gateway do
 
   @spec encode_nstest(nstest) :: iodata
   def encode_nstest(%{username: username} = nstest) do
-    Helpers.encode_list([
-      Helpers.encode_int(nstest.key),
-      Helpers.encode_string(username),
+    encode_list([
+      encode_int(nstest.key),
+      encode_string(username),
       nstest.portals
       |> Enum.map(&encode_portal/1)
-      |> Helpers.encode_list(@portal_terminator)
+      |> encode_list(@portal_terminator)
     ])
   end
 
   def encode_nstest(nstest) do
-    Helpers.encode_list([
-      Helpers.encode_int(nstest.key),
+    encode_list([
+      encode_int(nstest.key),
       nstest.portals
       |> Enum.map(&encode_portal/1)
-      |> Helpers.encode_list(@portal_terminator)
+      |> encode_list(@portal_terminator)
     ])
   end
 
   def encode_portal(portal) do
-    Helpers.encode_tuple([
+    encode_tuple([
       encode_ip_address(portal.hostname),
-      Helpers.encode_int(portal.port),
-      Helpers.encode_int(portal_color(portal.population, portal.capacity)),
-      Helpers.encode_struct([
-        Helpers.encode_int(portal.id),
-        Helpers.encode_string(portal.world_name),
-        Helpers.encode_int(portal.channel_id)
+      encode_int(portal.port),
+      encode_int(portal_color(portal.population, portal.capacity)),
+      encode_struct([
+        encode_int(portal.id),
+        encode_string(portal.world_name),
+        encode_int(portal.channel_id)
       ])
     ])
   end
@@ -61,11 +61,11 @@ defmodule Noslib.Gateway do
   end
 
   def encode_ip_address({d1, d2, d3, d4}) do
-    Helpers.encode_struct([
-      Helpers.encode_int(d1),
-      Helpers.encode_int(d2),
-      Helpers.encode_int(d3),
-      Helpers.encode_int(d4)
+    encode_struct([
+      encode_int(d1),
+      encode_int(d2),
+      encode_int(d3),
+      encode_int(d4)
     ])
   end
 
@@ -74,7 +74,7 @@ defmodule Noslib.Gateway do
     %{
       username: username,
       password: :crypto.hash(:sha512, decrypt_password(cipher_password)),
-      version: Helpers.normalize_version(version)
+      version: normalize_version(version)
     }
   end
 
@@ -82,7 +82,7 @@ defmodule Noslib.Gateway do
     %{
       username: username,
       password: password,
-      version: Helpers.normalize_version(version),
+      version: normalize_version(version),
       checksum: checksum
     }
   end
