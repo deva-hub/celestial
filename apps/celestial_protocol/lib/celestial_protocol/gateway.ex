@@ -77,7 +77,15 @@ defmodule CelestialProtocol.Gateway do
     }
   end
 
+  def decode_nos0575([_, username, password, _, _, version, _, checksum]) do
+    decode_nos0575([username, password, version, checksum])
+  end
+
   def decode_nos0575([_, username, password, _, version, _, checksum]) do
+    decode_nos0575([username, password, version, checksum])
+  end
+
+  def decode_nos0575([username, password, version, checksum]) do
     %{
       username: username,
       password: password,
