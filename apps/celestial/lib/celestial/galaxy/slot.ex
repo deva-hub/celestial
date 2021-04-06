@@ -17,7 +17,7 @@ defmodule Celestial.Galaxy.Slot do
     slot
     |> cast(attrs, [:index])
     |> validate_required([:index])
-    |> validate_number(:index, greater_than_or_equal_to: 0, less_than_or_equal_to: 4)
+    |> validate_number(:index, greater_than_or_equal_to: 0, less_than_or_equal_to: 3)
     |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
     |> assoc_constraint(:character)
     |> unique_constraint([:index, :identity_id])
