@@ -3,36 +3,33 @@ defmodule CelestialPortal.Socket do
   @behaviour CelestialNetwork.Socket.Transport
 
   require Logger
+  import CelestialNetwork.Socket
   alias CelestialNetwork.Socket.Message
-  alias Celestial.{Accounts, Galaxy}
+  alias Celestial.Accounts
 
   @impl true
   def init(socket) do
     state = %{
       entities: %{},
       entities_inverse: %{},
-      current_identity: nil,
       last_message_id: nil,
-      step: :authentication,
-      world_id: Application.fetch_env!(:celestial_portal, :world),
-      channel_id: Application.fetch_env!(:celestial_portal, :channel)
+      step: :authentication
     }
 
     {:ok, {socket, state}}
   end
 
   @impl true
-  def handle_in({payload, opts}, {socket, state})
-      when state.step == :authentication do
+  def handle_in({payload, opts}, {socket, %{step: :authentication} = state}) do
     handle_in(socket.serializer.decode!(payload, opts), {socket, state})
   end
 
-  def handle_in({payload, opts}, {socket, state})
-      when state.step == :authorization do
+  def handle_in({payload, opts}, {socket, %{step: :authorization} = state}) do
     decode_opts = Keyword.put(opts, :key, 0)
     %{payload: [_, user_id, id, password]} = socket.serializer.decode!(payload, decode_opts)
     password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
-    message = %Message{event: "", payload: %{user_id: user_id, password_hash: password_hash}, id: id}
+    payload = %{user_id: user_id, password_hash: password_hash}
+    message = %Message{event: "connect", payload: payload, id: id}
     handle_in(message, {socket, state})
   end
 
@@ -41,89 +38,57 @@ defmodule CelestialPortal.Socket do
     handle_in(socket.serializer.decode!(payload, decode_opts), {socket, state})
   end
 
-  def handle_in(%Message{event: "0", payload: %{}, id: id}, {socket, state})
-      when state.step == :authentication do
-    state = %{state | step: :authorization, last_message_id: id}
+  def handle_in(%{event: "0"} = message, {socket, %{step: :authentication} = state}) do
+    state = %{state | step: :authorization, last_message_id: message.id}
     {:ok, {socket, state}}
   end
 
-  def handle_in(%Message{event: "", payload: payload, id: id}, {socket, state})
+  def handle_in(%{event: "connect"} = message, {socket, state})
       when state.step == :authorization do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-    user_id = String.split(payload.user_id, ":") |> List.last()
+    user_id = String.split(message.payload.user_id, ":") |> List.last()
 
-    case Accounts.consume_identity_key(address, user_id, payload.password_hash) do
+    case Accounts.consume_identity_key(address, user_id, message.payload.password_hash) do
       {:ok, identity} ->
-        slots = Galaxy.list_slots(identity)
-        send_message(socket, "clists", %{slots: slots})
-        socket = %{socket | id: user_id}
-        state = %{state | step: nil, current_identity: identity, last_message_id: id}
-        {:ok, {socket, state}}
+        socket = assign(%{socket | id: user_id}, :current_identity, identity)
+        state = %{state | step: nil}
+        handle_in(nil, message, {socket, state})
 
       :error ->
         {:stop, :normal, socket}
     end
   end
 
-  def handle_in(%Message{event: "Char_NEW", payload: payload, id: id}, {socket, state}) do
-    case Galaxy.create_slot(state.current_identity, payload) do
-      {:ok, _} ->
-        slots = Galaxy.list_slots(state.current_identity)
-        send_message(socket, "clists", %{slots: slots})
-
-      {:error, _} ->
-        send_message(socket, "failc", %{error: :unexpected_error})
-    end
-
-    {:ok, {socket, %{state | last_message_id: id}}}
+  def handle_in(%{event: "0"} = message, {socket, state}) do
+    {:ok, {socket, %{state | last_message_id: message.id}}}
   end
 
-  def handle_in(%Message{event: "Char_DEL", payload: payload, id: id}, {socket, state}) do
-    if Accounts.get_identity_by_username_and_password(state.current_identity.username, payload.password) do
-      case Galaxy.get_slot_by_index!(state.current_identity, payload.index) |> Galaxy.delete_slot() do
-        {:ok, _} ->
-          :ok
-
-        {:error, _} ->
-          send_message(socket, "failc", %{error: :unexpected_error})
-      end
-
-      slots = Galaxy.list_slots(state.current_identity)
-      send_message(socket, "clists", %{slots: slots})
-      state = %{state | last_message_id: id}
-      {:ok, {socket, state}}
-    else
-      send_message(socket, "failc", %{error: :unvalid_credentials})
-      {:ok, {socket, %{state | last_message_id: id}}}
-    end
-  end
-
-  def handle_in(%Message{event: "0", id: id}, {socket, state}) do
-    {:ok, {socket, %{state | last_message_id: id}}}
-  end
-
-  def handle_in(%Message{event: event} = message, {socket, state}) do
+  def handle_in(%{event: event} = message, {socket, state}) do
     handle_in(Map.get(state.entities, event), message, {socket, state})
   end
 
-  def handle_in(nil, %Message{event: event, payload: payload, id: id}, {socket, state}) do
-    case __entities__(event) do
+  def handle_in(nil, message, {socket, state}) do
+    case __entities__(message.event) do
+      {CelestialWorld.IdentityEntity, _} ->
+        {:ok, pid} = CelestialNetwork.EntitySupervisor.start_identity(message.event, message.payload, socket)
+        state = put_identity_entity(%{state | last_message_id: message.id}, pid, make_ref())
+        {:ok, {socket, state}}
+
       {CelestialWorld.CharacterEntity, _} ->
-        slot = Galaxy.get_slot_by_index!(state.current_identity, payload.index)
-        topic = "worlds:#{state.world_id}:channels:#{state.channel_id}"
-        {:ok, pid} = CelestialNetwork.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
-        state = put_character_entity(%{state | last_message_id: id}, pid, make_ref())
+        {:ok, pid} = CelestialNetwork.EntitySupervisor.start_character(message.event, message.payload, socket)
+        state = put_character_entity(%{state | last_message_id: message.id}, pid, make_ref())
         {:ok, {socket, state}}
 
       _ ->
-        Logger.debug("GARBAGE id=\"#{id}\" event=\"#{event}\"\n#{inspect(payload)}")
-        {:ok, {socket, %{state | last_message_id: id}}}
+        Logger.debug("GARBAGE id=\"#{message.id}\" event=\"#{message.event}\"\n#{inspect(message.payload)}")
+        {:ok, {socket, %{state | last_message_id: message.id}}}
     end
   end
 
-  def handle_in({pid, _ref}, %Message{id: id} = message, {socket, state}) do
+  def handle_in({pid, _ref}, message, {socket, state}) do
+    IO.inspect(message)
     send(pid, message)
-    {:ok, {socket, %{state | last_message_id: id}}}
+    {:ok, {socket, %{state | last_message_id: message.id}}}
   end
 
   @impl true
@@ -140,17 +105,8 @@ defmodule CelestialPortal.Socket do
     :ok
   end
 
-  defp send_message(socket, "clists", payload) do
-    send_message(socket, "clist_start", %{length: length(payload.slots)})
-    for slot <- payload.slots, do: send_message(socket, "clist", slot)
-    send_message(socket, "clist_end", %{})
-    :ok
-  end
-
-  defp send_message(socket, event, payload) do
-    message = %Message{event: event, payload: payload}
-    send(socket.transport_pid, socket.serializer.encode!(message))
-    :ok
+  defp put_identity_entity(state, pid, join_ref) do
+    put_entity(state, pid, "user", join_ref)
   end
 
   defp put_character_entity(state, pid, join_ref) do
@@ -160,21 +116,24 @@ defmodule CelestialPortal.Socket do
   end
 
   defp put_entity(state, pid, event, join_ref) do
-    %{entities: entities, entities_inverse: entities_inverse} = state
     monitor_ref = Process.monitor(pid)
 
     %{
       state
-      | entities: Map.put(entities, event, {pid, monitor_ref}),
-        entities_inverse: Map.put(entities_inverse, pid, {event, join_ref})
+      | entities: Map.put(state.entities, event, {pid, monitor_ref}),
+        entities_inverse: Map.put(state.entities_inverse, pid, {event, join_ref})
     }
   end
 
-  def __entities__("walk") do
-    {CelestialWorld.CharacterEntity, []}
+  def __entities__("connect") do
+    {CelestialWorld.IdentityEntity, []}
   end
 
   def __entities__("select") do
+    {CelestialWorld.CharacterEntity, []}
+  end
+
+  def __entities__("walk") do
     {CelestialWorld.CharacterEntity, []}
   end
 

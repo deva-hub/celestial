@@ -10,10 +10,10 @@ defmodule CelestialNetwork.EntitySupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_identity(socket, identity) do
+  def start_identity(event, params, socket) do
     spec = %{
       id: CelestialWorld.IdentityEntity,
-      start: {CelestialWorld.IdentityEntity, :start_link, [socket, identity]}
+      start: {CelestialWorld.IdentityEntity, :start_link, [event, params, socket]}
     }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
@@ -22,17 +22,17 @@ defmodule CelestialNetwork.EntitySupervisor do
 
       {:error, {:already_started, pid}} ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
-        start_identity(socket, identity)
+        start_identity(event, params, socket)
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
-  def start_character(socket, character) do
+  def start_character(event, params, socket) do
     spec = %{
       id: CelestialWorld.CharacterEntity,
-      start: {CelestialWorld.CharacterEntity, :start_link, [socket, character]}
+      start: {CelestialWorld.CharacterEntity, :start_link, [event, params, socket]}
     }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
@@ -41,7 +41,7 @@ defmodule CelestialNetwork.EntitySupervisor do
 
       {:error, {:already_started, pid}} ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
-        start_character(socket, character)
+        start_character(event, params, socket)
 
       {:error, reason} ->
         {:error, reason}

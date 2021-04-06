@@ -3,18 +3,24 @@ defmodule CelestialWorld.CharacterEntity do
   import CelestialNetwork.Entity
   alias CelestialNetwork.Socket
   alias CelestialNetwork.Socket.{Message, Broadcast}
+  alias Celestial.Galaxy
 
-  def start_link(%Socket{} = socket, character) do
-    GenServer.start_link(__MODULE__, {socket, character},
-      name: via_tuple(character.id),
+  def start_link("select", params, %Socket{} = socket) do
+    slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, params.index)
+
+    GenServer.start_link(__MODULE__, {socket, slot.character},
+      name: via_tuple(slot.character.id),
       hibernate_after: :timer.minutes(5)
     )
   end
 
   @impl true
   def init({socket, character}) do
-    Phoenix.PubSub.subscribe(Celestial.PubSub, socket.topic)
-    socket = %{socket | entity: __MODULE__, entity_pid: self()}
+    world_id = Application.fetch_env!(:celestial_portal, :world)
+    channel_id = Application.fetch_env!(:celestial_portal, :channel)
+    topic = "characters:#{character.id}:worlds:#{world_id}:channels:#{channel_id}"
+    socket = %{socket | entity: __MODULE__, entity_pid: self(), topic: topic}
+    Phoenix.PubSub.subscribe(Celestial.PubSub, topic)
     state = %{sitting?: false, invisible?: false}
     {:ok, {socket, character, state}, {:continue, {:init, :entity}}}
   end
