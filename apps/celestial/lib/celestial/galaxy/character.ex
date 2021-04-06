@@ -50,8 +50,58 @@ defmodule Celestial.Galaxy.Character do
         :demon
       ]
 
-    field :reputation, :integer, default: :beginner
-    field :dignity, :integer, default: :basic
+    field :reputation, Ecto.Enum,
+      values: [
+        :stupid_minded,
+        :useless,
+        :not_qualified_for,
+        :bluffed_name_only,
+        :suspected,
+        :basic,
+        :beginner,
+        :trainee_g,
+        :trainee_b,
+        :trainee_r,
+        :the_experienced_g,
+        :the_experienced_b,
+        :the_experienced_r,
+        :battle_soldier_g,
+        :battle_soldier_b,
+        :battle_soldier_r,
+        :expert_g,
+        :expert_b,
+        :expert_r,
+        :leader_g,
+        :leader_b,
+        :leader_r,
+        :master_g,
+        :master_b,
+        :master_r,
+        :nos_g,
+        :nos_b,
+        :nos_r,
+        :elite_g,
+        :elite_b,
+        :elite_r,
+        :legend_g,
+        :legend_b,
+        :ancien_hero,
+        :mysterious_hero,
+        :legendary_hero
+      ],
+      default: :beginner
+
+    field :dignity, Ecto.Enum,
+      values: [
+        :basic,
+        :suspected,
+        :bluffed_name_only,
+        :not_qualified_for,
+        :useless,
+        :stupid_minded
+      ],
+      default: :basic
+
     field :compliment, :integer, default: 0
 
     field :health_points, :integer, default: 100
