@@ -3,7 +3,6 @@ defmodule CelestialPortal.Socket do
   @behaviour CelestialNetwork.Socket.Transport
 
   require Logger
-  import CelestialNetwork.Socket
   alias CelestialNetwork.Socket.Message
   alias Celestial.{Accounts, Galaxy}
 
@@ -18,73 +17,78 @@ defmodule CelestialPortal.Socket do
       channel_id: Application.fetch_env!(:celestial_portal, :channel)
     }
 
-    {:ok, assign(socket, state)}
+    {:ok, {socket, state}}
   end
 
   @impl true
-  def handle_in({payload, opts}, %{assigns: %{step: :authentication}} = socket) do
-    handle_in(socket.serializer.decode!(payload, opts), socket)
+  def handle_in({payload, opts}, {socket, state})
+      when state.step == :authentication do
+    handle_in(socket.serializer.decode!(payload, opts), {socket, state})
   end
 
-  def handle_in({payload, opts}, %{assigns: %{step: :authorization}} = socket) do
+  def handle_in({payload, opts}, {socket, state})
+      when state.step == :authorization do
     decode_opts = Keyword.put(opts, :key, 0)
     %{payload: [_, user_id, id, password]} = socket.serializer.decode!(payload, decode_opts)
     password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
-    handle_in(%Message{event: "", payload: %{user_id: user_id, password_hash: password_hash}, id: id}, socket)
+    message = %Message{event: "", payload: %{user_id: user_id, password_hash: password_hash}, id: id}
+    handle_in(message, {socket, state})
   end
 
-  def handle_in({payload, opts}, socket) do
+  def handle_in({payload, opts}, {socket, state}) do
     decode_opts = Keyword.put(opts, :key, 0)
-    handle_in(socket.serializer.decode!(payload, decode_opts), socket)
+    handle_in(socket.serializer.decode!(payload, decode_opts), {socket, state})
   end
 
-  def handle_in(%Message{event: "0", payload: %{}, id: id}, %{assigns: %{step: :authentication}} = socket) do
-    {:ok, assign(socket, %{step: :authorization, last_message_id: id})}
+  def handle_in(%Message{event: "0", payload: %{}, id: id}, {socket, state})
+      when state.step == :authentication do
+    state = %{state | step: :authorization, last_message_id: id}
+    {:ok, {socket, state}}
   end
 
-  def handle_in(%Message{event: "", payload: payload, id: id}, %{assigns: %{step: :authorization}} = socket) do
+  def handle_in(%Message{event: "", payload: payload, id: id}, {socket, state})
+      when state.step == :authorization do
     address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
     user_id = String.split(payload.user_id, ":") |> List.last()
 
     case Accounts.consume_identity_key(address, user_id, payload.password_hash) do
       {:ok, identity} ->
-        socket = %{socket | id: user_id}
         slots = Galaxy.list_slots(identity)
         send_message(socket, "clists", %{slots: slots})
-        {:ok, assign(socket, %{step: nil, current_identity: identity, last_message_id: id})}
+        socket = %{socket | id: user_id}
+        state = %{state | step: nil, current_identity: identity, last_message_id: id}
+        {:ok, {socket, state}}
 
       :error ->
         {:stop, :normal, socket}
     end
   end
 
-  def handle_in(%Message{event: "select", payload: payload, id: id}, socket) do
-    slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, payload.index)
-    topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
+  def handle_in(%Message{event: "select", payload: payload, id: id}, {socket, state}) do
+    slot = Galaxy.get_slot_by_index!(state.current_identity, payload.index)
+    topic = "worlds:#{state.world_id}:channels:#{state.channel_id}"
     {:ok, entity_pid} = CelestialNetwork.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
-    {:ok, assign(%{socket | entity_pid: entity_pid}, %{last_message_id: id})}
+    socket = %{socket | entity_pid: entity_pid}
+    state = %{state | last_message_id: id}
+    {:ok, {socket, state}}
   end
 
-  def handle_in(%Message{event: "Char_NEW", payload: payload, id: id}, socket) do
-    %{current_identity: current_identity} = socket.assigns
-
-    case Galaxy.create_slot(current_identity, payload) do
+  def handle_in(%Message{event: "Char_NEW", payload: payload, id: id}, {socket, state}) do
+    case Galaxy.create_slot(state.current_identity, payload) do
       {:ok, _} ->
-        slots = Galaxy.list_slots(current_identity)
+        slots = Galaxy.list_slots(state.current_identity)
         send_message(socket, "clists", %{slots: slots})
 
       {:error, _} ->
         send_message(socket, "failc", %{error: :unexpected_error})
     end
 
-    {:ok, assign(socket, %{last_message_id: id})}
+    {:ok, {socket, %{state | last_message_id: id}}}
   end
 
-  def handle_in(%Message{event: "Char_DEL", payload: payload, id: id}, socket) do
-    %{current_identity: current_identity} = socket.assigns
-
-    if identity = Accounts.get_identity_by_username_and_password(current_identity.username, payload.password) do
-      case Galaxy.get_slot_by_index!(current_identity, payload.index) |> Galaxy.delete_slot() do
+  def handle_in(%Message{event: "Char_DEL", payload: payload, id: id}, {socket, state}) do
+    if Accounts.get_identity_by_username_and_password(state.current_identity.username, payload.password) do
+      case Galaxy.get_slot_by_index!(state.current_identity, payload.index) |> Galaxy.delete_slot() do
         {:ok, _} ->
           :ok
 
@@ -92,37 +96,37 @@ defmodule CelestialPortal.Socket do
           send_message(socket, "failc", %{error: :unexpected_error})
       end
 
-      slots = Galaxy.list_slots(current_identity)
+      slots = Galaxy.list_slots(state.current_identity)
       send_message(socket, "clists", %{slots: slots})
-
-      {:ok, assign(socket, %{current_identity: identity, last_message_id: id})}
+      state = %{state | last_message_id: id}
+      {:ok, {socket, state}}
     else
       send_message(socket, "failc", %{error: :unvalid_credentials})
-      {:ok, assign(socket, %{last_message_id: id})}
+      {:ok, {socket, %{state | last_message_id: id}}}
     end
   end
 
-  def handle_in(%Message{event: "0", id: id}, socket) do
-    {:ok, assign(socket, :last_message_id, id)}
+  def handle_in(%Message{event: "0", id: id}, {socket, state}) do
+    {:ok, {socket, %{state | last_message_id: id}}}
   end
 
-  def handle_in(%Message{event: "walk", id: id} = message, socket) do
+  def handle_in(%Message{event: "walk", id: id} = message, {socket, state}) do
     send(socket.entity_pid, message)
-    {:ok, assign(socket, :last_message_id, id)}
+    {:ok, {socket, %{state | last_message_id: id}}}
   end
 
-  def handle_in(%Message{event: event, payload: payload, id: id}, socket) do
+  def handle_in(%Message{event: event, payload: payload, id: id}, {socket, state}) do
     Logger.debug("GARBAGE id=\"#{id}\" event=\"#{event}\"\n#{inspect(payload)}")
-    {:ok, assign(socket, :last_message_id, id)}
+    {:ok, {socket, %{state | last_message_id: id}}}
   end
 
   @impl true
-  def handle_info({:socket_push, opcode, payload}, socket) do
-    {:push, {opcode, payload}, socket}
+  def handle_info({:socket_push, opcode, payload}, {socket, state}) do
+    {:push, {opcode, payload}, {socket, state}}
   end
 
-  def handle_info(_, socket) do
-    {:ok, socket}
+  def handle_info(_, {socket, state}) do
+    {:ok, {socket, state}}
   end
 
   @impl true
