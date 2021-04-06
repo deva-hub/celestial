@@ -33,8 +33,8 @@ defmodule CelestialGateway.MixProject do
     [
       {:celestial, in_umbrella: true},
       {:celestial_portal, in_umbrella: true},
-      {:nostalex, in_umbrella: true},
-      {:noslib, in_umbrella: true}
+      {:celestial_network, in_umbrella: true},
+      {:celestial_protocol, in_umbrella: true}
     ]
   end
 

@@ -32,7 +32,7 @@ defmodule CelestialWorld.MixProject do
   defp deps do
     [
       {:celestial, in_umbrella: true},
-      {:nostalex, in_umbrella: true},
+      {:celestial_network, in_umbrella: true},
       {:phoenix_pubsub, "~> 2.0"}
     ]
   end

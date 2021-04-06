@@ -35,7 +35,7 @@ defmodule CelestialPortal.Application do
          port: port
        ]},
       # Start the TCP Server
-      {Nostalex.Endpoint,
+      {CelestialNetwork.Endpoint,
        [
          port: port,
          handler: CelestialPortal.Socket,

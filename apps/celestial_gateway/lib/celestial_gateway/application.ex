@@ -12,7 +12,7 @@ defmodule CelestialGateway.Application do
 
     children = [
       # Start the TCP Server
-      {Nostalex.Endpoint,
+      {CelestialNetwork.Endpoint,
        port: port,
        handler: CelestialGateway.Socket,
        handler_opts: [

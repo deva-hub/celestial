@@ -1,0 +1,2 @@
+defmodule CelestialNetwork do
+end

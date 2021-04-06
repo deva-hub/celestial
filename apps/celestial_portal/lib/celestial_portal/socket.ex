@@ -1,10 +1,10 @@
 defmodule CelestialPortal.Socket do
   @moduledoc false
-  @behaviour Nostalex.Socket.Transport
+  @behaviour CelestialNetwork.Socket.Transport
 
   require Logger
-  import Nostalex.Socket
-  alias Nostalex.Socket.Message
+  import CelestialNetwork.Socket
+  alias CelestialNetwork.Socket.Message
   alias Celestial.{Accounts, Galaxy}
 
   @impl true
@@ -51,7 +51,7 @@ defmodule CelestialPortal.Socket do
   def handle_in(%Message{event: "select", payload: payload, id: id}, socket) do
     slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, payload.index)
     topic = "worlds:#{socket.assigns.world_id}:channels:#{socket.assigns.channel_id}"
-    {:ok, entity_pid} = Nostalex.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
+    {:ok, entity_pid} = CelestialNetwork.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
     {:ok, assign(%{socket | entity_pid: entity_pid}, %{last_message_id: id})}
   end
 

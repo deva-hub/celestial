@@ -1,6 +1,6 @@
 defmodule CelestialGateway.Socket do
   @moduledoc false
-  use Nostalex.Gateway
+  use CelestialNetwork.Gateway
 
   require Logger
   alias Celestial.Accounts

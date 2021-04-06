@@ -1,4 +1,4 @@
-defmodule Nostalex.EntitySupervisor do
+defmodule CelestialNetwork.EntitySupervisor do
   use DynamicSupervisor
 
   def start_link(opts) do

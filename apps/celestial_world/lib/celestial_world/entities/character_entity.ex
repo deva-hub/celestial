@@ -1,9 +1,9 @@
 defmodule CelestialWorld.CharacterEntity do
   use GenServer
 
-  import Nostalex.Entity
-  alias Nostalex.Socket
-  alias Nostalex.Socket.{Message, Broadcast}
+  import CelestialNetwork.Entity
+  alias CelestialNetwork.Socket
+  alias CelestialNetwork.Socket.{Message, Broadcast}
 
   def start_link(%Socket{} = socket, character) do
     GenServer.start_link(__MODULE__, {socket, character},

@@ -22,8 +22,8 @@ COPY apps/celestial/mix.exs apps/celestial/
 COPY apps/celestial_gateway/mix.exs apps/celestial_gateway/
 COPY apps/celestial_portal/mix.exs apps/celestial_portal/
 COPY apps/celestial_web/mix.exs apps/celestial_web/
-COPY apps/noslib/mix.exs apps/noslib/
-COPY apps/nostalex/mix.exs apps/nostalex/
+COPY apps/celestial_protocol/mix.exs apps/celestial_protocol/
+COPY apps/celestial_network/mix.exs apps/celestial_network/
 
 # Pull config
 COPY config config
