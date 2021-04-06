@@ -9,8 +9,9 @@ defmodule CelestialPortal.Socket do
   @impl true
   def init(socket) do
     state = %{
+      entities: %{},
+      entities_inverse: %{},
       current_identity: nil,
-      entity_pid: nil,
       last_message_id: nil,
       step: :authentication,
       world_id: Application.fetch_env!(:celestial_portal, :world),
@@ -64,15 +65,6 @@ defmodule CelestialPortal.Socket do
     end
   end
 
-  def handle_in(%Message{event: "select", payload: payload, id: id}, {socket, state}) do
-    slot = Galaxy.get_slot_by_index!(state.current_identity, payload.index)
-    topic = "worlds:#{state.world_id}:channels:#{state.channel_id}"
-    {:ok, entity_pid} = CelestialNetwork.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
-    socket = %{socket | entity_pid: entity_pid}
-    state = %{state | last_message_id: id}
-    {:ok, {socket, state}}
-  end
-
   def handle_in(%Message{event: "Char_NEW", payload: payload, id: id}, {socket, state}) do
     case Galaxy.create_slot(state.current_identity, payload) do
       {:ok, _} ->
@@ -110,13 +102,27 @@ defmodule CelestialPortal.Socket do
     {:ok, {socket, %{state | last_message_id: id}}}
   end
 
-  def handle_in(%Message{event: "walk", id: id} = message, {socket, state}) do
-    send(socket.entity_pid, message)
-    {:ok, {socket, %{state | last_message_id: id}}}
+  def handle_in(%Message{event: event} = message, {socket, state}) do
+    handle_in(Map.get(state.entities, event), message, {socket, state})
   end
 
-  def handle_in(%Message{event: event, payload: payload, id: id}, {socket, state}) do
-    Logger.debug("GARBAGE id=\"#{id}\" event=\"#{event}\"\n#{inspect(payload)}")
+  def handle_in(nil, %Message{event: event, payload: payload, id: id}, {socket, state}) do
+    case __entities__(event) do
+      {CelestialWorld.CharacterEntity, _} ->
+        slot = Galaxy.get_slot_by_index!(state.current_identity, payload.index)
+        topic = "worlds:#{state.world_id}:channels:#{state.channel_id}"
+        {:ok, pid} = CelestialNetwork.EntitySupervisor.start_character(%{socket | topic: topic}, slot.character)
+        state = put_character_entity(%{state | last_message_id: id}, pid, make_ref())
+        {:ok, {socket, state}}
+
+      _ ->
+        Logger.debug("GARBAGE id=\"#{id}\" event=\"#{event}\"\n#{inspect(payload)}")
+        {:ok, {socket, %{state | last_message_id: id}}}
+    end
+  end
+
+  def handle_in({pid, _ref}, %Message{id: id} = message, {socket, state}) do
+    send(pid, message)
     {:ok, {socket, %{state | last_message_id: id}}}
   end
 
@@ -145,5 +151,34 @@ defmodule CelestialPortal.Socket do
     message = %Message{event: event, payload: payload}
     send(socket.transport_pid, socket.serializer.encode!(message))
     :ok
+  end
+
+  defp put_character_entity(state, pid, join_ref) do
+    for event <- ["walk", "select"], reduce: state do
+      acc -> put_entity(acc, pid, event, join_ref)
+    end
+  end
+
+  defp put_entity(state, pid, event, join_ref) do
+    %{entities: entities, entities_inverse: entities_inverse} = state
+    monitor_ref = Process.monitor(pid)
+
+    %{
+      state
+      | entities: Map.put(entities, event, {pid, monitor_ref}),
+        entities_inverse: Map.put(entities_inverse, pid, {event, join_ref})
+    }
+  end
+
+  def __entities__("walk") do
+    {CelestialWorld.CharacterEntity, []}
+  end
+
+  def __entities__("select") do
+    {CelestialWorld.CharacterEntity, []}
+  end
+
+  def __entities__(_) do
+    nil
   end
 end
