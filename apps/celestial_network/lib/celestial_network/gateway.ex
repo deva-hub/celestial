@@ -11,7 +11,7 @@ defmodule CelestialNetwork.Gateway do
 
   @callback portals(Socket.t()) :: list(map)
 
-  @callback id(Socket.t()) :: non_neg_integer() | nil
+  @callback id(Socket.t()) :: binary() | nil
 
   defmacro __using__(opts) do
     quote location: :keep do
@@ -93,7 +93,11 @@ defmodule CelestialNetwork.Gateway do
             send_message(socket, "failc", %{error: :session_already_used})
 
           {portals, user_id} ->
-            send_message(socket, "NsTeST", %{username: payload.username, user_id: user_id, portals: portals})
+            send_message(socket, "NsTeST", %{
+              username: payload.username,
+              user_id: user_id,
+              portals: portals
+            })
         end
 
         {:ok, socket}
