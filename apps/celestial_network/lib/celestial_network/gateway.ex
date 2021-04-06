@@ -20,7 +20,7 @@ defmodule CelestialNetwork.Gateway do
 
       import CelestialNetwork.Socket
 
-      @celestial_network_gateway_options unquote(opts)
+      @celestial_gateway_options unquote(opts)
 
       @impl true
       @doc false

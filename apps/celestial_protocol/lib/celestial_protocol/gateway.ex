@@ -69,7 +69,6 @@ defmodule CelestialProtocol.Gateway do
     ])
   end
 
-  @spec decode_nos0575([binary]) :: map
   def decode_nos0575([_, username, cipher_password, _, version]) do
     %{
       username: username,
