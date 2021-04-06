@@ -21,7 +21,7 @@ defmodule CelestialProtocol.HUD do
   end
 
   @dignity_icons %{
-    basic: -100,
+    neutral: -100,
     suspected: -201,
     bluffed_name_only: -401,
     not_qualified_for: -601,
@@ -44,7 +44,7 @@ defmodule CelestialProtocol.HUD do
     not_qualified_for: -400,
     bluffed_name_only: -200,
     suspected: -99,
-    basic: 0,
+    neutral: 0,
     beginner: 250,
     trainee_g: 500,
     trainee_b: 750,

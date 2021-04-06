@@ -45,10 +45,11 @@ defmodule Celestial.Galaxy.Character do
 
     field :faction, Ecto.Enum,
       values: [
-        :neutre,
+        :neutral,
         :angel,
         :demon
-      ]
+      ],
+      default: :neutral
 
     field :reputation, Ecto.Enum,
       values: [
@@ -57,7 +58,7 @@ defmodule Celestial.Galaxy.Character do
         :not_qualified_for,
         :bluffed_name_only,
         :suspected,
-        :basic,
+        :neutral,
         :beginner,
         :trainee_g,
         :trainee_b,
@@ -93,14 +94,14 @@ defmodule Celestial.Galaxy.Character do
 
     field :dignity, Ecto.Enum,
       values: [
-        :basic,
+        :neutral,
         :suspected,
         :bluffed_name_only,
         :not_qualified_for,
         :useless,
         :stupid_minded
       ],
-      default: :basic
+      default: :neutral
 
     field :compliment, :integer, default: 0
 

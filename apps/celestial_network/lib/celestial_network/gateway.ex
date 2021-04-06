@@ -9,9 +9,9 @@ defmodule CelestialNetwork.Gateway do
 
   @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
 
-  @callback key(Socket.t()) :: non_neg_integer() | nil
-
   @callback portals(Socket.t()) :: list(map)
+
+  @callback id(Socket.t()) :: non_neg_integer() | nil
 
   defmacro __using__(opts) do
     quote location: :keep do
@@ -25,7 +25,7 @@ defmodule CelestialNetwork.Gateway do
       @impl true
       @doc false
       def init(state) do
-        CelestialNetwork.Portal.__init__(state)
+        CelestialNetwork.Gateway.__init__(state)
       end
 
       @impl true
@@ -60,30 +60,8 @@ defmodule CelestialNetwork.Gateway do
     if Version.match?(payload.version, @version_requirement) do
       authenticate(gateway, payload, socket)
     else
-      send_error(socket, :outdated_client)
+      send_message(socket, "failc", %{error: :outdated_client})
       {:ok, socket}
-    end
-  end
-
-  defp authenticate(gateway, payload, socket) do
-    case gateway.connect(payload, socket) do
-      {:ok, socket} ->
-        case {gateway.portals(socket), gateway.key(socket)} do
-          {[], _} ->
-            send_error(socket, :maintenance)
-
-          {_, nil} ->
-            send_error(socket, :session_already_used)
-
-          {portals, key} ->
-            send_nstest(socket, payload.username, key, portals)
-        end
-
-        {:ok, socket}
-
-      :error ->
-        send_error(socket, :unvalid_credentials)
-        {:ok, socket}
     end
   end
 
@@ -104,12 +82,26 @@ defmodule CelestialNetwork.Gateway do
     :ok
   end
 
-  defp send_nstest(socket, username, key, portals) do
-    send_message(socket, "NsTeST", %{username: username, key: key, portals: portals})
-  end
+  defp authenticate(gateway, payload, socket) do
+    case gateway.connect(payload, socket) do
+      {:ok, socket} ->
+        case {gateway.portals(socket), gateway.id(socket)} do
+          {[], _} ->
+            send_message(socket, "failc", %{error: :maintenance})
 
-  defp send_error(socket, reason) do
-    send_message(socket, "failc", %{error: reason})
+          {_, nil} ->
+            send_message(socket, "failc", %{error: :session_already_used})
+
+          {portals, user_id} ->
+            send_message(socket, "NsTeST", %{username: payload.username, user_id: user_id, portals: portals})
+        end
+
+        {:ok, socket}
+
+      :error ->
+        send_message(socket, "failc", %{error: :unvalid_credentials})
+        {:ok, socket}
+    end
   end
 
   defp send_message(socket, event, payload) do

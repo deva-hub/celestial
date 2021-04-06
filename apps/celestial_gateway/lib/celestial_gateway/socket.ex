@@ -16,12 +16,6 @@ defmodule CelestialGateway.Socket do
   end
 
   @impl true
-  def key(socket) do
-    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-    Accounts.generate_identity_key(address, socket.assigns.current_identity)
-  end
-
-  @impl true
   def portals(_socket) do
     for {id, %{metas: [meta]}} <- Presence.list("portals") do
       %{
@@ -34,5 +28,12 @@ defmodule CelestialGateway.Socket do
         capacity: meta.capacity
       }
     end
+  end
+
+  @impl true
+  def id(socket) do
+    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+    user_id = Accounts.generate_identity_key(address, socket.assigns.current_identity)
+    "users:#{user_id}"
   end
 end

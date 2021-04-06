@@ -46,6 +46,13 @@ defmodule CelestialNetwork.Entity do
     Phoenix.PubSub.broadcast_from!(pubsub_server, entity_pid, topic, message)
   end
 
+  def push(socket, "clists", payload) do
+    push(socket, "clist_start", %{length: length(payload.slots)})
+    for slot <- payload.slots, do: push(socket, "clist", slot)
+    push(socket, "clist_end", %{})
+    :ok
+  end
+
   def push(socket, event, payload) do
     message = %Message{event: event, payload: payload}
     send(socket.transport_pid, socket.serializer.encode!(message))

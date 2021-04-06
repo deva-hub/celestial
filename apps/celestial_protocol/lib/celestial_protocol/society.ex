@@ -10,7 +10,7 @@ defmodule CelestialProtocol.Society do
                  not_qualified_for: encode_int(-4),
                  bluffed_name_only: encode_int(-3),
                  suspected: encode_int(-2),
-                 basic: encode_int(-1),
+                 neutral: encode_int(-1),
                  beginner: encode_int(1),
                  # ???: encode_int(2),
                  # ???: encode_int(3),
@@ -54,7 +54,7 @@ defmodule CelestialProtocol.Society do
   end
 
   @dignities BiMap.new(%{
-               basic: encode_int(1),
+               neutral: encode_int(1),
                suspected: encode_int(2),
                bluffed_name_only: encode_int(3),
                not_qualified_for: encode_int(4),
@@ -71,7 +71,7 @@ defmodule CelestialProtocol.Society do
   end
 
   @factions BiMap.new(%{
-              neutre: encode_int(0),
+              neutral: encode_int(0),
               angel: encode_int(1),
               demon: encode_int(2)
             })

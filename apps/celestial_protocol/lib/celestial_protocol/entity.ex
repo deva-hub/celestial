@@ -61,12 +61,12 @@ defmodule CelestialProtocol.Entity do
   def encode_at(at) do
     encode_list([
       encode_int(at.id),
-      encode_int(at.map),
+      encode_int(at.map.id),
       encode_int(at.position.coordinate_x),
       encode_int(at.position.coordinate_y),
       "2",
       encode_int("0"),
-      encode_int(at.ambiance),
+      encode_int(at.ambiance.id),
       "-1"
     ])
   end
@@ -88,7 +88,7 @@ defmodule CelestialProtocol.Entity do
   end
 
   @fairy_elements BiMap.new(%{
-                    neutre: encode_int(1),
+                    neutral: encode_int(1),
                     fire: encode_int(2),
                     water: encode_int(3),
                     light: encode_int(4),
@@ -104,7 +104,7 @@ defmodule CelestialProtocol.Entity do
   end
 
   @fairy_movements BiMap.new(%{
-                     neutre: encode_int(0),
+                     neutral: encode_int(0),
                      god: encode_int(1)
                    })
 

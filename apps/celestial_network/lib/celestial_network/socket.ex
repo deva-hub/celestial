@@ -8,9 +8,9 @@ defmodule CelestialNetwork.Socket do
     defexception [:message]
   end
 
-  defstruct assigns: %{},
+  defstruct id: nil,
+            assigns: %{},
             connect_info: %{},
-            key: nil,
             type: nil,
             pubsub_server: nil,
             entity: nil,

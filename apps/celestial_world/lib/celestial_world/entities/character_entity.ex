@@ -1,6 +1,5 @@
 defmodule CelestialWorld.CharacterEntity do
   use GenServer
-
   import CelestialNetwork.Entity
   alias CelestialNetwork.Socket
   alias CelestialNetwork.Socket.{Message, Broadcast}
@@ -82,7 +81,7 @@ defmodule CelestialWorld.CharacterEntity do
     {:noreply, {socket, character, state}}
   end
 
-  def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, character}) do
+  def handle_info(%Broadcast{event: "mv", topic: topic, payload: payload}, {%{topic: topic} = socket, character, state}) do
     push(socket, "mv", payload)
     {:noreply, {socket, character, state}}
   end
@@ -99,8 +98,8 @@ defmodule CelestialWorld.CharacterEntity do
           mp_percent: 100,
           sitting?: state.sitting?,
           group_id: -1,
-          fairy_movement: :neutre,
-          fairy_element: :neutre,
+          fairy_movement: :neutral,
+          fairy_element: :neutral,
           fairy_morph: 0,
           morph: 0,
           weapon_upgrade: 0,

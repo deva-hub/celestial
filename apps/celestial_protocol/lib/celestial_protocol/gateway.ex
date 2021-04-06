@@ -16,7 +16,7 @@ defmodule CelestialProtocol.Gateway do
         }
 
   @type nstest :: %{
-          key: pos_integer,
+          user_id: pos_integer,
           username: binary,
           portals: [portal]
         }
@@ -26,7 +26,7 @@ defmodule CelestialProtocol.Gateway do
   @spec encode_nstest(nstest) :: iodata
   def encode_nstest(%{username: username} = nstest) do
     encode_list([
-      encode_int(nstest.key),
+      encode_int(nstest.user_id),
       encode_string(username),
       nstest.portals
       |> Enum.map(&encode_portal/1)
@@ -36,7 +36,7 @@ defmodule CelestialProtocol.Gateway do
 
   def encode_nstest(nstest) do
     encode_list([
-      encode_int(nstest.key),
+      encode_int(nstest.id),
       nstest.portals
       |> Enum.map(&encode_portal/1)
       |> encode_list(@portal_terminator)
