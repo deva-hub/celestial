@@ -3,7 +3,7 @@ defmodule Celestial.Galaxy.CharacterItem do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "characters_items" do
+  schema "character_items" do
     belongs_to :character_equipment, Celestial.Galaxy.CharacterEquipment
 
     timestamps()

@@ -3,7 +3,7 @@ defmodule Celestial.Galaxy.CharacterEquipment do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "characters_equipments" do
+  schema "character_equipments" do
     has_one :hat, Celestial.Galaxy.CharacterItem
     has_one :armor, Celestial.Galaxy.CharacterItem
     has_one :weapon_skin, Celestial.Galaxy.CharacterItem

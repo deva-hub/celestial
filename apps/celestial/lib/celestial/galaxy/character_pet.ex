@@ -1,10 +1,10 @@
-defmodule Celestial.Galaxy.Pet do
+defmodule Celestial.Galaxy.CharacterPet do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "pets" do
-    has_one :skin, Celestial.Galaxy.PetSkin
+  schema "character_pets" do
+    has_one :skin, Celestial.Galaxy.CharacterPetSkin
     belongs_to :character, Celestial.Galaxy.Character
 
     timestamps()

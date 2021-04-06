@@ -105,27 +105,38 @@ defmodule Celestial.Galaxy.Character do
 
     field :compliment, :integer, default: 0
 
-    field :health_points, :integer, default: 100
-    field :mana_points, :integer, default: 20
+    field :health_points, :integer
+    field :mana_points, :integer
 
     field :name, :string
+    field :biography, :string, default: "Hi!"
 
-    field :hero_xp, :integer, default: 0
-    field :hero_xp_max, :integer, default: 1_000
-    field :hero_level, :integer, default: 1
-
-    field :job_xp, :integer, default: 0
-    field :job_xp_max, :integer, default: 1_000
-    field :job_level, :integer, default: 1
+    field :mate_max, :integer
 
     field :xp, :integer, default: 0
-    field :xp_max, :integer, default: 1_000
+    field :xp_max, :integer, virtual: true
     field :level, :integer, default: 1
 
+    field :hero_xp, :integer, default: 0
+    field :hero_xp_max, :integer, virtual: true
+    field :hero_level, :integer, default: 0
+
+    field :job_xp, :integer, default: 0
+    field :job_xp_max, :integer, virtual: true
+    field :job_level, :integer, default: 1
+
+    field :sp_points, :integer, default: 10_000
+    field :sp_additional_points, :integer, default: 500_000
+    field :rage_points, :integer, default: 0
+
+    has_one :battle_achivement, Celestial.Galaxy.BattleAchivement
+
+    has_one :token, Celestial.Galaxy.CharacterToken
+    has_one :miniland, Celestial.Galaxy.CharacterMiniland
     has_one :slot, Celestial.Galaxy.Slot
     has_one :position, Celestial.Galaxy.Position
     has_one :equipment, Celestial.Galaxy.CharacterEquipment
-    has_many :pets, Celestial.Galaxy.Pet
+    has_many :pets, Celestial.Galaxy.CharacterPet
 
     timestamps()
   end
@@ -138,6 +149,7 @@ defmodule Celestial.Galaxy.Character do
     |> validate_length(:name, min: 4, max: 14)
     |> put_position()
     |> put_equipment()
+    |> put_health()
     |> cast_assoc(:slot, with: &Celestial.Galaxy.Slot.changeset/2)
     |> cast_assoc(:position, with: &Celestial.Galaxy.Position.changeset/2)
   end
@@ -155,6 +167,14 @@ defmodule Celestial.Galaxy.Character do
   @doc false
   defp put_equipment(%Ecto.Changeset{valid?: true} = changeset) do
     change(changeset, equipment: %{})
+  end
+
+  @doc false
+  defp put_health(%Ecto.Changeset{valid?: true} = changeset) do
+    change(changeset,
+      health_points: 300,
+      mana_points: 200
+    )
   end
 
   @doc false
