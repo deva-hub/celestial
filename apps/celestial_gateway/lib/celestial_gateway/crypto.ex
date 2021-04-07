@@ -25,9 +25,9 @@ defmodule CelestialGateway.Crypto do
   def decrypt(ciphertext) do
     for <<b <- ciphertext>>, into: "" do
       if b > 14 do
-        <<(b - 15) ^^^ 195::utf8>>
+        <<Bitwise.bxor(b - 15, 195)::utf8>>
       else
-        <<(256 - (15 - b)) ^^^ 195::utf8>>
+        <<Bitwise.bxor(256 - (15 - b), 195)::utf8>>
       end
     end
   end
