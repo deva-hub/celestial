@@ -5,25 +5,8 @@ defmodule CelestialProtocol.Gateway do
 
   import CelestialProtocol.Packet
 
-  @type portal :: %{
-          id: pos_integer,
-          channel_id: pos_integer,
-          world_name: pos_integer,
-          hostname: :inet.ip4_address(),
-          port: :inet.port_number(),
-          population: non_neg_integer,
-          capacity: non_neg_integer
-        }
-
-  @type nstest :: %{
-          user_id: pos_integer,
-          username: binary,
-          portals: [portal]
-        }
-
   @portal_terminator "-1:-1:-1:10000.10000.1"
 
-  @spec encode_nstest(nstest) :: iodata
   def encode_nstest(%{username: username} = nstest) do
     encode_list([
       encode_int(nstest.user_id),
