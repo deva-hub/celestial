@@ -25,6 +25,10 @@ defmodule CelestialPortal.Application do
     children = [
       # Start the Presence server
       {CelestialPortal.Presence, []},
+      # Start the Entity registry
+      {Registry, keys: :unique, name: CelestialPortal.Registry},
+      # Start entity pool supervisor
+      {CelestialNetwork.Socket.PoolSupervisor, []},
       # Start the Channel manager
       {CelestialPortal.Oracle,
        [

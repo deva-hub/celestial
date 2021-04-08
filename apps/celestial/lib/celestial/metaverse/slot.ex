@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.Slot do
+defmodule Celestial.Metaverse.Slot do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -6,7 +6,7 @@ defmodule Celestial.Galaxy.Slot do
 
   schema "slots" do
     field :index, :integer
-    belongs_to :character, Celestial.Galaxy.Character
+    belongs_to :character, Celestial.Metaverse.Character
     belongs_to :identity, Celestial.Accounts.Identity
 
     timestamps()
@@ -18,7 +18,7 @@ defmodule Celestial.Galaxy.Slot do
     |> cast(attrs, [:index])
     |> validate_required([:index])
     |> validate_number(:index, greater_than_or_equal_to: 0, less_than_or_equal_to: 3)
-    |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
+    |> cast_assoc(:character, with: &Celestial.Metaverse.Character.create_changeset/2)
     |> assoc_constraint(:character)
     |> unique_constraint([:index, :identity_id])
     |> unique_constraint([:index, :character_id])
@@ -29,7 +29,7 @@ defmodule Celestial.Galaxy.Slot do
   Gets all characters for the given identity.
   """
   def identity_query(identity) do
-    from(s in Celestial.Galaxy.Slot,
+    from(s in Celestial.Metaverse.Slot,
       join: h in assoc(s, :character),
       preload: [character: {h, [:position, :equipment, :pets]}],
       where: s.identity_id == ^identity.id

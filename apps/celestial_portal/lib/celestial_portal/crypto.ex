@@ -45,8 +45,8 @@ defmodule CelestialPortal.Crypto do
 
   defp decrypt_byte(char, offset, 0), do: <<char - offset - 0x40 &&& 0xFF>>
   defp decrypt_byte(char, offset, 1), do: <<char + offset + 0x40 &&& 0xFF>>
-  defp decrypt_byte(char, offset, 2), do: <<(char - offset - 0x40) ^^^ 0xC3 &&& 0xFF>>
-  defp decrypt_byte(char, offset, 3), do: <<(char + offset + 0x40) ^^^ 0xC3 &&& 0xFF>>
+  defp decrypt_byte(char, offset, 2), do: <<Bitwise.bxor(char - offset - 0x40, 0xC3) &&& 0xFF>>
+  defp decrypt_byte(char, offset, 3), do: <<Bitwise.bxor(char + offset + 0x40, 0xC3) &&& 0xFF>>
   defp decrypt_byte(char, _, _), do: <<char - 0x0F &&& 0xFF>>
 
   defp unpack(binary) do
@@ -79,7 +79,7 @@ defmodule CelestialPortal.Crypto do
           if l != 0, do: left_byte <> right_byte, else: left_byte
         end
       else
-        for <<c <- pack>>, into: "", do: <<c ^^^ 0xFF>>
+        for <<c <- pack>>, into: "", do: <<Bitwise.bxor(c, 0xFF)>>
       end
 
     unpack_bytes(rest, [pack | result])

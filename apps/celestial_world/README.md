@@ -1,3 +1,0 @@
-# CelestialWorld
-
-**TODO: Add description**

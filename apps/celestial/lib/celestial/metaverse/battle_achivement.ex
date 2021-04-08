@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.BattleAchivement do
+defmodule Celestial.Metaverse.BattleAchivement do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -12,7 +12,7 @@ defmodule Celestial.Galaxy.BattleAchivement do
     field :talent_lose_count, :integer
     field :talent_surrender_count, :integer
     field :master_points, :integer
-    belongs_to :character, Celestial.Galaxy.Character
+    belongs_to :character, Celestial.Metaverse.Character
 
     timestamps()
   end

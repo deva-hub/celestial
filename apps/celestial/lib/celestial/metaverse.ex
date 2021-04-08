@@ -1,12 +1,12 @@
-defmodule Celestial.Galaxy do
+defmodule Celestial.Metaverse do
   @moduledoc """
-  The Galaxy context.
+  The Metaverse context.
   """
 
   import Ecto.Query, warn: false
   alias Celestial.Repo
 
-  alias Celestial.Galaxy.{Slot, Character}
+  alias Celestial.Metaverse.{Slot, Character}
 
   @doc """
   Returns the list of slots.
@@ -161,7 +161,7 @@ defmodule Celestial.Galaxy do
     Repo.delete(character)
   end
 
-  alias Celestial.Galaxy.World
+  alias Celestial.Metaverse.World
 
   @doc """
   Returns the list of worlds.

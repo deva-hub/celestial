@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.Character do
+defmodule Celestial.Metaverse.Character do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -129,14 +129,14 @@ defmodule Celestial.Galaxy.Character do
     field :sp_additional_points, :integer, default: 500_000
     field :rage_points, :integer, default: 0
 
-    has_one :battle_achivement, Celestial.Galaxy.BattleAchivement
+    has_one :battle_achivement, Celestial.Metaverse.BattleAchivement
 
-    has_one :token, Celestial.Galaxy.CharacterToken
-    has_one :miniland, Celestial.Galaxy.CharacterMiniland
-    has_one :slot, Celestial.Galaxy.Slot
-    has_one :position, Celestial.Galaxy.Position
-    has_one :equipment, Celestial.Galaxy.CharacterEquipment
-    has_many :pets, Celestial.Galaxy.CharacterPet
+    has_one :token, Celestial.Metaverse.CharacterToken
+    has_one :miniland, Celestial.Metaverse.CharacterMiniland
+    has_one :slot, Celestial.Metaverse.Slot
+    has_one :position, Celestial.Metaverse.Position
+    has_one :equipment, Celestial.Metaverse.CharacterEquipment
+    has_many :pets, Celestial.Metaverse.CharacterPet
 
     timestamps()
   end
@@ -150,8 +150,8 @@ defmodule Celestial.Galaxy.Character do
     |> put_position()
     |> put_equipment()
     |> put_health()
-    |> cast_assoc(:slot, with: &Celestial.Galaxy.Slot.changeset/2)
-    |> cast_assoc(:position, with: &Celestial.Galaxy.Position.changeset/2)
+    |> cast_assoc(:slot, with: &Celestial.Metaverse.Slot.changeset/2)
+    |> cast_assoc(:position, with: &Celestial.Metaverse.Position.changeset/2)
   end
 
   @doc false

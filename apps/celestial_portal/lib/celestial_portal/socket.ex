@@ -2,9 +2,10 @@ defmodule CelestialPortal.Socket do
   @moduledoc false
 
   use CelestialNetwork.Portal
-  require Logger
-  import CelestialNetwork.Socket
   alias Celestial.Accounts
+
+  entity "celestial:*", CelestialPortal.IdentityEntity
+  entity "entity:*", CelestialPortal.CharacterEntity
 
   @impl true
   def connect(params, socket) do

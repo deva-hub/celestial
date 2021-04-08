@@ -4,15 +4,15 @@ defmodule CelestialNetwork.Socket.Message do
 
   The message format requires the following keys:
 
-      example "messages", "messages:123"
+    * `:topic` - The string topic or topic:subtopic pair namespace, for example "messages", "messages:123"
     * `:event`- The string event name, for example "phx_join"
     * `:payload` - The message payload
-    * `:id` - The unique integer id
+    * `:ref` - The unique integer ref
 
   """
 
-  @type t :: %CelestialNetwork.Socket.Message{}
-  defstruct event: nil, payload: nil, id: nil
+  @type t :: %__MODULE__{}
+  defstruct topic: nil, event: nil, payload: nil, ref: nil
 
   @doc """
   Converts a map with string keys into a message struct.
@@ -22,9 +22,10 @@ defmodule CelestialNetwork.Socket.Message do
   def from_map!(map) when is_map(map) do
     try do
       %CelestialNetwork.Socket.Message{
+        topic: Map.fetch!(map, "topic"),
         event: Map.fetch!(map, "event"),
         payload: Map.fetch!(map, "payload"),
-        id: Map.fetch!(map, "id")
+        ref: Map.fetch!(map, "ref")
       }
     rescue
       err in [KeyError] ->
@@ -42,6 +43,6 @@ defmodule CelestialNetwork.Socket.Broadcast do
     * `:payload` - The message payload
   """
 
-  @type t :: %CelestialNetwork.Socket.Broadcast{}
+  @type t :: %__MODULE__{}
   defstruct topic: nil, event: nil, payload: nil
 end

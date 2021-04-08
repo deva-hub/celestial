@@ -11,31 +11,31 @@ defmodule CelestialProtocol do
   end
 
   def decode(["NoS0575" | payload]) do
-    [0, "NoS0575", Gateway.decode_nos0575(payload)]
+    [0, "celestial", "NoS0575", Gateway.decode_nos0575(payload)]
   end
 
   def decode([id, "select" | payload]) do
-    [String.to_integer(id), "select", Lobby.decode_select(payload)]
+    [String.to_integer(id), "entity:lobby", "select", Lobby.decode_select(payload)]
   end
 
   def decode([id, "Char_DEL" | payload]) do
-    [String.to_integer(id), "Char_DEL", Lobby.decode_char_del(payload)]
+    [String.to_integer(id), "entity:lobby", "char_DEL", Lobby.decode_char_del(payload)]
   end
 
   def decode([id, "Char_NEW" | payload]) do
-    [String.to_integer(id), "Char_NEW", Lobby.decode_char_new(payload)]
+    [String.to_integer(id), "entity:lobby", "char_NEW", Lobby.decode_char_new(payload)]
   end
 
   def decode([id, "0"]) do
-    [String.to_integer(id), "0", %{}]
+    [String.to_integer(id), "celestial", "heartbeat", %{}]
   end
 
   def decode([id, "walk" | payload]) do
-    [String.to_integer(id), "walk", Entity.decode_walk(payload)]
+    [String.to_integer(id), "entity:lobby", "walk", Entity.decode_walk(payload)]
   end
 
   def decode(payload) do
-    [0, "", payload]
+    [0, "", "", payload]
   end
 
   def encode(["in", payload]) do

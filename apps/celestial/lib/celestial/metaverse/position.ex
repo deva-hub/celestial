@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.Position do
+defmodule Celestial.Metaverse.Position do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -15,8 +15,8 @@ defmodule Celestial.Galaxy.Position do
 
     field :coordinate_x, :integer
     field :coordinate_y, :integer
-    belongs_to :character, Celestial.Galaxy.Character
-    belongs_to :world, Celestial.Galaxy.World
+    belongs_to :character, Celestial.Metaverse.Character
+    belongs_to :world, Celestial.Metaverse.World
 
     timestamps()
   end
@@ -27,9 +27,9 @@ defmodule Celestial.Galaxy.Position do
     |> cast(attrs, [:direction, :coordinate_x, :coordinate_y, :character_id, :world_id])
     |> validate_required([:direction, :coordinate_x, :coordinate_y])
     |> unique_constraint([:character_id, :world_id])
-    |> cast_assoc(:character, with: &Celestial.Galaxy.Character.create_changeset/2)
+    |> cast_assoc(:character, with: &Celestial.Metaverse.Character.create_changeset/2)
     |> assoc_constraint(:character)
-    |> cast_assoc(:world, with: &Celestial.Galaxy.World.changeset/2)
+    |> cast_assoc(:world, with: &Celestial.Metaverse.World.changeset/2)
     |> assoc_constraint(:world)
   end
 end

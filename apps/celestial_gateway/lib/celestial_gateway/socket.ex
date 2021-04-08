@@ -2,7 +2,6 @@ defmodule CelestialGateway.Socket do
   @moduledoc false
 
   use CelestialNetwork.Gateway
-  require Logger
   alias Celestial.Accounts
   alias CelestialPortal.Presence
 

@@ -1,10 +1,10 @@
-defmodule Celestial.Galaxy.World do
+defmodule Celestial.Metaverse.World do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "worlds" do
     field :name, :string
-    has_many :positions, Celestial.Galaxy.Position
+    has_many :positions, Celestial.Metaverse.Position
 
     timestamps()
   end

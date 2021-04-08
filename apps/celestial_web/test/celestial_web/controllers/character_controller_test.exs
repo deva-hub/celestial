@@ -1,8 +1,8 @@
 defmodule CelestialWeb.CharacterControllerTest do
   use CelestialWeb.ConnCase
 
-  alias Celestial.Galaxy
-  alias Celestial.Galaxy.Character
+  alias Celestial.Metaverse
+  alias Celestial.Metaverse.Character
 
   @create_attrs %{
     class: "some class",
@@ -33,7 +33,7 @@ defmodule CelestialWeb.CharacterControllerTest do
   @invalid_attrs %{class: nil, hair_color: nil, hair_style: nil, hero_level: nil, hero_xp: nil, job_level: nil, job_xp: nil, level: nil, name: nil, index: nil, xp: nil}
 
   def fixture(:character) do
-    {:ok, character} = Galaxy.create_character(@create_attrs)
+    {:ok, character} = Metaverse.create_character(@create_attrs)
     character
   end
 

@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.CharacterToken do
+defmodule Celestial.Metaverse.CharacterToken do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -6,7 +6,7 @@ defmodule Celestial.Galaxy.CharacterToken do
   schema "character_wallets" do
     field :golds, :integer
     field :master_tickets, :integer
-    belongs_to :character, Celestial.Galaxy.Character
+    belongs_to :character, Celestial.Metaverse.Character
 
     timestamps()
   end

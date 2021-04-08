@@ -1,12 +1,12 @@
-defmodule CelestialWorld.CharacterEntity do
+defmodule CelestialPortal.CharacterEntity do
   use GenServer
   import CelestialNetwork.Entity
   alias CelestialNetwork.Socket
   alias CelestialNetwork.Socket.{Message, Broadcast}
-  alias Celestial.Galaxy
+  alias Celestial.Metaverse
 
   def start_link("select", params, %Socket{} = socket) do
-    slot = Galaxy.get_slot_by_index!(socket.assigns.current_identity, params.index)
+    slot = Metaverse.get_slot_by_index!(socket.assigns.current_identity, params.index)
 
     GenServer.start_link(__MODULE__, {socket, slot.character},
       name: via_tuple(slot.character.id),
@@ -60,14 +60,14 @@ defmodule CelestialWorld.CharacterEntity do
   end
 
   def handle_continue({:init, :presence}, {socket, character, state}) do
-    presences = CelestialWorld.Presence.list(socket)
+    presences = CelestialPortal.Presence.list(socket)
 
     send(self(), %Message{
       event: "presence_diff",
       payload: %{joins: presences}
     })
 
-    CelestialWorld.Presence.track(self(), socket.topic, character.id, %{
+    CelestialPortal.Presence.track(self(), socket.topic, character.id, %{
       entity: character,
       online_at: inspect(System.system_time(:second))
     })
@@ -126,6 +126,6 @@ defmodule CelestialWorld.CharacterEntity do
   end
 
   def via_tuple(id) do
-    {:via, Registry, {CelestialWorld.Registry, id}}
+    {:via, Registry, {CelestialPortal.Registry, id}}
   end
 end

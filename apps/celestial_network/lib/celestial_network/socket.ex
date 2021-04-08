@@ -11,7 +11,6 @@ defmodule CelestialNetwork.Socket do
   defstruct id: nil,
             assigns: %{},
             connect_info: %{},
-            type: nil,
             pubsub_server: nil,
             entity: nil,
             entity_pid: nil,

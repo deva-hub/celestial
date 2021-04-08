@@ -1,14 +1,14 @@
-defmodule Celestial.Galaxy.Ambiance do
+defmodule Celestial.Metaverse.Map do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "ambiances" do
+  schema "maps" do
     timestamps()
   end
 
   @doc false
-  def changeset(ambiance, attrs) do
-    ambiance
+  def changeset(map, attrs) do
+    map
     |> cast(attrs, [])
   end
 end

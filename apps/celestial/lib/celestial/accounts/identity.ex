@@ -8,7 +8,7 @@ defmodule Celestial.Accounts.Identity do
     field :username, :string
     field :password, :string, virtual: true
     field :hashed_password, :string
-    has_many :slot, Celestial.Galaxy.Slot
+    has_many :slot, Celestial.Metaverse.Slot
 
     timestamps()
   end

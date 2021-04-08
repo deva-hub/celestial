@@ -1,10 +1,10 @@
 defmodule Celestial.WorldTest do
   use Celestial.DataCase
 
-  alias Celestial.Galaxy
+  alias Celestial.Metaverse
 
   describe "characters" do
-    alias Celestial.Galaxy.Character
+    alias Celestial.Metaverse.Character
 
     @valid_attrs %{
       class: "some class",
@@ -38,23 +38,23 @@ defmodule Celestial.WorldTest do
       {:ok, character} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Galaxy.create_character()
+        |> Metaverse.create_character()
 
       character
     end
 
     test "list_characters/0 returns all characters" do
       character = character_fixture()
-      assert Galaxy.list_characters() == [character]
+      assert Metaverse.list_characters() == [character]
     end
 
     test "get_character!/1 returns the character with given id" do
       character = character_fixture()
-      assert Galaxy.get_character!(character.id) == character
+      assert Metaverse.get_character!(character.id) == character
     end
 
     test "create_character/1 with valid data creates a character" do
-      assert {:ok, %Character{} = character} = Galaxy.create_character(@valid_attrs)
+      assert {:ok, %Character{} = character} = Metaverse.create_character(@valid_attrs)
       assert character.class == "some class"
       assert character.hair_color == "some hair_color"
       assert character.hair_style == "some hair_style"
@@ -68,12 +68,12 @@ defmodule Celestial.WorldTest do
     end
 
     test "create_character/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Galaxy.create_character(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Metaverse.create_character(@invalid_attrs)
     end
 
     test "update_character/2 with valid data updates the character" do
       character = character_fixture()
-      assert {:ok, %Character{} = character} = Galaxy.update_character(character, @update_attrs)
+      assert {:ok, %Character{} = character} = Metaverse.update_character(character, @update_attrs)
       assert character.class == "some updated class"
       assert character.hair_color == "some updated hair_color"
       assert character.hair_style == "some updated hair_style"
@@ -88,24 +88,24 @@ defmodule Celestial.WorldTest do
 
     test "update_character/2 with invalid data returns error changeset" do
       character = character_fixture()
-      assert {:error, %Ecto.Changeset{}} = Galaxy.update_character(character, @invalid_attrs)
-      assert character == Galaxy.get_character!(character.id)
+      assert {:error, %Ecto.Changeset{}} = Metaverse.update_character(character, @invalid_attrs)
+      assert character == Metaverse.get_character!(character.id)
     end
 
     test "delete_character/1 deletes the character" do
       character = character_fixture()
-      assert {:ok, %Character{}} = Galaxy.delete_character(character)
-      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_character!(character.id) end
+      assert {:ok, %Character{}} = Metaverse.delete_character(character)
+      assert_raise Ecto.NoResultsError, fn -> Metaverse.get_character!(character.id) end
     end
 
     test "change_character/1 returns a character changeset" do
       character = character_fixture()
-      assert %Ecto.Changeset{} = Galaxy.change_character(character)
+      assert %Ecto.Changeset{} = Metaverse.change_character(character)
     end
   end
 
   describe "worlds" do
-    alias Celestial.Galaxy.World
+    alias Celestial.Metaverse.World
 
     @valid_attrs %{name: "some name"}
     @update_attrs %{name: "some updated name"}
@@ -115,51 +115,51 @@ defmodule Celestial.WorldTest do
       {:ok, world} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Galaxy.create_world()
+        |> Metaverse.create_world()
 
       world
     end
 
     test "list_worlds/0 returns all worlds" do
       world = world_fixture()
-      assert Galaxy.list_worlds() == [world]
+      assert Metaverse.list_worlds() == [world]
     end
 
     test "get_world!/1 returns the world with given id" do
       world = world_fixture()
-      assert Galaxy.get_world!(world.id) == world
+      assert Metaverse.get_world!(world.id) == world
     end
 
     test "create_world/1 with valid data creates a world" do
-      assert {:ok, %World{} = world} = Galaxy.create_world(@valid_attrs)
+      assert {:ok, %World{} = world} = Metaverse.create_world(@valid_attrs)
       assert world.name == "some name"
     end
 
     test "create_world/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Galaxy.create_world(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Metaverse.create_world(@invalid_attrs)
     end
 
     test "update_world/2 with valid data updates the world" do
       world = world_fixture()
-      assert {:ok, %World{} = world} = Galaxy.update_world(world, @update_attrs)
+      assert {:ok, %World{} = world} = Metaverse.update_world(world, @update_attrs)
       assert world.name == "some updated name"
     end
 
     test "update_world/2 with invalid data returns error changeset" do
       world = world_fixture()
-      assert {:error, %Ecto.Changeset{}} = Galaxy.update_world(world, @invalid_attrs)
-      assert world == Galaxy.get_world!(world.id)
+      assert {:error, %Ecto.Changeset{}} = Metaverse.update_world(world, @invalid_attrs)
+      assert world == Metaverse.get_world!(world.id)
     end
 
     test "delete_world/1 deletes the world" do
       world = world_fixture()
-      assert {:ok, %World{}} = Galaxy.delete_world(world)
-      assert_raise Ecto.NoResultsError, fn -> Galaxy.get_world!(world.id) end
+      assert {:ok, %World{}} = Metaverse.delete_world(world)
+      assert_raise Ecto.NoResultsError, fn -> Metaverse.get_world!(world.id) end
     end
 
     test "change_world/1 returns a world changeset" do
       world = world_fixture()
-      assert %Ecto.Changeset{} = Galaxy.change_world(world)
+      assert %Ecto.Changeset{} = Metaverse.change_world(world)
     end
   end
 end

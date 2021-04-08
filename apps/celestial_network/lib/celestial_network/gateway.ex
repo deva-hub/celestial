@@ -56,7 +56,7 @@ defmodule CelestialNetwork.Gateway do
     __in__(gateway, socket.serializer.decode!(payload, opts), socket)
   end
 
-  def __in__(gateway, %{event: "NoS0575", payload: payload}, socket) do
+  def __in__(gateway, %{topic: "celestial", event: "NoS0575", payload: payload}, socket) do
     if Version.match?(payload.version, @version_requirement) do
       authenticate(gateway, payload, socket)
     else
@@ -65,8 +65,11 @@ defmodule CelestialNetwork.Gateway do
     end
   end
 
-  def __in__(_, data, socket) do
-    Logger.debug("GARBAGE id=\"#{data.id}\" event=\"#{data.event}\"\n#{inspect(data.payload)}")
+  def __in__(_, message, socket) do
+    Logger.debug(
+      "GARBAGE topic=\"#{message.topic}\" event=\"#{message.event}\"\n#{inspect(message.payload)}"
+    )
+
     {:ok, socket}
   end
 

@@ -3,7 +3,7 @@ defmodule CelestialNetwork.Portal do
 
   require Logger
   alias CelestialNetwork.Socket
-  alias CelestialNetwork.Socket.Message
+  alias CelestialNetwork.Socket.{PoolSupervisor, Message}
 
   @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
 
@@ -13,7 +13,11 @@ defmodule CelestialNetwork.Portal do
     quote location: :keep do
       @behaviour CelestialNetwork.Portal
       @behaviour CelestialNetwork.Socket.Transport
+      @before_compile CelestialNetwork.Portal
 
+      Module.register_attribute(__MODULE__, :celestial_entities, accumulate: true)
+
+      import CelestialNetwork.Portal
       import CelestialNetwork.Socket
 
       @celestial_gateway_options unquote(opts)
@@ -48,37 +52,35 @@ defmodule CelestialNetwork.Portal do
     state = %{
       entities: %{},
       entities_inverse: %{},
-      last_message_id: nil,
-      step: :authentication
+      step: :announce
     }
 
     {:ok, {socket, state}}
   end
 
-  def __in__(portal, {payload, opts}, {socket, %{step: :authentication} = state}) do
-    __in__(portal, socket.serializer.decode!(payload, opts), {socket, state})
+  def __in__(portal, {payload, opts}, {socket, state}) when state.step == :announce do
+    message = socket.serializer.decode!(payload, opts)
+    __in__(portal, message, {socket, state})
   end
 
-  def __in__(portal, {payload, opts}, {socket, %{step: :authorization} = state}) do
+  def __in__(portal, {payload, opts}, {socket, state}) when state.step == :authorization do
     decode_opts = Keyword.put(opts, :key, 0)
-    %{payload: [_, user_id, id, password]} = socket.serializer.decode!(payload, decode_opts)
-    password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
-    payload = %{user_id: user_id, password_hash: password_hash}
-    message = %Message{event: "connect", payload: payload, id: id}
+    message = socket.serializer.decode!(payload, decode_opts)
+    message = normalize_handoff_message(message)
     __in__(portal, message, {socket, state})
   end
 
   def __in__(portal, {payload, opts}, {socket, state}) do
     decode_opts = Keyword.put(opts, :key, 0)
-    __in__(portal, socket.serializer.decode!(payload, decode_opts), {socket, state})
+    message = socket.serializer.decode!(payload, decode_opts)
+    __in__(portal, message, {socket, state})
   end
 
-  def __in__(_, %{event: "0"} = message, {socket, %{step: :authentication} = state}) do
-    state = %{state | step: :authorization, last_message_id: message.id}
-    {:ok, {socket, state}}
+  def __in__(_, _, {socket, state}) when state.step == :announce do
+    {:ok, {socket, %{state | step: :authorization}}}
   end
 
-  def __in__(portal, %{event: "connect"} = message, {socket, %{step: :authorization} = state}) do
+  def __in__(portal, message, {socket, state}) when state.step == :authorization do
     case portal.connect(message.payload, socket) do
       {:ok, socket} ->
         socket = %{socket | id: portal.id(socket)}
@@ -90,46 +92,35 @@ defmodule CelestialNetwork.Portal do
     end
   end
 
-  def __in__(_, %{event: "0"} = message, {socket, state}) do
-    {:ok, {socket, %{state | last_message_id: message.id}}}
+  def __in__(_, %{topic: "celestial", event: "heartbeat"}, {socket, state}) do
+    {:ok, {socket, state}}
   end
 
-  def __in__(portal, %{event: event} = message, {socket, state}) do
-    __in__(portal, Map.get(state.entities, event), message, {socket, state})
+  def __in__(portal, message, {socket, state}) do
+    __in__(portal, Map.get(state.entities, message.topic), message, {socket, state})
   end
 
-  def __in__(_, nil, message, {socket, state}) do
-    case __entities__(message.event) do
-      {CelestialWorld.IdentityEntity, _} ->
-        {:ok, pid} =
-          CelestialNetwork.EntitySupervisor.start_identity(message.event, message.payload, socket)
-
-        state = put_identity_entity(%{state | last_message_id: message.id}, pid, make_ref())
-        {:ok, {socket, state}}
-
-      {CelestialWorld.CharacterEntity, _} ->
-        {:ok, pid} =
-          CelestialNetwork.EntitySupervisor.start_character(
-            message.event,
-            message.payload,
-            socket
-          )
-
-        state = put_character_entity(%{state | last_message_id: message.id}, pid, make_ref())
+  def __in__(portal, nil, message, {socket, state}) do
+    case portal.__entity__(message.topic) do
+      {entity, opts} ->
+        {:ok, pid} = PoolSupervisor.start_child(entity, message, socket, opts)
+        state = put_entity(state, pid, message.topic, make_ref())
         {:ok, {socket, state}}
 
       _ ->
         Logger.debug(
-          "GARBAGE id=\"#{message.id}\" event=\"#{message.event}\"\n#{inspect(message.payload)}"
+          "GARBAGE topic=\"#{message.topic}\" event=\"#{message.event}\"\n#{
+            inspect(message.payload)
+          }"
         )
 
-        {:ok, {socket, %{state | last_message_id: message.id}}}
+        {:ok, {socket, state}}
     end
   end
 
   def __in__(_, {pid, _ref}, message, {socket, state}) do
     send(pid, message)
-    {:ok, {socket, %{state | last_message_id: message.id}}}
+    {:ok, {socket, state}}
   end
 
   def __info__({:socket_push, opcode, payload}, socket) do
@@ -144,39 +135,71 @@ defmodule CelestialNetwork.Portal do
     :ok
   end
 
-  defp put_identity_entity(state, pid, join_ref) do
-    put_entity(state, pid, "user", join_ref)
-  end
+  defmacro entity(topic_pattern, module, opts \\ []) do
+    # Tear the alias to simply store the root in the AST.
+    # This will make Elixir unable to track the dependency between
+    # endpoint <-> socket and avoid recompiling the endpoint
+    # (alongside the whole project) whenever the socket changes.
+    module = tear_alias(module)
 
-  defp put_character_entity(state, pid, join_ref) do
-    for event <- ["walk", "select"], reduce: state do
-      acc -> put_entity(acc, pid, event, join_ref)
+    quote do
+      @celestial_entities {unquote(topic_pattern), unquote(module), unquote(opts)}
     end
   end
 
-  defp put_entity(state, pid, event, join_ref) do
+  defp tear_alias({:__aliases__, meta, [h | t]}) do
+    alias = {:__aliases__, meta, [h]}
+
+    quote do
+      Module.concat([unquote(alias) | unquote(t)])
+    end
+  end
+
+  defp tear_alias(other), do: other
+
+  defmacro __before_compile__(env) do
+    entitys = Module.get_attribute(env.module, :celestial_entities)
+
+    entity_defs =
+      for {topic_pattern, module, opts} <- entitys do
+        topic_pattern
+        |> to_topic_match()
+        |> defentity(module, opts)
+      end
+
+    quote do
+      unquote(entity_defs)
+      def __entity__(_topic), do: nil
+    end
+  end
+
+  defp to_topic_match(topic_pattern) do
+    case String.split(topic_pattern, "*") do
+      [prefix, ""] -> quote do: <<unquote(prefix) <> _rest>>
+      [bare_topic] -> bare_topic
+      _ -> raise ArgumentError, "entitys using splat patterns must end with *"
+    end
+  end
+
+  defp defentity(topic_match, entity_module, opts) do
+    quote do
+      def __entity__(unquote(topic_match)), do: unquote({entity_module, Macro.escape(opts)})
+    end
+  end
+
+  defp put_entity(state, pid, topic, join_ref) do
     monitor_ref = Process.monitor(pid)
 
     %{
       state
-      | entities: Map.put(state.entities, event, {pid, monitor_ref}),
-        entities_inverse: Map.put(state.entities_inverse, pid, {event, join_ref})
+      | entities: Map.put(state.entities, topic, {pid, monitor_ref}),
+        entities_inverse: Map.put(state.entities_inverse, pid, {topic, join_ref})
     }
   end
 
-  def __entities__("connect") do
-    {CelestialWorld.IdentityEntity, []}
-  end
-
-  def __entities__("select") do
-    {CelestialWorld.CharacterEntity, []}
-  end
-
-  def __entities__("walk") do
-    {CelestialWorld.CharacterEntity, []}
-  end
-
-  def __entities__(_) do
-    nil
+  defp normalize_handoff_message(%{payload: [_, user_id, ref, password]}) do
+    password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
+    payload = %{user_id: user_id, password_hash: password_hash}
+    %Message{topic: "celestial:lobby", event: "connect", payload: payload, ref: ref}
   end
 end

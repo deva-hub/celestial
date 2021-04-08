@@ -16,9 +16,9 @@ defmodule CelestialNetwork.Socket.Serializer do
               | {:socket_push, :binary, iodata()}
 
   @doc """
-  Encodes `CelestialNetwork.Socket.Message` and `CelestialNetwork.Socket.Reply` structs to push format.
+  Encodes `CelestialNetwork.Socket.Message` structs to push format.
   """
-  @callback encode!(CelestialNetwork.Socket.Message.t() | CelestialNetwork.Socket.Reply.t()) ::
+  @callback encode!(CelestialNetwork.Socket.Message.t()) ::
               {:socket_push, :plain, iodata()}
               | {:socket_push, :binary, iodata()}
 

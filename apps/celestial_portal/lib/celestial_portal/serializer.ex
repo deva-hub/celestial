@@ -20,8 +20,8 @@ defmodule CelestialPortal.Serializer do
   @impl true
   def decode!(raw_message, opts) do
     decrypted_message = decrypt_message(raw_message, opts)
-    [id, event, payload | _] = CelestialProtocol.decode(decrypted_message)
-    %Message{event: event, payload: payload, id: id}
+    [ref, topic, event, payload | _] = CelestialProtocol.decode(decrypted_message)
+    %Message{topic: topic, event: event, payload: payload, ref: ref}
   end
 
   defp decrypt_message(message, opts) do

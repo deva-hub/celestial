@@ -1,4 +1,4 @@
-defmodule Celestial.Galaxy.CharacterMiniland do
+defmodule Celestial.Metaverse.CharacterMiniland do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
@@ -14,7 +14,7 @@ defmodule Celestial.Galaxy.CharacterMiniland do
 
     field :intro_message, :string
     field :make_points, :integer
-    belongs_to :character, Celestial.Galaxy.Character
+    belongs_to :character, Celestial.Metaverse.Character
 
     timestamps()
   end

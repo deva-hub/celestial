@@ -1,11 +1,10 @@
-defmodule CelestialWorld.IdentityEntity do
+defmodule CelestialPortal.IdentityEntity do
   use GenServer
   import CelestialNetwork.Entity
-  alias CelestialNetwork.Socket
   alias CelestialNetwork.Socket.Message
-  alias Celestial.{Accounts, Galaxy}
+  alias Celestial.{Accounts, Metaverse}
 
-  def start_link("connect", _, %Socket{} = socket) do
+  def start_link("connect", _, socket) do
     GenServer.start_link(__MODULE__, {socket, socket.assigns.current_identity},
       name: via_tuple(socket.assigns.current_identity.id),
       hibernate_after: :timer.minutes(5)
@@ -24,18 +23,18 @@ defmodule CelestialWorld.IdentityEntity do
 
   @impl true
   def handle_continue(:after_init, {socket, identity}) do
-    slots = Galaxy.list_slots(identity)
+    slots = Metaverse.list_slots(identity)
     push(socket, "clists", %{slots: slots})
     {:noreply, {socket, identity}}
   end
 
   @impl true
-  def handle_info(%Message{event: "Char_NEW", payload: payload}, {socket, identity}) do
+  def handle_info(%Message{event: "char_NEW", payload: payload}, {socket, identity}) do
     %{current_identity: current_identity} = socket.assigns
 
-    case Galaxy.create_slot(current_identity, payload) do
+    case Metaverse.create_slot(current_identity, payload) do
       {:ok, _} ->
-        push(socket, "clists", Galaxy.list_slots(current_identity))
+        push(socket, "clists", Metaverse.list_slots(current_identity))
 
       {:error, _} ->
         push(socket, "failc", %{error: :unexpected_error})
@@ -44,11 +43,11 @@ defmodule CelestialWorld.IdentityEntity do
     {:noreply, {socket, identity}}
   end
 
-  def handle_info(%Message{event: "Char_DEL", payload: payload}, socket) do
+  def handle_info(%Message{event: "char_DEL", payload: payload}, socket) do
     %{current_identity: current_identity} = socket.assigns
 
     if Accounts.get_identity_by_username_and_password(current_identity.username, payload.password) do
-      case Galaxy.get_slot_by_index!(current_identity, payload.index) |> Galaxy.delete_slot() do
+      case Metaverse.get_slot_by_index!(current_identity, payload.index) |> Metaverse.delete_slot() do
         {:ok, _} ->
           :ok
 
@@ -56,7 +55,7 @@ defmodule CelestialWorld.IdentityEntity do
           push(socket, "failc", %{error: :unexpected_error})
       end
 
-      push(socket, "clists", Galaxy.list_slots(current_identity))
+      push(socket, "clists", Metaverse.list_slots(current_identity))
 
       {:ok, socket}
     else
@@ -66,6 +65,6 @@ defmodule CelestialWorld.IdentityEntity do
   end
 
   def via_tuple(id) do
-    {:via, Registry, {CelestialWorld.Registry, id}}
+    {:via, Registry, {CelestialPortal.Registry, id}}
   end
 end
