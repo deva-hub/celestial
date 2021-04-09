@@ -11,31 +11,55 @@ defmodule CelestialProtocol do
   end
 
   def decode(["NoS0575" | payload]) do
-    [0, "celestial", "NoS0575", Gateway.decode_nos0575(payload)]
+    [0, "accounts:lobby", "NoS0575", Gateway.decode_nos0575(payload)]
   end
 
-  def decode([id, "select" | payload]) do
-    [String.to_integer(id), "entity:lobby", "select", Lobby.decode_select(payload)]
+  def decode([ref, "select" | payload]) do
+    [String.to_integer(ref), "entity:lobby", "select", Lobby.decode_select(payload)]
   end
 
-  def decode([id, "Char_DEL" | payload]) do
-    [String.to_integer(id), "entity:lobby", "char_DEL", Lobby.decode_char_del(payload)]
+  def decode([ref, "Char_DEL" | payload]) do
+    [String.to_integer(ref), "entity:lobby", "char_DEL", Lobby.decode_char_del(payload)]
   end
 
-  def decode([id, "Char_NEW" | payload]) do
-    [String.to_integer(id), "entity:lobby", "char_NEW", Lobby.decode_char_new(payload)]
+  def decode([ref, "Char_NEW" | payload]) do
+    [String.to_integer(ref), "entity:lobby", "char_NEW", Lobby.decode_char_new(payload)]
   end
 
-  def decode([id, "0"]) do
-    [String.to_integer(id), "celestial", "heartbeat", %{}]
-  end
-
-  def decode([id, "walk" | payload]) do
-    [String.to_integer(id), "entity:lobby", "walk", Entity.decode_walk(payload)]
+  def decode([ref, "walk" | payload]) do
+    [String.to_integer(ref), "entity:lobby", "walk", Entity.decode_walk(payload)]
   end
 
   def decode(payload) do
-    [0, "", "", payload]
+    if msg = maybe_decode(payload) do
+      msg
+    else
+      [0, "", "", payload]
+    end
+  end
+
+  defp maybe_decode([ref1, user_id, ref2, password]) do
+    case {Integer.parse(ref1), Integer.parse(ref2)} do
+      {{ref1, ""}, {ref2, ""}} when ref1 + 1 == ref2 ->
+        [ref2, "accounts:lobby", "handoff", %{user_id: user_id, password: password}]
+
+      _ ->
+        nil
+    end
+  end
+
+  defp maybe_decode([ref, code]) do
+    case Integer.parse(code) do
+      {code, ""} ->
+        [String.to_integer(ref), "celestial", "heartbeat", %{code: code}]
+
+      _ ->
+        nil
+    end
+  end
+
+  defp maybe_decode(_) do
+    nil
   end
 
   def encode(["in", payload]) do

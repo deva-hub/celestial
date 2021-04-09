@@ -56,7 +56,7 @@ defmodule CelestialNetwork.Gateway do
     __in__(gateway, socket.serializer.decode!(payload, opts), socket)
   end
 
-  def __in__(gateway, %{topic: "celestial", event: "NoS0575", payload: payload}, socket) do
+  def __in__(gateway, %{topic: "accounts:lobby", event: "NoS0575", payload: payload}, socket) do
     if Version.match?(payload.version, @version_requirement) do
       authenticate(gateway, payload, socket)
     else

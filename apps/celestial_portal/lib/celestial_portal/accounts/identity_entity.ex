@@ -4,7 +4,7 @@ defmodule CelestialPortal.IdentityEntity do
   alias CelestialNetwork.Socket.Message
   alias Celestial.{Accounts, Metaverse}
 
-  def start_link("connect", _, socket) do
+  def start_link("handoff", _, socket) do
     GenServer.start_link(__MODULE__, {socket, socket.assigns.current_identity},
       name: via_tuple(socket.assigns.current_identity.id),
       hibernate_after: :timer.minutes(5)

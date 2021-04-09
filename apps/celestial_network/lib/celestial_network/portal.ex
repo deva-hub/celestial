@@ -3,7 +3,7 @@ defmodule CelestialNetwork.Portal do
 
   require Logger
   alias CelestialNetwork.Socket
-  alias CelestialNetwork.Socket.{PoolSupervisor, Message}
+  alias CelestialNetwork.Socket.PoolSupervisor
 
   @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
 
@@ -52,39 +52,35 @@ defmodule CelestialNetwork.Portal do
     state = %{
       entities: %{},
       entities_inverse: %{},
-      step: :announce
+      key: nil
     }
 
     {:ok, {socket, state}}
   end
 
-  def __in__(portal, {payload, opts}, {socket, state}) when state.step == :announce do
+  def __in__(_, {payload, opts}, {socket, %{key: nil} = state}) do
     message = socket.serializer.decode!(payload, opts)
-    __in__(portal, message, {socket, state})
+    state = %{state | key: message.payload.code}
+    {:ok, {socket, state}}
   end
 
-  def __in__(portal, {payload, opts}, {socket, state}) when state.step == :authorization do
-    decode_opts = Keyword.put(opts, :key, 0)
+  def __in__(portal, {payload, opts}, {%{id: nil} = socket, state}) do
+    decode_opts = Keyword.put(opts, :key, state.key)
     message = socket.serializer.decode!(payload, decode_opts)
-    message = normalize_handoff_message(message)
+    socket = %{socket | id: message.payload.user_id}
     __in__(portal, message, {socket, state})
   end
 
   def __in__(portal, {payload, opts}, {socket, state}) do
-    decode_opts = Keyword.put(opts, :key, 0)
+    decode_opts = Keyword.put(opts, :key, state.key)
     message = socket.serializer.decode!(payload, decode_opts)
     __in__(portal, message, {socket, state})
   end
 
-  def __in__(_, _, {socket, state}) when state.step == :announce do
-    {:ok, {socket, %{state | step: :authorization}}}
-  end
-
-  def __in__(portal, message, {socket, state}) when state.step == :authorization do
+  def __in__(portal, %{topic: "accounts:lobby", event: "handoff"} = message, {socket, state}) do
     case portal.connect(message.payload, socket) do
       {:ok, socket} ->
         socket = %{socket | id: portal.id(socket)}
-        state = %{state | step: nil}
         __in__(portal, nil, message, {socket, state})
 
       :error ->
@@ -195,11 +191,5 @@ defmodule CelestialNetwork.Portal do
       | entities: Map.put(state.entities, topic, {pid, monitor_ref}),
         entities_inverse: Map.put(state.entities_inverse, pid, {topic, join_ref})
     }
-  end
-
-  defp normalize_handoff_message(%{payload: [_, user_id, ref, password]}) do
-    password_hash = :crypto.hash(:sha512, password) |> Base.encode16()
-    payload = %{user_id: user_id, password_hash: password_hash}
-    %Message{topic: "celestial:lobby", event: "connect", payload: payload, ref: ref}
   end
 end
