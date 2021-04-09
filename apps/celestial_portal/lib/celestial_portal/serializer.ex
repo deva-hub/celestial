@@ -19,20 +19,11 @@ defmodule CelestialPortal.Serializer do
 
   @impl true
   def decode!(raw_message, opts) do
-    raw_message
-    |> decrypt_message(opts)
-    |> decode_message()
-  end
+    [ref, topic, event, payload | _] =
+      raw_message
+      |> Crypto.decrypt(opts)
+      |> CelestialProtocol.decode()
 
-  defp decrypt_message(message, opts) do
-    case Keyword.get(opts, :key) do
-      nil -> Crypto.decrypt(message)
-      key -> Crypto.decrypt(message, key)
-    end
-  end
-
-  defp decode_message(message) do
-    [ref, topic, event, payload | _] = CelestialProtocol.decode(message)
     %Message{topic: topic, event: event, payload: payload, ref: ref}
   end
 end

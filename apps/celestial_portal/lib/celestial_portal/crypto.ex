@@ -31,16 +31,15 @@ defmodule CelestialPortal.Crypto do
   @doc """
   Decrypts the given binary
   """
-  @spec decrypt(binary) :: binary
-  def decrypt(plaintext) do
-    unpack(for <<c <- plaintext>>, into: "", do: decrypt_byte(c, -1, -1))
-  end
-
-  @spec decrypt(binary, non_neg_integer) :: binary
-  def decrypt(plaintext, session_key) do
-    decryption_type = session_key >>> 6 &&& 3
-    offset = session_key &&& 0xFF
-    unpack(for <<c <- plaintext>>, into: "", do: decrypt_byte(c, offset, decryption_type))
+  @spec decrypt(binary, keyword) :: binary
+  def decrypt(plaintext, opts \\ []) do
+    if key = Keyword.get(opts, :key) do
+      decryption_type = key >>> 6 &&& 3
+      offset = key &&& 0xFF
+      unpack(for <<c <- plaintext>>, into: "", do: decrypt_byte(c, offset, decryption_type))
+    else
+      unpack(for <<c <- plaintext>>, into: "", do: decrypt_byte(c, -1, -1))
+    end
   end
 
   defp decrypt_byte(char, offset, 0), do: <<char - offset - 0x40 &&& 0xFF>>

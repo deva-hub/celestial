@@ -19,7 +19,11 @@ defmodule CelestialGateway.Serializer do
 
   @impl true
   def decode!(raw_message, _opts) do
-    [ref, topic, event, payload | _] = raw_message |> Crypto.decrypt() |> CelestialProtocol.decode()
+    [ref, topic, event, payload | _] =
+      raw_message
+      |> Crypto.decrypt()
+      |> CelestialProtocol.decode()
+
     %Message{topic: topic, event: event, payload: payload, ref: ref}
   end
 end
