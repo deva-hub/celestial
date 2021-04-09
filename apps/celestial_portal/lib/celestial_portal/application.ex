@@ -42,6 +42,7 @@ defmodule CelestialPortal.Application do
       {CelestialNetwork.Endpoint,
        [
          port: port,
+         protocol: CelestialNetwork.Endpoint.Secure,
          handler: CelestialPortal.Socket,
          handler_opts: [
            pubsub_server: Celestial.PubSub,

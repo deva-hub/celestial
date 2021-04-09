@@ -3,15 +3,19 @@ defmodule CelestialNetwork.Gateway do
 
   require Logger
   alias CelestialNetwork.Socket
-  alias CelestialNetwork.Socket.Message
+  alias CelestialNetwork.Socket.{Broadcast, Message}
 
   @version_requirement "~> 0.9.3"
 
   @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
+  @callback connect(params :: map, Socket.t(), connect_info :: map) ::
+              {:ok, Socket.t()} | {:error, term} | :error
+
+  @optional_callbacks connect: 2, connect: 3
 
   @callback portals(Socket.t()) :: list(map)
 
-  @callback id(Socket.t()) :: binary() | nil
+  @callback key(Socket.t()) :: binary() | nil
 
   defmacro __using__(opts) do
     quote location: :keep do
@@ -26,6 +30,12 @@ defmodule CelestialNetwork.Gateway do
       @doc false
       def init(state) do
         CelestialNetwork.Gateway.__init__(state)
+      end
+
+      @impl true
+      @doc false
+      def connect(map) do
+        CelestialNetwork.Gateway.__connect__(__MODULE__, map)
       end
 
       @impl true
@@ -52,13 +62,17 @@ defmodule CelestialNetwork.Gateway do
     {:ok, socket}
   end
 
-  def __in__(gateway, {payload, opts}, socket) do
-    __in__(gateway, socket.serializer.decode!(payload, opts), socket)
-  end
+  def __connect__(portal, map) do
+    socket = %Socket{
+      handler: portal,
+      pubsub_server: map.pubsub_server,
+      serializer: map.serializer,
+      transport: map.transport,
+      transport_pid: self()
+    }
 
-  def __in__(gateway, %{topic: "accounts:lobby", event: "NoS0575", payload: payload}, socket) do
-    if Version.match?(payload.version, @version_requirement) do
-      authenticate(gateway, payload, socket)
+    if Version.match?(map.params.version, @version_requirement) do
+      authenticate(portal, map.params, socket, map.connect_info)
     else
       send_message(socket, "failc", %{error: :outdated_client})
       {:ok, socket}
@@ -73,6 +87,10 @@ defmodule CelestialNetwork.Gateway do
     {:ok, socket}
   end
 
+  def __info__(%Broadcast{event: "disconnect"}, state) do
+    {:stop, {:shutdown, :disconnected}, state}
+  end
+
   def __info__({:socket_push, opcode, payload}, socket) do
     {:push, {opcode, payload}, socket}
   end
@@ -85,20 +103,20 @@ defmodule CelestialNetwork.Gateway do
     :ok
   end
 
-  defp authenticate(gateway, payload, socket) do
-    case gateway.connect(payload, socket) do
+  defp authenticate(gateway, params, socket, connect_info) do
+    case user_connect(gateway, params, socket, connect_info) do
       {:ok, socket} ->
-        case {gateway.portals(socket), gateway.id(socket)} do
+        case {gateway.portals(socket), gateway.key(socket)} do
           {[], _} ->
             send_message(socket, "failc", %{error: :maintenance})
 
           {_, nil} ->
             send_message(socket, "failc", %{error: :session_already_used})
 
-          {portals, user_id} ->
+          {portals, key} ->
             send_message(socket, "NsTeST", %{
-              username: payload.username,
-              user_id: user_id,
+              username: params.username,
+              key: key,
               portals: portals
             })
         end
@@ -108,6 +126,17 @@ defmodule CelestialNetwork.Gateway do
       :error ->
         send_message(socket, "failc", %{error: :unvalid_credentials})
         {:ok, socket}
+
+      {:error, _reason} = err ->
+        err
+    end
+  end
+
+  defp user_connect(gateway, params, socket, connect_info) do
+    if function_exported?(gateway, :connect, 3) do
+      gateway.connect(params, socket, connect_info)
+    else
+      gateway.connect(params, socket)
     end
   end
 

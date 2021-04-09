@@ -19,11 +19,11 @@ defmodule CelestialProtocol do
   end
 
   def decode([ref, "Char_DEL" | payload]) do
-    [String.to_integer(ref), "entity:lobby", "char_DEL", Lobby.decode_char_del(payload)]
+    [String.to_integer(ref), "accounts:lobby", "char_DEL", Lobby.decode_char_del(payload)]
   end
 
   def decode([ref, "Char_NEW" | payload]) do
-    [String.to_integer(ref), "entity:lobby", "char_NEW", Lobby.decode_char_new(payload)]
+    [String.to_integer(ref), "accounts:lobby", "char_NEW", Lobby.decode_char_new(payload)]
   end
 
   def decode([ref, "walk" | payload]) do
@@ -38,10 +38,10 @@ defmodule CelestialProtocol do
     end
   end
 
-  defp maybe_decode([ref1, user_id, ref2, password]) do
+  defp maybe_decode([ref1, key, ref2, password]) do
     case {Integer.parse(ref1), Integer.parse(ref2)} do
       {{ref1, ""}, {ref2, ""}} when ref1 + 1 == ref2 ->
-        [ref2, "accounts:lobby", "handoff", %{user_id: user_id, password: password}]
+        [ref2, "accounts:lobby", "handoff", %{key: key, password: password}]
 
       _ ->
         nil

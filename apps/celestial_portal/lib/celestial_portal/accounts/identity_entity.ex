@@ -30,11 +30,9 @@ defmodule CelestialPortal.IdentityEntity do
 
   @impl true
   def handle_info(%Message{event: "char_NEW", payload: payload}, {socket, identity}) do
-    %{current_identity: current_identity} = socket.assigns
-
-    case Metaverse.create_slot(current_identity, payload) do
+    case Metaverse.create_slot(identity, payload) do
       {:ok, _} ->
-        push(socket, "clists", Metaverse.list_slots(current_identity))
+        push(socket, "clists", %{slots: Metaverse.list_slots(identity)})
 
       {:error, _} ->
         push(socket, "failc", %{error: :unexpected_error})
@@ -43,24 +41,20 @@ defmodule CelestialPortal.IdentityEntity do
     {:noreply, {socket, identity}}
   end
 
-  def handle_info(%Message{event: "char_DEL", payload: payload}, socket) do
-    %{current_identity: current_identity} = socket.assigns
-
-    if Accounts.get_identity_by_username_and_password(current_identity.username, payload.password) do
-      case Metaverse.get_slot_by_index!(current_identity, payload.index) |> Metaverse.delete_slot() do
+  def handle_info(%Message{event: "char_DEL", payload: payload}, {socket, identity}) do
+    if Accounts.get_identity_by_username_and_password(identity.username, payload.password) do
+      case Metaverse.get_slot_by_index!(identity, payload.index) |> Metaverse.delete_slot() do
         {:ok, _} ->
-          :ok
+          push(socket, "clists", %{slots: Metaverse.list_slots(identity)})
 
         {:error, _} ->
           push(socket, "failc", %{error: :unexpected_error})
       end
 
-      push(socket, "clists", Metaverse.list_slots(current_identity))
-
-      {:ok, socket}
+      {:noreply, {socket, identity}}
     else
       push(socket, "failc", %{error: :unvalid_credentials})
-      {:ok, socket}
+      {:noreply, {socket, identity}}
     end
   end
 

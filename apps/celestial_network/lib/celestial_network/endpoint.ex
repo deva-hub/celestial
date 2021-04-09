@@ -1,13 +1,13 @@
 defmodule CelestialNetwork.Endpoint do
   @moduledoc false
   require Logger
-  alias CelestialNetwork.Endpoint.Protocol
 
   def child_spec(opts \\ []) do
     scheme = Keyword.get(opts, :scheme, :tcp)
     port = Keyword.fetch!(opts, :port)
     handler = Keyword.fetch!(opts, :handler)
     trans_opts = transport_config(port, opts)
+    protocol = Keyword.fetch!(opts, :protocol)
     proto_opts = protocol_config(handler, opts)
     ref = build_ref(scheme, handler)
 
@@ -17,7 +17,13 @@ defmodule CelestialNetwork.Endpoint do
         :ssl -> :ranch_ssl
       end
 
-    :ranch.child_spec(ref, ranch_module, trans_opts, Protocol, proto_opts)
+    :ranch.child_spec(
+      ref,
+      ranch_module,
+      trans_opts,
+      protocol,
+      proto_opts
+    )
   end
 
   defp transport_config(port, opts) do

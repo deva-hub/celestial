@@ -9,7 +9,7 @@ defmodule CelestialProtocol.Gateway do
 
   def encode_nstest(%{username: username} = nstest) do
     encode_list([
-      encode_int(nstest.user_id),
+      encode_int(nstest.key),
       encode_string(username),
       nstest.portals
       |> Enum.map(&encode_portal/1)
@@ -55,7 +55,7 @@ defmodule CelestialProtocol.Gateway do
   def decode_nos0575([_, username, cipher_password, _, version]) do
     %{
       username: username,
-      password: :crypto.hash(:sha512, decrypt_password(cipher_password)),
+      hashed_password: :crypto.hash(:sha512, decrypt_password(cipher_password)),
       version: normalize_version(version)
     }
   end
@@ -68,10 +68,10 @@ defmodule CelestialProtocol.Gateway do
     decode_nos0575([username, password, version, checksum])
   end
 
-  def decode_nos0575([username, password, version, checksum]) do
+  def decode_nos0575([username, hashed_password, version, checksum]) do
     %{
       username: username,
-      password: password,
+      hashed_password: hashed_password,
       version: normalize_version(version),
       checksum: checksum
     }

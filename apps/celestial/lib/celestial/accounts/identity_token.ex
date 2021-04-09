@@ -25,8 +25,8 @@ defmodule Celestial.Accounts.IdentityToken do
   While a one time key is issued for identification.
   """
   def build_key(address, identity) do
-    key = :rand.uniform(@key_size)
-    hashed_key = :crypto.hash(@hash_algorithm, key |> to_string())
+    key = :rand.uniform(@key_size) |> to_string()
+    hashed_key = :crypto.hash(@hash_algorithm, key)
 
     {key,
      %Celestial.Accounts.IdentityToken{

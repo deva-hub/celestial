@@ -3,11 +3,13 @@ defmodule CelestialNetwork.Portal do
 
   require Logger
   alias CelestialNetwork.Socket
-  alias CelestialNetwork.Socket.PoolSupervisor
+  alias CelestialNetwork.Socket.{PoolSupervisor, Broadcast}
 
   @callback connect(params :: map, Socket.t()) :: {:ok, Socket.t()} | :error
+  @callback connect(params :: map, Socket.t(), connect_info :: map) ::
+              {:ok, Socket.t()} | {:error, term} | :error
 
-  @callback id(Socket.t()) :: binary() | nil
+  @optional_callbacks connect: 2, connect: 3
 
   defmacro __using__(opts) do
     quote location: :keep do
@@ -17,7 +19,7 @@ defmodule CelestialNetwork.Portal do
 
       Module.register_attribute(__MODULE__, :celestial_entities, accumulate: true)
 
-      import CelestialNetwork.Portal
+      import CelestialNetwork.Portal, only: [entity: 3, entity: 2]
       import CelestialNetwork.Socket
 
       @celestial_gateway_options unquote(opts)
@@ -26,6 +28,12 @@ defmodule CelestialNetwork.Portal do
       @doc false
       def init(state) do
         CelestialNetwork.Portal.__init__(state)
+      end
+
+      @impl true
+      @doc false
+      def connect(map) do
+        CelestialNetwork.Portal.__connect__(__MODULE__, map)
       end
 
       @impl true
@@ -48,44 +56,48 @@ defmodule CelestialNetwork.Portal do
     end
   end
 
-  def __init__(socket) do
-    state = %{
-      entities: %{},
-      entities_inverse: %{},
-      key: nil
+  def __init__({socket, state}) do
+    {:ok, {%{socket | transport_pid: self()}, state}}
+  end
+
+  def __connect__(portal, map) do
+    socket = %Socket{
+      handler: portal,
+      pubsub_server: map.pubsub_server,
+      serializer: map.serializer,
+      transport: map.transport,
+      key: map.key
     }
 
-    {:ok, {socket, state}}
-  end
-
-  def __in__(_, {payload, opts}, {socket, %{key: nil} = state}) do
-    message = socket.serializer.decode!(payload, opts)
-    state = %{state | key: message.payload.code}
-    {:ok, {socket, state}}
-  end
-
-  def __in__(portal, {payload, opts}, {%{id: nil} = socket, state}) do
-    decode_opts = Keyword.put(opts, :key, state.key)
-    message = socket.serializer.decode!(payload, decode_opts)
-    socket = %{socket | id: message.payload.user_id}
-    __in__(portal, message, {socket, state})
-  end
-
-  def __in__(portal, {payload, opts}, {socket, state}) do
-    decode_opts = Keyword.put(opts, :key, state.key)
-    message = socket.serializer.decode!(payload, decode_opts)
-    __in__(portal, message, {socket, state})
-  end
-
-  def __in__(portal, %{topic: "accounts:lobby", event: "handoff"} = message, {socket, state}) do
-    case portal.connect(message.payload, socket) do
+    case user_connect(portal, map.params, socket, map.connect_info) do
       {:ok, socket} ->
-        socket = %{socket | id: portal.id(socket)}
-        __in__(portal, nil, message, {socket, state})
+        state = %{
+          entities: %{},
+          entities_inverse: %{}
+        }
+
+        {:ok, {socket, state}}
 
       :error ->
         {:stop, :normal, socket}
+
+      {:error, _reason} = err ->
+        err
     end
+  end
+
+  defp user_connect(portal, params, socket, connect_info) do
+    if function_exported?(portal, :connect, 3) do
+      portal.connect(params, socket, connect_info)
+    else
+      portal.connect(params, socket)
+    end
+  end
+
+  def __in__(portal, {payload, opts}, {socket, state}) do
+    opts = Keyword.put(opts, :key, socket.key)
+    message = socket.serializer.decode!(payload, opts)
+    __in__(portal, message, {socket, state})
   end
 
   def __in__(_, %{topic: "celestial", event: "heartbeat"}, {socket, state}) do
@@ -100,8 +112,7 @@ defmodule CelestialNetwork.Portal do
     case portal.__entity__(message.topic) do
       {entity, opts} ->
         {:ok, pid} = PoolSupervisor.start_child(entity, message, socket, opts)
-        state = put_entity(state, pid, message.topic, make_ref())
-        {:ok, {socket, state}}
+        {:ok, {socket, put_entity(state, pid, message.topic, message.ref)}}
 
       _ ->
         Logger.debug(
@@ -117,6 +128,10 @@ defmodule CelestialNetwork.Portal do
   def __in__(_, {pid, _ref}, message, {socket, state}) do
     send(pid, message)
     {:ok, {socket, state}}
+  end
+
+  def __info__(%Broadcast{event: "disconnect"}, state) do
+    {:stop, {:shutdown, :disconnected}, state}
   end
 
   def __info__({:socket_push, opcode, payload}, socket) do

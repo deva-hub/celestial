@@ -12,6 +12,32 @@ defmodule CelestialNetwork.Socket.Transport do
   @callback init(state) :: {:ok, state}
 
   @doc """
+  Connects to the socket.
+
+  The transport passes a map of metadata and the socket
+  returns `{:ok, state}` or `:error`. The state must be
+  stored by the transport and returned in all future
+  operations.
+
+  This function is used for authorization purposes and it
+  may be invoked outside of the process that effectively
+  runs the socket.
+
+  In the default `Phoenix.Socket` implementation, the
+  metadata expects the following keys:
+
+    * `:endpoint` - the application endpoint
+    * `:transport` - the transport name
+    * `:params` - the connection parameters
+    * `:options` - a keyword list of transport options, often
+      given by developers when configuring the transport.
+      It must include a `:serializer` field with the list of
+      serializers and their requirements
+
+  """
+  @callback connect(transport_info :: map) :: {:ok, state} | :error
+
+  @doc """
   Handles incoming socket messages.
 
   The message is represented as `{payload, options}`. It must

@@ -50,8 +50,14 @@ defmodule Celestial.Accounts do
   """
   def get_identity_by_username_and_password(username, password)
       when is_binary(username) and is_binary(password) do
+    hashed_password = prehash_password(password)
+    get_identity_by_username_and_hashed_password(username, hashed_password)
+  end
+
+  def get_identity_by_username_and_hashed_password(username, hashed_password)
+      when is_binary(username) and is_binary(hashed_password) do
     identity = Repo.get_by(Identity, username: username)
-    if Identity.valid_password?(identity, password), do: identity
+    if Identity.valid_password?(identity, hashed_password), do: identity
   end
 
   @doc """
@@ -151,18 +157,28 @@ defmodule Celestial.Accounts do
   @doc """
   Gets the identity with the given key and password.
   """
-  def consume_identity_key(address, key, password) do
+  def get_identity_by_key_and_password(address, key, password) do
     case Repo.one(IdentityToken.verify_key_query(address, key)) do
       nil ->
         :error
 
       identity ->
-        if Identity.valid_password?(identity, password) do
-          Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["key"]))
-          {:ok, identity}
-        else
-          :error
-        end
+        consume_identity_key(identity, password)
     end
+  end
+
+  def consume_identity_key(identity, password) do
+    hashed_password = prehash_password(password)
+
+    if Identity.valid_password?(identity, hashed_password) do
+      Repo.delete_all(IdentityToken.identity_and_contexts_query(identity, ["key"]))
+      {:ok, identity}
+    else
+      :error
+    end
+  end
+
+  def prehash_password(password) do
+    :crypto.hash(:sha512, password) |> Base.encode16()
   end
 end

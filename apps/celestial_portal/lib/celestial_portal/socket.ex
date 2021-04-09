@@ -8,23 +8,15 @@ defmodule CelestialPortal.Socket do
   entity "entity:*", CelestialPortal.CharacterEntity
 
   @impl true
-  def connect(params, socket) do
-    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-    user_id = String.split(params.user_id, ":") |> List.last()
-    password_hash = :crypto.hash(:sha512, params.password) |> Base.encode16()
+  def connect(params, socket, connect_info) do
+    address = connect_info.peer_data.address |> :inet.ntoa() |> to_string()
 
-    case Accounts.consume_identity_key(address, user_id, password_hash) do
+    case Accounts.get_identity_by_key_and_password(address, params.key, params.password) do
       {:ok, identity} ->
-        socket = assign(socket, :current_identity, identity)
-        {:ok, socket}
+        {:ok, assign(socket, :current_identity, identity)}
 
       :error ->
         :error
     end
-  end
-
-  @impl true
-  def id(socket) do
-    "users:#{socket.assigns.current_identity.id}"
   end
 end

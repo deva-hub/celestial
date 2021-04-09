@@ -11,6 +11,8 @@ defmodule CelestialNetwork.Socket.PoolSupervisor do
   end
 
   def start_child(entity, message, socket, opts) do
+    socket = %{socket | topic: message.topic}
+
     spec = %{
       id: entity,
       start: {entity, :start_link, [message.event, message.payload, socket]}

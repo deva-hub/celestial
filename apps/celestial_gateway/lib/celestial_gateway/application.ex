@@ -14,6 +14,7 @@ defmodule CelestialGateway.Application do
       # Start the TCP Server
       {CelestialNetwork.Endpoint,
        port: port,
+       protocol: CelestialNetwork.Endpoint.Clear,
        handler: CelestialGateway.Socket,
        handler_opts: [
          pubsub_server: Celestial.PubSub,

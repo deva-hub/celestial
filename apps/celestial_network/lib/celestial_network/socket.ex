@@ -9,6 +9,7 @@ defmodule CelestialNetwork.Socket do
   end
 
   defstruct id: nil,
+            handler: nil,
             assigns: %{},
             connect_info: %{},
             pubsub_server: nil,
@@ -17,7 +18,8 @@ defmodule CelestialNetwork.Socket do
             topic: nil,
             transport: nil,
             transport_pid: nil,
-            serializer: nil
+            serializer: nil,
+            key: nil
 
   @doc """
   Adds key value pairs to socket assigns.

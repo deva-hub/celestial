@@ -6,9 +6,11 @@ defmodule CelestialGateway.Socket do
   alias CelestialPortal.Presence
 
   @impl true
-  def connect(params, socket) do
-    if identity = Accounts.get_identity_by_username_and_password(params.username, params.password) do
-      {:ok, assign(socket, :current_identity, identity)}
+  def connect(params, socket, connect_info) do
+    address = connect_info.peer_data.address |> :inet.ntoa() |> to_string()
+
+    if identity = Accounts.get_identity_by_username_and_hashed_password(params.username, params.hashed_password) do
+      {:ok, assign(socket, %{current_identity: identity, address: address})}
     else
       :error
     end
@@ -30,9 +32,7 @@ defmodule CelestialGateway.Socket do
   end
 
   @impl true
-  def id(socket) do
-    address = socket.connect_info.peer_data.address |> :inet.ntoa() |> to_string()
-    user_id = Accounts.generate_identity_key(address, socket.assigns.current_identity)
-    "users:#{user_id}"
+  def key(socket) do
+    Accounts.generate_identity_key(socket.assigns.address, socket.assigns.current_identity)
   end
 end
