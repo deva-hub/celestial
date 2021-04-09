@@ -111,6 +111,10 @@ defmodule CelestialNetwork.Endpoint.Clear do
     handle_reply(handler, handler.handle_in({data, []}, state), [conn | state])
   end
 
+  defp handle_info(handler, message, [conn | state]) do
+    handle_reply(handler, handler.handle_info(message, state), [conn | state])
+  end
+
   defp handle_reply(handler, {:ok, state}, [conn | _]) do
     loop(handler, [conn | state])
   end
@@ -122,10 +126,6 @@ defmodule CelestialNetwork.Endpoint.Clear do
 
   defp handle_reply(handler, {:stop, reason, state}, [conn | _]) do
     terminate(handler, reason, [conn | state])
-  end
-
-  defp handle_info(handler, message, [conn | state]) do
-    handle_reply(handler, handler.handle_info(message, state), [conn | state])
   end
 
   defp terminate(handler, :closed, [conn | _]) do
