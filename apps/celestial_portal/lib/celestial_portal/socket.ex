@@ -5,7 +5,7 @@ defmodule CelestialPortal.Socket do
   alias Celestial.Accounts
 
   entity "accounts:*", CelestialPortal.IdentityEntity
-  entity "entity:*", CelestialPortal.CharacterEntity
+  entity "metaverse:*", CelestialPortal.CharacterEntity
 
   @impl true
   def connect(params, socket, connect_info) do
