@@ -15,7 +15,7 @@ defmodule CelestialProtocol do
   end
 
   def decode([ref, "select" | payload]) do
-    [String.to_integer(ref), "mertaverse:lobby", "select", Lobby.decode_select(payload)]
+    [String.to_integer(ref), "metaverse:lobby", "select", Lobby.decode_select(payload)]
   end
 
   def decode([ref, "Char_DEL" | payload]) do
@@ -27,7 +27,7 @@ defmodule CelestialProtocol do
   end
 
   def decode([ref, "walk" | payload]) do
-    [String.to_integer(ref), "mertaverse:lobby", "walk", Entity.decode_walk(payload)]
+    [String.to_integer(ref), "metaverse:lobby", "walk", Entity.decode_walk(payload)]
   end
 
   def decode(payload) do
