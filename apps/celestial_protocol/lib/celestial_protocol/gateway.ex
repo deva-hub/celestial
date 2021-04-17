@@ -33,8 +33,8 @@ defmodule CelestialProtocol.Gateway do
       encode_int(portal_color(portal.population, portal.capacity)),
       encode_struct([
         encode_int(portal.id),
-        encode_string(portal.world_name),
-        encode_int(portal.channel_id)
+        encode_string(portal.channel_id),
+        encode_int(portal.world_name)
       ])
     ])
   end
