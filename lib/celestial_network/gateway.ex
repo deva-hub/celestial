@@ -10,29 +10,15 @@ defmodule CelestiaNetwork.Gateway do
   end
 
   def start_link(ref, transport, opts \\ []) do
-    {:ok,
-     :proc_lib.spawn_link(
-       __MODULE__,
-       :connection_process,
-       [{ref, transport, opts}]
-     )}
+    {:ok, :proc_lib.spawn_link(__MODULE__, :init, [{ref, transport, opts}])}
   end
 
-  def connection_process({ref, transport, opts}) do
-    {:ok, socket} = :ranch.handshake(ref)
-    init(transport, socket, opts)
-  end
-
-  defp init(transport, socket, opts) do
-    state = %__MODULE__{
-      transport: transport,
-      socket: socket
-    }
-
-    case Noscore.Gateway.initiate(transport, socket, opts) do
-      {:ok, conn} ->
-        loop({conn, state})
-
+  def init({ref, transport, opts}) do
+    with {:ok, socket} <- :ranch.handshake(ref),
+         state <- %__MODULE__{transport: transport, socket: socket},
+         {:ok, conn} <- Noscore.Portal.initiate(transport, socket, opts) do
+      loop({conn, state})
+    else
       {:error, reason} ->
         exit(reason)
     end
@@ -44,8 +30,7 @@ defmodule CelestiaNetwork.Gateway do
 
     receive do
       {^ok, ^socket, data} ->
-        message = normalize_message(transport, socket, data)
-        handle_data(message, {conn, state})
+        handle_data(data, {conn, state})
 
       {^error, ^socket, reason} ->
         exit(reason)
@@ -54,21 +39,19 @@ defmodule CelestiaNetwork.Gateway do
         exit(:closed)
     end
   rescue
-    e ->
-      Noscore.Gateway.send(
+    _ ->
+      Noscore.Portal.send(
         conn,
         Noscore.Event.Client.failc_event(%{
           error: :unexpected_error
         })
       )
-
-      reraise e, __STACKTRACE__
   end
 
   defp handle_data(data, {conn, state}) do
     case Noscore.Gateway.stream(conn, data) do
-      {:ok, conn, responses} ->
-        handle_sign_in(responses, {conn, state})
+      {:ok, conn, _} ->
+        loop({conn, state})
 
       {:error, conn, _, _} ->
         Noscore.Gateway.send(
@@ -79,52 +62,6 @@ defmodule CelestiaNetwork.Gateway do
         )
 
         exit(:normal)
-    end
-  end
-
-  defp handle_sign_in([], {conn, state}) do
-    loop({conn, state})
-  end
-
-  defp handle_sign_in([response | rest], {conn, state}) do
-    case response do
-      {:event, ["NoS0575", _username, _password, _version, _checksum]} ->
-        Noscore.Gateway.send(
-          conn,
-          Noscore.Event.Gateway.nstest_event(%{
-            key: 1,
-            portals: [
-              %{
-                hostname: {127, 0, 0, 1},
-                port: 4124,
-                population: 0,
-                capacity: 10,
-                world_id: 0,
-                world_name: "Dev",
-                channel_id: 0
-              }
-            ]
-          })
-        )
-
-        handle_sign_in(rest, {conn, state})
-
-      _ ->
-        Noscore.Gateway.send(
-          conn,
-          Noscore.Event.Client.failc_event(%{
-            error: :cant_authenticate
-          })
-        )
-
-        exit(:normal)
-    end
-  end
-
-  defp normalize_message(transport, socket, data) do
-    case transport do
-      :ranch_tcp -> {:tcp, socket, data}
-      :ranch_ssl -> {:ssl, socket, data}
     end
   end
 end

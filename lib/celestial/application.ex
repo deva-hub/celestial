@@ -16,20 +16,20 @@ defmodule Celestial.Application do
       {Phoenix.PubSub, name: Celestial.PubSub},
       # Start the Endpoint (http/https)
       CelestialWeb.Endpoint,
-      # Start the Nostale Gateway
-      :ranch.child_spec(
-        CelestiaNetwork.Gateway.TCP,
-        :ranch_tcp,
-        [port: 4123],
-        CelestiaNetwork.Gateway,
-        []
-      ),
       # Start the Nostale Portal
       :ranch.child_spec(
         CelestiaNetwork.Portal.TCP,
         :ranch_tcp,
-        [port: 4124],
+        [port: 4123],
         CelestiaNetwork.Portal,
+        []
+      ),
+      # Start the Nostale Gateway
+      :ranch.child_spec(
+        CelestiaNetwork.Gateway.TCP,
+        :ranch_tcp,
+        [port: 4124],
+        CelestiaNetwork.Gateway,
         []
       )
       # Start a worker by calling: Celestial.Worker.start_link(arg)
