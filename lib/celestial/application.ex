@@ -23,6 +23,14 @@ defmodule Celestial.Application do
         [port: 4123],
         CelestiaNetwork.Gateway,
         []
+      ),
+      # Start the Nostale Portal
+      :ranch.child_spec(
+        CelestiaNetwork.Portal.TCP,
+        :ranch_tcp,
+        [port: 4124],
+        CelestiaNetwork.Portal,
+        []
       )
       # Start a worker by calling: Celestial.Worker.start_link(arg)
       # {Celestial.Worker, arg}

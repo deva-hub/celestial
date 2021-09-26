@@ -43,7 +43,7 @@ defmodule Celestial.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:noscore, github: "deva-hub/noscore", branch: "v0.2"}
+      noscore_dep()
     ]
   end
 
@@ -60,5 +60,13 @@ defmodule Celestial.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
+  end
+
+  defp noscore_dep do
+    if path = System.get_env("NOSCORE_PATH") do
+      {:noscore, path: path}
+    else
+      {:noscore, github: "deva-hub/noscore", branch: "v0.2"}
+    end
   end
 end

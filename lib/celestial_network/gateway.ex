@@ -44,7 +44,8 @@ defmodule CelestiaNetwork.Gateway do
 
     receive do
       {^ok, ^socket, data} ->
-        handle_data(data, {conn, state})
+        message = normalize_message(transport, socket, data)
+        handle_data(message, {conn, state})
 
       {^error, ^socket, reason} ->
         exit(reason)
@@ -52,6 +53,16 @@ defmodule CelestiaNetwork.Gateway do
       {^closed, ^socket} ->
         exit(:closed)
     end
+  rescue
+    e ->
+      Noscore.Gateway.send(
+        conn,
+        Noscore.Event.Client.failc_event(%{
+          error: :unexpected_error
+        })
+      )
+
+      reraise e, __STACKTRACE__
   end
 
   defp handle_data(data, {conn, state}) do
@@ -77,15 +88,15 @@ defmodule CelestiaNetwork.Gateway do
 
   defp handle_sign_in([response | rest], {conn, state}) do
     case response do
-      {:event, ["nos0575", _username, _password, _version]} ->
+      {:event, ["NoS0575", _username, _password, _version, _checksum]} ->
         Noscore.Gateway.send(
           conn,
           Noscore.Event.Gateway.nstest_event(%{
-            key: conn.key,
+            key: 1,
             portals: [
               %{
-                hostname: "localhost",
-                port: "4002",
+                hostname: {127, 0, 0, 1},
+                port: 4124,
                 population: 0,
                 capacity: 10,
                 world_id: 0,
@@ -107,6 +118,13 @@ defmodule CelestiaNetwork.Gateway do
         )
 
         exit(:normal)
+    end
+  end
+
+  defp normalize_message(transport, socket, data) do
+    case transport do
+      :ranch_tcp -> {:tcp, socket, data}
+      :ranch_ssl -> {:ssl, socket, data}
     end
   end
 end
